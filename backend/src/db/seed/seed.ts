@@ -4,6 +4,11 @@
  *
  *   npm run seed
  *
+ * Also creates the development account dev@studyspot.test / devpass123 (id ...0001),
+ * the same user the stub token `stub.00000000-0000-4000-8000-000000000001` signs in as,
+ * so saved preferences and favorites (which reference users) work before M2's
+ * login lands. Set SEED_DEV_USER=false to skip it.
+ *
  * Files (backend/seed/):
  *   venues.json   real cafés, written by M3. Falls back to venues.sample.json.
  *   records.json  optional synthetic history (90 days of survey inputs), written by M4,
@@ -13,7 +18,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { In, IsNull } from 'typeorm';
 import dataSource from '../data-source';
-import { DynamicRecordEntity, VenueEntity } from '../entities';
+import { DynamicRecordEntity, UserEntity, VenueEntity } from '../entities';
 
 export interface SeedVenue {
   id: string;
@@ -39,6 +44,14 @@ export interface SeedRecord {
 }
 
 const SEED_DIR = join(__dirname, '../../../seed');
+
+/** Matches STUB_DEV_USER in modules/accounts. Password hash is bcrypt (cost 10) of "devpass123". */
+export const DEV_USER = {
+  id: '00000000-0000-4000-8000-000000000001',
+  email: 'dev@studyspot.test',
+  displayName: 'Dev Student',
+  passwordHash: '$2a$10$HFErJJquFuYG2FgFKY4wjue68rP.20m4cEu81pjwtR0xxRgT99c72',
+} as const;
 
 function readJson<T>(name: string): T | null {
   const file = join(SEED_DIR, name);
@@ -70,6 +83,15 @@ async function main(): Promise<void> {
   await dataSource.initialize();
   try {
     await dataSource.transaction(async (tx) => {
+      if (process.env.SEED_DEV_USER !== 'false') {
+        await tx
+          .getRepository(UserEntity)
+          .createQueryBuilder()
+          .insert()
+          .values({ ...DEV_USER, termsAcceptedAt: new Date(), role: 'user' })
+          .orIgnore()
+          .execute();
+      }
       const repo = tx.getRepository(VenueEntity);
       for (const v of venues) {
         await repo.save({

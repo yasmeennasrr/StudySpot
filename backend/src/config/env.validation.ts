@@ -31,6 +31,7 @@ export const envValidationSchema = Joi.object({
 
   // External services. Leave empty to use the fake adapters.
   GOOGLE_GEOCODING_API_KEY: Joi.string().allow('').default(''),
+  GOOGLE_GEOCODING_TIMEOUT_MS: Joi.number().integer().min(500).max(10000).default(3000),
   GEMINI_API_KEY: Joi.string().allow('').default(''),
   SENDGRID_API_KEY: Joi.string().allow('').default(''),
   SENDGRID_FROM_EMAIL: Joi.string().allow('').default(''),

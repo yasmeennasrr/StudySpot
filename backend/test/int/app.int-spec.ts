@@ -1,6 +1,6 @@
 /**
  * Integration tests: the whole application on a real PostgreSQL + PostGIS database.
- * Needs DATABASE_URL (CI provides a postgis service; locally use docker compose).
+ * Uses the studyspot_test database (see ./test-database.ts); `npm run setup` creates it.
  * TC-M1-26..TC-M1-33.
  */
 import { readFileSync } from 'node:fs';
@@ -12,12 +12,13 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import * as contracts from '../../src/contracts';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
+import { TEST_DATABASE_URL } from './test-database';
 
 process.env.NODE_ENV = 'test';
 process.env.SCHEDULER_ENABLED = 'false';
 process.env.THROTTLE_LIMIT = '10000';
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgres://postgres@localhost:5432/studyspot_test';
+// Only ever the test database: backend/.env (your dev database) is ignored on purpose.
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? TEST_DATABASE_URL;
 
 const DEV_TOKEN = 'stub.00000000-0000-4000-8000-000000000001';
 const SAMPLE_VENUE = '6f1c2a10-0000-4000-8000-000000000002';

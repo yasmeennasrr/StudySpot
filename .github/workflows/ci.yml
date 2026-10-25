@@ -30,6 +30,7 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgres://studyspot:studyspot@localhost:5432/studyspot_test
+      TEST_DATABASE_URL: postgres://studyspot:studyspot@localhost:5432/studyspot_test
       SCHEDULER_ENABLED: 'false'
       LOG_LEVEL: silent
     steps:
@@ -50,6 +51,8 @@ jobs:
         run: npm run contract:check
       - name: Unit and API-layer tests with coverage
         run: npm run test:cov
+      - name: Test case sheet (IDs unique, linked to requirements and to test code)
+        run: node ../scripts/traceability.mjs --check
       - name: Migrations apply, revert and match the entities
         run: |
           npm run migration:run

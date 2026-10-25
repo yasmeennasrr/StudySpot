@@ -13,6 +13,7 @@
     "check": "npm --prefix backend run lint && npm --prefix backend run typecheck && npm --prefix backend run deps:check && npm --prefix backend test",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f db"
+    "db:logs": "docker compose logs -f db",
+    "test:matrix": "node scripts/traceability.mjs"
   }
 }

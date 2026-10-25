@@ -18,4 +18,4 @@ Rows are callers, columns are providers. A cell names the interface the caller i
 | **scheduler** |  |  |  |  |  |  |  |  | IConditions |  |  | IPresence | IReceiptCodes | IRewards | ISurvey |  |
 | **studymatch** |  |  |  | ILLM |  |  |  |  | IConditions |  |  |  |  |  |  | IVenueQuery<br>IPreferences |
 | **surveys** |  |  |  |  |  |  |  | IClock | event SurveyStored (planned) |  |  |  |  | IRewards |  |  |
-| **venues** | IAuth |  |  |  | IMaps |  |  |  | IConditions | IConfig |  |  |  |  |  |  |
+| **venues** | IAuth |  |  |  | IMaps |  |  | IClock | IConditions | IConfig |  |  |  |  |  |  |

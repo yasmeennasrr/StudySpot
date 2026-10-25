@@ -9,18 +9,19 @@ import {
   VenueEntity,
 } from '../../db/entities';
 import { AccountsModule } from '../accounts/accounts.module';
+import { ClockModule } from '../clock/clock.module';
 import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { StubVenueDetailsService } from './details/venue-details.service.stub';
-import { StubFavoritesService, StubPreferencesService } from './preferences-favorites.service.stub';
+import { FavoritesService, PreferencesService } from './preferences-favorites.service';
 import { StubVenueSearchService } from './search/venue-search.service.stub';
 import { VenueQueryFacade } from './venue-query.service';
 import { MyVenuesController, VenuesController } from './venues.controller';
 
 /**
- * Venues & Search. Owners: M3 (search/), M4 (details/, preferences, favorites, facade).
+ * Venues & Search. Owners: M3 (search/), M4 (details/, facade), M1 (preferences, favorites).
  * Provides IVenueQuery, IPreferences, IFavorites.
- * Uses IConditions, IMaps, IConfig, and IAuth (guard on /me routes).
+ * Uses IConditions, IMaps, IConfig, IClock, and IAuth (guard on /me routes).
  */
 @Module({
   imports: [
@@ -29,14 +30,15 @@ import { MyVenuesController, VenuesController } from './venues.controller';
     MapsAdapterModule,
     ConfigurationModule,
     AccountsModule,
+    ClockModule,
   ],
   controllers: [VenuesController, MyVenuesController],
   providers: [
     StubVenueSearchService,
     StubVenueDetailsService,
     { provide: VENUE_QUERY, useClass: VenueQueryFacade },
-    { provide: PREFERENCES, useClass: StubPreferencesService },
-    { provide: FAVORITES, useClass: StubFavoritesService },
+    { provide: PREFERENCES, useClass: PreferencesService },
+    { provide: FAVORITES, useClass: FavoritesService },
   ],
   exports: [VENUE_QUERY, PREFERENCES, FAVORITES],
 })
