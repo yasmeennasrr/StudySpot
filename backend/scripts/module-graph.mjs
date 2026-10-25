@@ -103,8 +103,8 @@ const label = (n) =>
 const id = (n) => `"${n}"`;
 const lines = [
   'digraph StudySpotModules {',
-  '  graph [rankdir=LR, fontname="Helvetica", fontsize=12, labelloc=t, label="StudySpot backend: module dependencies generated from the code", nodesep=0.35, ranksep=0.9];',
-  '  node [shape=box, style="rounded", fontname="Helvetica", fontsize=11, color="#555555"];',
+  '  graph [rankdir=LR, fontname="Helvetica", fontsize=14, labelloc=t, label="StudySpot backend: module dependencies generated from the code", nodesep=0.35, ranksep=0.9];',
+  '  node [shape=box, style="rounded", fontname="Helvetica", fontsize=13, color="#555555"];',
   '  edge [color="#666666", arrowsize=0.7, fontname="Helvetica", fontsize=9];',
 ];
 for (const n of [...nodes].sort()) {
@@ -129,7 +129,7 @@ for (const [a, b, ev] of planned)
   );
 lines.push(
   '  subgraph cluster_key { label="Key"; fontsize=10; color="#cccccc";',
-  '    k1 [shape=plaintext, label="solid: uses interface   dashed blue: event emitted in code   dotted grey: event designed, emitted in a later sprint   blue box: new in SDS v0.3   (Clock, also new, is used by most modules and not drawn)"]; }',
+  '    k1 [shape=plaintext, label="solid: uses interface\\ldashed blue: event emitted in code\\ldotted grey: event designed, emitted in a later sprint\\lblue box: new in SDS v0.3\\lClock (also new) is used by most modules; not drawn\\l"]; }',
 );
 lines.push('}');
 
@@ -205,7 +205,7 @@ console.log(
 );
 try {
   execFileSync('dot', ['-Tsvg', dotFile, '-o', join(outDir, 'module-graph.svg')]);
-  execFileSync('dot', ['-Tpng', '-Gdpi=110', dotFile, '-o', join(outDir, 'module-graph.png')]);
+  execFileSync('dot', ['-Tpng', '-Gdpi=150', dotFile, '-o', join(outDir, 'module-graph.png')]);
   console.log('Rendered module-graph.svg and module-graph.png');
 } catch {
   console.log(

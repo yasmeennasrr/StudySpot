@@ -3,7 +3,7 @@
 skinparam componentStyle uml2
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 12
+skinparam defaultFontSize 16
 skinparam component { 
   BackgroundColor white
   BorderColor #555555

@@ -3,8 +3,10 @@
 ' 19 tables, migration 1792946643956-InitialSchema. PK = primary key, FK = foreign key.
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 11
-skinparam linetype ortho
+skinparam defaultFontSize 15
+skinparam nodesep 25
+skinparam ranksep 45
+top to bottom direction
 skinparam class {
   BackgroundColor white
   BorderColor #555555
@@ -221,4 +223,10 @@ surveys |o--o| points_ledger
 coupon_offers ||--o{ coupons
 coupons |o--o{ points_ledger
 config_values ||..o{ config_history
+' layout only: stack the packages top to bottom so the diagram fits a portrait page
+sessions -[hidden]down- venues
+device_tokens -[hidden]down- user_preferences
+review_reports -[hidden]down- surveys
+dynamic_records -[hidden]down- coupon_offers
+points_ledger -[hidden]down- audit_log
 @enduml

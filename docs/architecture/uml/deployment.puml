@@ -2,7 +2,7 @@
 ' SDS v0.3: UML deployment diagram (replaces the bullet list in SDS 10.2).
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 12
+skinparam defaultFontSize 16
 skinparam node {
   BackgroundColor white
   BorderColor #555555

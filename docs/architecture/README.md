@@ -16,6 +16,10 @@ Everything here answers the Milestone 1 feedback: the big picture first, every b
 
 Sources are PlantUML (`uml/*.puml`); re-render with `plantuml -tpng -tsvg docs/architecture/uml/*.puml`. The generated files come from `cd backend && npm run deps:graph`.
 
+## SDS v0.3 with tracked changes
+
+[`docs/specs/StudySpot_SDS_v0.3_M1_tracked.docx`](../specs/StudySpot_SDS_v0.3_M1_tracked.docx) is SDS v0.2 with M1's changes as Word tracked changes (author "Mohammad Kasaby (M1)"): new 1.4, 5.2 (Table 25), 6.7, 14; Figures 1 and 2 replaced; Figures 0, 7, 8, 9 added; Presence, Configuration and Clock rows; change-log row 0.3. Other members add their parts with Track Changes on, under their own names, then M1 merges on Saturday.
+
 ## What changed since SDS v0.2 (for the change log)
 
 1. **Two new components:** *Presence* (`IPresence`) receives location reports and receipt-scan check-ins, keeps raw records for 2 hours (PRIV-016), counts present users for Conditions (RT-007, RT-008), and triggers presence prompts (SEN-014). *Configuration* (`IConfig`) holds every tunable value with change history (DATA-012, FR-039, FR-040). A *Clock* (`IClock`) service, promised in SDS 9 for testability, is now a component.

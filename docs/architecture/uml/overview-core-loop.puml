@@ -2,14 +2,14 @@
 ' Big picture for the SDS opening and the first architecture slide.
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 12
+skinparam defaultFontSize 16
 skinparam rectangle {
   BackgroundColor white
   BorderColor #555555
   RoundCorner 12
 }
 skinparam ArrowColor #555555
-left to right direction
+top to bottom direction
 
 title StudySpot core loop: contributions feed conditions, conditions drive discovery, discovery earns rewards
 
