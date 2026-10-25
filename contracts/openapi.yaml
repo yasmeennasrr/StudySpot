@@ -253,6 +253,7 @@ paths:
               schema: { $ref: '#/components/schemas/Preferences' }
         '400': { $ref: '#/components/responses/InvalidInput' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
     delete:
       tags: [me]
       summary: Remove all preferences (FR-023)

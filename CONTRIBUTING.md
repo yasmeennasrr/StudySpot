@@ -6,10 +6,10 @@ Six members, one area each (M1 to M6), working in parallel through shared contra
 
 | Member | Area | Where in the repo |
 | --- | --- | --- |
-| M1 | Platform and architecture: CI, contracts, schema, module wiring, API layer, Configuration, Audit, Clock, Scheduler | `backend/src/{common,config,contracts,db,health}`, `backend/src/modules/{configuration,audit,clock,scheduler}`, `.github/`, `docs/architecture/` |
+| M1 | Platform and architecture: CI, contracts, schema, module wiring, API layer, Configuration, Audit, Clock, Scheduler; saved preferences and favorites; Google geocoding adapter; deploy; test plan and traceability matrix | `backend/src/{common,config,contracts,db,health}`, `backend/src/modules/{configuration,audit,clock,scheduler}`, `backend/src/modules/venues/preferences-favorites.service.ts`, `backend/src/adapters/maps/`, `render.yaml`, `.github/`, `docs/{architecture,testing,deploy.md}` |
 | M2 | Accounts, auth | `backend/src/modules/accounts/` |
-| M3 | Venues search, nearby, filters, Maps adapter, seed data | `backend/src/modules/venues/search/`, `backend/src/adapters/maps/`, `backend/seed/venues.json` |
-| M4 | Venue details, Conditions, preferences, favorites | `backend/src/modules/venues/{details,venue-query.service.ts,preferences-favorites.*}`, `backend/src/modules/conditions/`, `backend/seed/records.json` |
+| M3 | Venues search, nearby, filters, seed data (uses `IMaps` for areas) | `backend/src/modules/venues/search/`, `backend/seed/venues.json` |
+| M4 | Venue details, Conditions | `backend/src/modules/venues/{details,venue-query.service.ts}`, `backend/src/modules/conditions/`, `backend/seed/records.json` |
 | M5 | Flutter app shell, accounts and permission screens, preferences and favorites screens | `app/` (structure, `lib/core`, `lib/features/{auth,permissions,preferences,favorites}`) |
 | M6 | Flutter discovery screens: search, filters, map, details | `app/lib/features/{search,map,venue_details}` |
 
@@ -62,10 +62,11 @@ Before pushing:
 ```bash
 npm run check                 # lint, types, architecture rules, unit tests
 npm run test:int              # integration tests: point DATABASE_URL at a separate test database, they wipe it
+npm run test:matrix           # if you changed docs/testing/test-cases.csv: rebuilds the traceability matrix
 ```
 
-Development sign-in while M2's work is in progress: send `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001` (dev user `dev@studyspot.test` / `devpass123`).
+Development sign-in while M2's work is in progress: send `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001` (dev user `dev@studyspot.test` / `devpass123`). `npm run setup` also creates this user in the database, so saved preferences and favorites work with it. **M2:** when registration writes real rows to `users`, every account can use them; until then, accounts made with the stub's register exist only in memory, and saving preferences or favorites for them answers 404 "account could not be found".
 
 ## Test cases (PB-45)
 
-Every member writes 12 to 15 documented test cases in `docs/testing/test-cases.csv`, using the columns already there. Name tests in code with the same ID (`it('TC-M3-04 ...')`), so a reader can go from the sheet to the code. Use equivalence partitioning and boundary values (for example 59 vs 61 minutes, 7 vs 8 characters).
+Every member writes 12 to 15 documented test cases in `docs/testing/test-cases.csv`, using the columns already there. Name tests in code with the same ID (`it('TC-M3-04 ...')`), so a reader can go from the sheet to the code. Use equivalence partitioning and boundary values (for example 59 vs 61 minutes, 7 vs 8 characters). The full method (levels, techniques, entry and exit criteria, schedule) is in [`docs/testing/test-plan.md`](docs/testing/test-plan.md). CI checks the sheet: IDs must be unique, each row needs a requirement, and the automated test file must mention the ID. `npm run test:matrix` builds [`docs/testing/traceability-matrix.md`](docs/testing/traceability-matrix.md) from it.

@@ -24,7 +24,8 @@ backend/             NestJS API: modules, contracts, database, tests
   seed/              venue seed data
 contracts/openapi.yaml   the API contract between app and backend
 docs/architecture/   UML (PlantUML sources + rendered PNGs)
-docs/testing/        test cases and results
+docs/testing/        test plan, test cases, traceability matrix
+docs/deploy.md       Render + Supabase deployment
 ```
 
 ## Quick start
@@ -46,6 +47,8 @@ Run `npm run setup` again after any `git pull`: it is safe to repeat and picks u
 | `npm run dev` | Start the backend with auto-reload |
 | `npm run check` | Lint, type check, architecture rules and unit tests (run before a pull request) |
 | `npm test` | Unit and API tests |
+| `npm run test:int` | Integration tests on a real database (uses a separate test database) |
+| `npm run test:matrix` | Rebuild the requirements traceability matrix from the test case sheet |
 | `npm run db:up` / `db:down` | Start / stop the local database |
 
 API: <http://localhost:3000/api/v1> · Interactive docs: <http://localhost:3000/api/docs> · Health: `/api/v1/health`
@@ -59,9 +62,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the team rules, branches and pull req
 | API layer (validation, errors, request IDs, rate limit, health) | Built | M1 |
 | Configuration, Audit Log, Clock, Scheduler | Built | M1 |
 | Database schema (19 tables, PostGIS) and migrations | Built | M1 |
+| Saved preferences and favorites (stored in the database, own data only) | Built | M1 |
+| Google geocoding adapter (offline geocoder until a key is set) | Built | M1 |
+| Deployment: Supabase database ready, Render blueprint ([docs/deploy.md](docs/deploy.md)) | Database live; API deploy pending | M1 |
+| Test plan and traceability matrix ([docs/testing](docs/testing/)) | Built | M1 |
 | Accounts & Auth | Stub with dev token, real version in progress | M2 |
 | Venues search, nearby, filters | Stub on sample data, real version in progress | M3 |
-| Venue details, Conditions, preferences, favorites | Stub, real version in progress | M4 |
+| Venue details, Conditions | Stub, real version in progress | M4 |
 | Presence, Surveys, QR Codes, Rewards, Audio, Notifications, StudyMatch, Admin | Interfaces and stubs; built in Sprints 2 and 3 | — |
 | Flutter app | In progress | M5, M6 |
 
