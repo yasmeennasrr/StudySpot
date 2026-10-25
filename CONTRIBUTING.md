@@ -46,21 +46,22 @@ After Monday, a change to any of them needs a pull request that every affected m
 
 ## Local setup
 
+Install **Git**, **Node.js 20+** and **Docker Desktop** once (open Docker Desktop and wait for "Engine running"). Then, from the repo root:
+
 ```bash
-# 1. Database (Docker), or use the team's Supabase dev database URL instead
-docker compose up -d db
+npm run setup     # checks tools, creates backend/.env, starts the database,
+                  # installs packages, runs migrations, loads sample data
+npm run dev       # http://localhost:3000/api/v1, docs at http://localhost:3000/api/docs
+```
 
-# 2. Backend
-cd backend
-cp .env.example .env          # set DATABASE_URL if not using docker
-npm install
-npm run migration:run
-npm run seed
-npm run start:dev             # http://localhost:3000/api/v1, docs at http://localhost:3000/api/docs
+After every `git pull`, run `npm run setup` again (it is safe to repeat and picks up new packages and migrations).
+Using Supabase instead of Docker: set `DATABASE_URL` and `DATABASE_SSL=true` in `backend/.env`, then `npm run setup -- --no-docker`.
 
-# 3. Before pushing
-npm run lint && npm run typecheck && npm run deps:check && npm test
-npm run test:int              # needs the database
+Before pushing:
+
+```bash
+npm run check                 # lint, types, architecture rules, unit tests
+npm run test:int              # integration tests: point DATABASE_URL at a separate test database, they wipe it
 ```
 
 Development sign-in while M2's work is in progress: send `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001` (dev user `dev@studyspot.test` / `devpass123`).
