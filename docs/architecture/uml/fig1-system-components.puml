@@ -1,0 +1,67 @@
+@startuml fig1-system-components
+' SDS v0.3 Figure 1: system-level component diagram.
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam component { 
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam interface {
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam ArrowColor #666666
+top to bottom direction
+
+title StudySpot system (SDS v0.3, Figure 1): every client reaches data, AI and outside services only through the backend
+
+component "StudySpot Mobile App\n(Flutter, MVVM)" as App {
+  component "Screens" as Screens
+  component "StudyMatch Chat" as Chat
+  component "Sensor Manager\n(location, microphone)" as Sensors
+  component "Deep Link Handler\n(receipt-code links)" as Deep
+  component "API Client\n(only network path)" as Client
+  Screens ..> Client
+  Chat ..> Client
+  Sensors ..> Client
+  Deep ..> Client
+}
+component "Staff Console\n(web page, Sprint 3)" as Staff
+component "Venue Code Generator\n(web page or till, Sprint 2)" as Venue
+
+component "StudySpot Backend «modular monolith»" as Backend {
+  () "IUserAPI\n(app)" as IUserAPI
+  () "IStaffAPI\n(staff)" as IStaffAPI
+  () "IVenueAPI\n(venues)" as IVenueAPI
+  component "API Layer" as API
+  component "Business modules\n(12 + Presence, Configuration;\nsee Figure 2)" as Modules
+  component "Repositories" as Repos
+  component "Adapters\n(Maps · E-mail · Push · LLM · Audio AI)" as Adapters
+  API -up- IUserAPI
+  API -up- IStaffAPI
+  API -up- IVenueAPI
+  API ..> Modules : module interfaces
+  Modules ..> Repos : IRepository
+  Modules ..> Adapters : adapter interfaces
+}
+
+database "PostgreSQL + PostGIS\n(Supabase)" as DB
+cloud "External services" as Ext {
+  component "Google Gemini\n(LLM, audio)" as Gemini
+  component "Google Maps\n(SDK, Geocoding)" as GMaps
+  component "SendGrid" as SendGrid
+  component "Firebase Cloud\nMessaging" as FCM
+}
+
+Client ..> IUserAPI : HTTPS / REST\nBearer token
+Staff ..> IStaffAPI : HTTPS / REST\nstaff re-auth
+Venue ..> IVenueAPI : HTTPS\nvenue API key
+Repos ..> DB : SQL (TypeORM)
+Adapters ..> Gemini : HTTPS\n(timeout + circuit breaker)
+Adapters ..> GMaps : HTTPS
+Adapters ..> SendGrid : HTTPS
+Adapters ..> FCM : HTTPS
+Screens ..> GMaps : map tiles\n(restricted client key)
+@enduml

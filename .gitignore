@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+backend/*.tsbuildinfo
+# Flutter (M5)
+app/.dart_tool/
+app/build/
+app/.flutter-plugins*
+app/ios/Pods/
+app/android/.gradle/

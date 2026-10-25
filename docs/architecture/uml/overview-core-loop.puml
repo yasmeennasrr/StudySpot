@@ -1,0 +1,28 @@
+@startuml overview-core-loop
+' Big picture for the SDS opening and the first architecture slide.
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam rectangle {
+  BackgroundColor white
+  BorderColor #555555
+  RoundCorner 12
+}
+skinparam ArrowColor #555555
+left to right direction
+
+title StudySpot core loop: contributions feed conditions, conditions drive discovery, discovery earns rewards
+
+rectangle "**1. Contribute**\nreceipt-QR survey · in-app survey\nnoise snippet · presence\n(Surveys, QR Codes, Audio Analysis, Presence)" as C
+rectangle "**2. Estimate**\ncrowd · noise · Wi-Fi\ncurrent > hours ago > historical > unavailable\n(Conditions)" as E
+rectangle "**3. Discover**\nsearch · nearby · filters · map · details\nStudyMatch AI recommendations\n(Venues & Search, StudyMatch)" as D
+rectangle "**4. Reward**\npoints per answer (daily cap)\ncoupon by e-mail, 5-minute activation\n(Rewards & Coupons)" as R
+rectangle "**5. Visit the café**\nstudent studies, buys,\ngets a new receipt code" as V
+
+C --> E : dynamic records\n(SurveyStored, NoiseRecorded)
+E --> D : status-labelled values\n(IConditions)
+D --> V : student picks a place
+V --> C : receipt QR, presence
+C --> R : survey stored\n(IRewards)
+R --> V : coupon redeemed at the counter
+@enduml

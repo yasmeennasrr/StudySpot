@@ -1,0 +1,53 @@
+@startuml deployment
+' SDS v0.3: UML deployment diagram (replaces the bullet list in SDS 10.2).
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam node {
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam ArrowColor #666666
+
+title StudySpot deployment (SDS v0.3): one backend container, one managed database
+
+node "Student phone\n<<device>>\niOS 16+ / Android 10+" as Phone {
+  artifact "studyspot.apk / .ipa\n(Flutter app)" as AppArt
+}
+node "Venue till or tablet\n<<device>>" as Till {
+  artifact "browser: code-generator page" as TillArt
+}
+node "Staff laptop\n<<device>>" as Laptop {
+  artifact "browser: staff console" as StaffArt
+}
+
+node "Render\n<<PaaS, Frankfurt>>" as Render {
+  node "studyspot-api\n<<container, Node.js 20>>" as Container {
+    artifact "backend/dist\n(NestJS: API layer, 14 modules,\nscheduler, web pages)" as Api
+  }
+}
+node "Supabase\n<<managed PostgreSQL 16>>" as Supabase {
+  database "studyspot\n(PostGIS 3, pg_trgm)" as Db
+}
+node "Google Cloud" as Google {
+  component "Gemini API" as Gemini
+  component "Maps / Geocoding API" as Maps
+  component "Firebase Cloud Messaging" as Fcm
+}
+node "SendGrid" as Sg
+node "GitHub" as Gh {
+  artifact "repo + Actions CI" as Repo
+}
+
+AppArt --> Api : HTTPS 443\nREST /api/v1
+TillArt --> Api : HTTPS 443\nvenue API key
+StaffArt --> Api : HTTPS 443
+Api --> Db : TLS 5432\nTypeORM
+Api --> Gemini : HTTPS
+Api --> Maps : HTTPS
+Api --> Fcm : HTTPS
+Api --> Sg : HTTPS
+Fcm ..> AppArt : push
+AppArt --> Maps : map tiles
+Repo ..> Container : auto-deploy on\nmerge to main
+@enduml

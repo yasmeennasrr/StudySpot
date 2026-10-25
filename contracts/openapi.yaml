@@ -1,0 +1,593 @@
+openapi: 3.0.3
+info:
+  title: StudySpot User API
+  version: 0.2.0
+  description: |
+    Sprint 1 contract between the Flutter app and the NestJS backend (SRS EIR-008).
+    This file is the single source of truth: the backend serves it at /api/docs, and the
+    app generates its Dart models from it. Change it only through a pull request that the
+    affected members approve (owner: M1).
+
+    Conventions
+    - Base path /api/v1. JSON everywhere. Times are ISO 8601 UTC strings.
+    - Every error has the body ErrorBody and an X-Request-Id response header.
+    - Protected routes need "Authorization: Bearer <accessToken>".
+      Until M2's real auth lands, the stub accepts `stub.00000000-0000-4000-8000-000000000001`
+      for the dev user (dev@studyspot.test / devpass123).
+    - Levels are words in the API (quiet/moderate/noisy, poor/average/good, low/moderate/high).
+    - Dynamic values always carry a status: current, hours_ago, historical, unavailable (SRS 3.9).
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local
+  - url: https://studyspot-api.onrender.com/api/v1
+    description: Staging on Render (set the real URL after the first deploy)
+tags:
+  - name: health
+  - name: auth
+    description: Owner M2 (backend), M5 (screens). PB-03, PB-04.
+  - name: venues
+    description: Owners M3 (search, nearby), M4 (details), M6 (screens). PB-07 to PB-11.
+  - name: me
+    description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Service and database status (Render health check)
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Up
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+        '503':
+          description: Database down
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Accept the terms and create an account (FR-001, PRIV-011)
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Account created and signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '409':
+          description: E-mail already registered
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorBody' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Sign in (FR-002, FR-003). Failures are logged (SEC-010)
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Exchange a refresh token for new tokens. Refused after 14 days idle (SEC-009)
+      operationId: refresh
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: New tokens
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthTokens' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Sign out; the refresh token stops working (FR-004)
+      operationId: logout
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '204': { description: Signed out }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+
+  /me:
+    get:
+      tags: [auth]
+      summary: The signed-in user's account (FR-005)
+      operationId: getMe
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /venues/search:
+    get:
+      tags: [venues]
+      summary: Search by name, by area, or near a point, with filters (FR-009, FR-011, FR-013)
+      description: |
+        Give at least one of `q`, `area`, or `lat`+`lng`. With `area` the backend geocodes it;
+        if the maps service is down, it falls back to name matching and sets `degraded: true` (EIR-011).
+        No sign-in needed (FR-006).
+      operationId: searchVenues
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string, minLength: 1, maxLength: 100 }, description: Name text }
+        - { name: area, in: query, schema: { type: string, minLength: 2, maxLength: 100 }, example: Zamalek }
+        - { $ref: '#/components/parameters/LatOptional' }
+        - { $ref: '#/components/parameters/LngOptional' }
+        - { $ref: '#/components/parameters/Radius' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Noise' }
+        - { $ref: '#/components/parameters/Wifi' }
+        - { $ref: '#/components/parameters/Crowd' }
+        - { $ref: '#/components/parameters/Outlets' }
+        - { $ref: '#/components/parameters/MaxPrice' }
+        - { $ref: '#/components/parameters/OpenNow' }
+        - { $ref: '#/components/parameters/MaxDistance' }
+        - { $ref: '#/components/parameters/StudyType' }
+      responses:
+        '200':
+          description: Matching venues, nearest first when a point is known
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResult' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '404':
+          description: Area not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorBody' }
+
+  /venues/nearby:
+    get:
+      tags: [venues]
+      summary: Venues near the device location with distance (FR-010, FR-012)
+      operationId: nearbyVenues
+      security: []
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number, minimum: -90, maximum: 90 }, example: 30.0195 }
+        - { name: lng, in: query, required: true, schema: { type: number, minimum: -180, maximum: 180 }, example: 31.4996 }
+        - { $ref: '#/components/parameters/Radius' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Noise' }
+        - { $ref: '#/components/parameters/Wifi' }
+        - { $ref: '#/components/parameters/Crowd' }
+        - { $ref: '#/components/parameters/Outlets' }
+        - { $ref: '#/components/parameters/MaxPrice' }
+        - { $ref: '#/components/parameters/OpenNow' }
+        - { $ref: '#/components/parameters/MaxDistance' }
+        - { $ref: '#/components/parameters/StudyType' }
+      responses:
+        '200':
+          description: Nearby venues, nearest first
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResult' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+
+  /venues/{venueId}:
+    get:
+      tags: [venues]
+      summary: Venue details; static and dynamic groups kept separate (FR-016 to FR-021)
+      operationId: getVenue
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      responses:
+        '200':
+          description: Details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VenueDetails' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /me/preferences:
+    get:
+      tags: [me]
+      summary: Saved study preferences (FR-022, FR-024)
+      operationId: getPreferences
+      responses:
+        '200':
+          description: Preferences (empty object when none)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Preferences' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    put:
+      tags: [me]
+      summary: Replace study preferences (FR-022, FR-023)
+      operationId: putPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Preferences' }
+      responses:
+        '200':
+          description: Saved preferences
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Preferences' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    delete:
+      tags: [me]
+      summary: Remove all preferences (FR-023)
+      operationId: deletePreferences
+      responses:
+        '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/favorites:
+    get:
+      tags: [me]
+      summary: Favorite venues (FR-027)
+      operationId: listFavorites
+      responses:
+        '200':
+          description: Favorites
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/VenueSummary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/favorites/{venueId}:
+    put:
+      tags: [me]
+      summary: Save a venue as favorite; safe to repeat (FR-026)
+      operationId: addFavorite
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      responses:
+        '204': { description: Saved }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [me]
+      summary: Remove a favorite (FR-027)
+      operationId: removeFavorite
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      responses:
+        '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    VenueId:
+      name: venueId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    LatOptional:
+      name: lat
+      in: query
+      description: Send with lng
+      schema: { type: number, minimum: -90, maximum: 90 }
+    LngOptional:
+      name: lng
+      in: query
+      description: Send with lat
+      schema: { type: number, minimum: -180, maximum: 180 }
+    Radius:
+      name: radius
+      in: query
+      description: Search radius in metres (default 2000)
+      schema: { type: integer, minimum: 100, maximum: 5000, default: 2000 }
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 30, default: 30 }
+    Noise:
+      name: noise
+      in: query
+      schema: { $ref: '#/components/schemas/NoiseWord' }
+    Wifi:
+      name: wifi
+      in: query
+      schema: { $ref: '#/components/schemas/WifiWord' }
+    Crowd:
+      name: crowd
+      in: query
+      schema: { $ref: '#/components/schemas/CrowdWord' }
+    Outlets:
+      name: outlets
+      in: query
+      schema: { type: boolean }
+    MaxPrice:
+      name: maxPrice
+      in: query
+      description: 1 = cheap .. 4 = expensive
+      schema: { type: integer, minimum: 1, maximum: 4 }
+    OpenNow:
+      name: openNow
+      in: query
+      schema: { type: boolean }
+    MaxDistance:
+      name: maxDistance
+      in: query
+      description: Metres
+      schema: { type: integer, minimum: 1, maximum: 5000 }
+    StudyType:
+      name: studyType
+      in: query
+      schema: { type: string, enum: [individual, group] }
+
+  responses:
+    InvalidInput:
+      description: Input failed validation (SEC-007). `details` lists each field.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+          example:
+            code: INVALID_INPUT
+            message: 'Please check password: password must contain at least one digit.'
+            details: [{ field: password, problems: [password must contain at least one digit] }]
+            requestId: 5f0c1f7e-7a39-4a8e-9c3a-0e2f2b1c9d10
+    Unauthenticated:
+      description: Missing, invalid or expired token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+
+  schemas:
+    ErrorCode:
+      type: string
+      enum: [INVALID_INPUT, NOT_FOUND, NOT_ALLOWED, UNAVAILABLE, UNAUTHENTICATED, CONFLICT, RATE_LIMITED, NOT_IMPLEMENTED, INTERNAL]
+    ErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code: { $ref: '#/components/schemas/ErrorCode' }
+        message: { type: string, description: What failed and what the user can do next (USE-008) }
+        details: { description: 'Optional, e.g. field errors for INVALID_INPUT' }
+        requestId: { type: string }
+
+    Health:
+      type: object
+      required: [status, version, uptimeSeconds, database]
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        version: { type: string }
+        uptimeSeconds: { type: integer }
+        database: { type: string, enum: [up, down] }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, displayName, termsAccepted]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email, maxLength: 254, description: 'Unique, case-insensitive' }
+        password: { type: string, minLength: 8, maxLength: 128, description: At least one letter and one digit }
+        displayName: { type: string, minLength: 2, maxLength: 30 }
+        termsAccepted: { type: boolean, enum: [true] }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1, maxLength: 128 }
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      additionalProperties: false
+      properties:
+        refreshToken: { type: string }
+    AuthUser:
+      type: object
+      required: [id, email, displayName, role]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        role: { type: string, enum: [user, admin, moderator] }
+    AuthTokens:
+      type: object
+      required: [accessToken, expiresIn, refreshToken, user]
+      properties:
+        accessToken: { type: string }
+        expiresIn: { type: integer, description: Seconds until the access token expires }
+        refreshToken: { type: string }
+        user: { $ref: '#/components/schemas/AuthUser' }
+    Profile:
+      allOf:
+        - $ref: '#/components/schemas/AuthUser'
+        - type: object
+          required: [termsAcceptedAt, createdAt, pointsBalance]
+          properties:
+            termsAcceptedAt: { type: string, format: date-time }
+            createdAt: { type: string, format: date-time }
+            pointsBalance: { type: integer, minimum: 0 }
+
+    NoiseWord: { type: string, enum: [quiet, moderate, noisy] }
+    WifiWord: { type: string, enum: [poor, average, good] }
+    CrowdWord: { type: string, enum: [low, moderate, high] }
+
+    GeoPoint:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat: { type: number }
+        lng: { type: number }
+    TimeRange:
+      type: object
+      required: [open, close]
+      properties:
+        open: { type: string, example: '08:00', description: 'HH:MM, Africa/Cairo' }
+        close: { type: string, example: '02:00', description: May be past midnight }
+    OpeningHours:
+      type: object
+      nullable: true
+      description: Keys 0 (Sunday) .. 6 (Saturday); a missing day means closed
+      additionalProperties:
+        type: array
+        items: { $ref: '#/components/schemas/TimeRange' }
+    VenueStatic:
+      type: object
+      required: [id, name, location, address, area, openingHours, priceLevel, wifiAvailable, outletsAvailable, studyType]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        location: { $ref: '#/components/schemas/GeoPoint' }
+        address: { type: string, nullable: true }
+        area: { type: string, nullable: true }
+        openingHours: { $ref: '#/components/schemas/OpeningHours' }
+        priceLevel: { type: integer, minimum: 1, maximum: 4, nullable: true }
+        wifiAvailable: { type: boolean, nullable: true }
+        outletsAvailable: { type: boolean, nullable: true }
+        studyType: { type: string, enum: [individual, group, both], nullable: true }
+
+    ConditionValue:
+      type: object
+      description: |
+        One dynamic value (RT-004). Show the label as:
+        current -> "Current: <label>"; hours_ago -> "<N> hours ago: <label>" (N from newestInputAt);
+        historical -> "Estimate based on historical data: <label>"; unavailable -> "Unavailable".
+        If isEstimate is true, mark it as an estimate (USE-004).
+      required: [level, label, status, newestInputAt, basedOn, isEstimate]
+      properties:
+        level: { type: integer, enum: [1, 2, 3], nullable: true }
+        label: { type: string, nullable: true, example: Quiet }
+        status: { type: string, enum: [current, hours_ago, historical, unavailable] }
+        newestInputAt: { type: string, format: date-time, nullable: true }
+        basedOn:
+          type: array
+          items: { type: string, enum: [present_users, surveys, audio, historical] }
+        isEstimate: { type: boolean }
+    VenueConditions:
+      type: object
+      required: [venueId, crowd, noise, wifi]
+      properties:
+        venueId: { type: string, format: uuid }
+        crowd: { $ref: '#/components/schemas/ConditionValue' }
+        noise: { $ref: '#/components/schemas/ConditionValue' }
+        wifi: { $ref: '#/components/schemas/ConditionValue' }
+
+    VenueSummary:
+      allOf:
+        - $ref: '#/components/schemas/VenueStatic'
+        - type: object
+          required: [distanceMeters, openNow, averageRating, reviewCount, conditions]
+          properties:
+            distanceMeters: { type: integer, nullable: true }
+            openNow: { type: boolean, nullable: true }
+            averageRating: { type: number, nullable: true }
+            reviewCount: { type: integer }
+            conditions:
+              nullable: true
+              allOf: [{ $ref: '#/components/schemas/VenueConditions' }]
+    SearchResult:
+      type: object
+      required: [origin, items, degraded]
+      properties:
+        origin:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/GeoPoint' }]
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/VenueSummary' }
+        degraded: { type: boolean, description: True when the maps service failed and only name search ran }
+
+    Review:
+      type: object
+      required: [id, rating, text, authorDisplayName, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, nullable: true, maxLength: 1000 }
+        authorDisplayName: { type: string }
+        createdAt: { type: string, format: date-time }
+    VenueDetails:
+      type: object
+      required: [static, dynamic, averageRating, reviewCount, reviews, isFavorite]
+      properties:
+        static: { $ref: '#/components/schemas/VenueStatic' }
+        dynamic: { $ref: '#/components/schemas/VenueConditions' }
+        averageRating: { type: number, nullable: true }
+        reviewCount: { type: integer }
+        reviews:
+          type: array
+          items: { $ref: '#/components/schemas/Review' }
+        isFavorite: { type: boolean, nullable: true, description: Null when not signed in }
+
+    Preferences:
+      type: object
+      additionalProperties: false
+      description: The FR-013 criteria; every field optional
+      properties:
+        noise: { $ref: '#/components/schemas/NoiseWord' }
+        wifi: { $ref: '#/components/schemas/WifiWord' }
+        crowd: { $ref: '#/components/schemas/CrowdWord' }
+        outlets: { type: boolean }
+        maxPrice: { type: integer, minimum: 1, maximum: 4 }
+        openNow: { type: boolean }
+        maxDistance: { type: integer, minimum: 1, maximum: 5000 }
+        studyType: { type: string, enum: [individual, group] }

@@ -1,0 +1,24 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testRegex": "src/.*\\.spec\\.ts$|test/unit/.*\\.spec\\.ts$|test/e2e/.*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/main.ts",
+    "!src/db/migrations/**",
+    "!src/db/seed/**",
+    "!src/db/data-source.ts"
+  ],
+  "coverageDirectory": "coverage",
+  "testEnvironment": "node",
+  "setupFiles": [
+    "<rootDir>/test/setup-quiet-logs.ts"
+  ]
+}

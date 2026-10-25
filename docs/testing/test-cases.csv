@@ -1,0 +1,34 @@
+TC-ID,Requirement,Technique,Level,Preconditions,Input,Expected,Actual,Result,Date,Tester,Automated test
+TC-M1-01,"EIR-011, USE-008",Equivalence partitioning (one class per error code),Unit,-,AppError for each of the 9 codes,"HTTP status from the code table; body {code, message}",As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-02,SEC-007,Equivalence partitioning,Unit,-,AppError.invalidInput with field details,details kept in body,As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-03,EIR-011,Equivalence partitioning,Unit,-,"AdapterUnavailableError('maps','timeout')","503 UNAVAILABLE, details.service=maps, reason not shown",As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-04,SEC-013 (rate limit),Equivalence partitioning,Unit,-,ThrottlerException,429 RATE_LIMITED,As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-05,EIR-008,"Equivalence partitioning (4xx known, 4xx other, 5xx)",Unit,-,"404, 400, 410, 502 framework errors","NOT_FOUND, INVALID_INPUT, INVALID_INPUT, INTERNAL",As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-06,"SEC-003 (no leaks), USE-008",Error guessing,Unit,-,Error containing a password string,"500 INTERNAL, message has no internals",As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-07,EIR-008,Inspection,Unit,-,Every ErrorCode,Each has a status >= 400,As expected,Pass,2026-10-25,M1,backend/test/unit/all-exceptions.filter.spec.ts
+TC-M1-08,EIR-008,Equivalence partitioning (valid class),API layer,App with real API layer,POST valid body under /api/v1,201,As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-09,SEC-007,Equivalence partitioning (invalid classes),API layer,App with real API layer,"Bad email, 1-char name, unknown field",400 INVALID_INPUT listing all 3 fields,As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-10,SEC-007,Boundary value analysis,API layer,Query rule 100..5000,"radius = 99, 100, 5000, 5001","400, 200, 200, 400; value converted to number",As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-11,USE-008,Equivalence partitioning,API layer,-,Service NOT_FOUND; unknown route,404 NOT_FOUND body in both cases,As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-12,EIR-011,Equivalence partitioning,API layer,-,Route whose maps adapter fails,503 UNAVAILABLE,As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-13,USE-008,Error guessing,API layer,-,Route throwing a raw Error,"500, no internal text in body",As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-14,SEC-010 (traceability),State-based,API layer,-,Request without X-Request-Id,"UUID generated, returned in header and error body",As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-15,SEC-007,Equivalence partitioning (safe / unsafe id),API layer,-,X-Request-Id 'demo-trace-001' and 'bad id <script>',Safe one reused; unsafe one replaced,As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-16,SEC-003,Inspection,API layer,-,Any request,"nosniff header set, X-Powered-By removed",As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-17,SEC-013 (rate limit),Boundary value analysis,API layer,Limit 5 per minute,6 requests from one client,"Requests 1-5 pass, 6th = 429 RATE_LIMITED",As expected,Pass,2026-10-25,M1,backend/test/e2e/api-layer.e2e-spec.ts
+TC-M1-18,"RT-001, RWD-002, RWD-016, RT-008",Equivalence partitioning,Unit,No stored config,"get() of freshness, cap, radius","60 min, 360 min, 100 points, 50 m",As expected,Pass,2026-10-25,M1,backend/test/unit/configuration.service.spec.ts
+TC-M1-19,"DATA-012, FR-039",Equivalence partitioning,Unit,Stored rows incl. unknown key,get / getAll,Stored value wins; unknown key ignored,As expected,Pass,2026-10-25,M1,backend/test/unit/configuration.service.spec.ts
+TC-M1-20,RT-006 (cache),Boundary value analysis,Unit,FakeClock,"Reads at 0 s, 29 s, 31 s","1 load at 29 s, reload at 31 s",As expected,Pass,2026-10-25,M1,backend/test/unit/configuration.service.spec.ts
+TC-M1-21,"DATA-012, FR-039",Equivalence partitioning (valid),Unit,-,"set(points.dailyCap, 120)","Value saved, history row, ConfigChanged event",As expected,Pass,2026-10-25,M1,backend/test/unit/configuration.service.spec.ts
+TC-M1-22,DATA-012,Equivalence partitioning (invalid classes),Unit,-,Unknown key; -1; 'ten',Rejected with AppError; nothing saved,As expected,Pass,2026-10-25,M1,backend/test/unit/configuration.service.spec.ts
+TC-M1-23,"QR-007, QR-009, RWD-018, PRIV-016",Error guessing (one job fails),Unit,Presence job throws,everyMinute(),All 4 jobs run in order,As expected,Pass,2026-10-25,M1,backend/test/unit/scheduler.spec.ts
+TC-M1-24,PRIV-013,Equivalence partitioning,Unit,-,daily(),Records and surveys purge jobs run,As expected,Pass,2026-10-25,M1,backend/test/unit/scheduler.spec.ts
+TC-M1-25,-,Equivalence partitioning,Unit,SCHEDULER_ENABLED=false,"everyMinute(), daily()",No job runs,As expected,Pass,2026-10-25,M1,backend/test/unit/scheduler.spec.ts
+TC-M1-26,SDS 6 (architecture),Inspection,Integration,Full app on PostGIS,Resolve all 16 contract tokens,Every token has a provider,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-27,EIR-008,Equivalence partitioning,Integration,Database up,GET /api/v1/health,"200 {status: ok, database: up}",As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-28,"EIR-008, EIR-010",Contract testing,Integration,contracts/openapi.yaml,Call every path + method in the spec,No unrouted operation,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-29,SEC-010,Use-case based (UC-02 alt: wrong credentials),Integration,Empty audit_log,POST /auth/login with unknown e-mail,401; audit row auth.sign_in_failed via event,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-30,DATA-012,Equivalence partitioning,Integration,Real database,"IConfig.set(points.dailyCap, 150)",Value 150 read back; history 100 -> 150,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-31,"RT-004, FR-011",Use-case based (UC-03 search by area),Integration,Sample venues,GET /venues/search?area=zamalek,Items with crowd/noise/wifi status in the 4 allowed values,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-32,DATA-001..DATA-012,Inspection,Integration,Migrations run on empty DB,"List tables, postgis_version()","19 tables present, PostGIS 3.x",As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts
+TC-M1-33,"RWD-009, DATA-002",Boundary value analysis,Integration,Real database,points_balance = -1; price_level = 5,Both rejected by CHECK constraints,As expected,Pass,2026-10-25,M1,backend/test/int/app.int-spec.ts

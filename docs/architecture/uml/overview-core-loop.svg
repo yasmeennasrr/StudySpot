@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="255px" preserveAspectRatio="none" style="width:1682px;height:255px;" version="1.1" viewBox="0 0 1682 255" width="1682px" zoomAndPan="magnify"><defs/><g><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="586" x="551.5" y="11.625">StudySpot core loop: contributions feed conditions, conditions drive discovery, discovery earns rewards</text><!--MD5=[16fab723be418f7eaf2ea4bd895a8e51]
+entity C--><rect fill="#FFFFFF" height="78.0781" rx="6" ry="6" style="stroke: #555555; stroke-width: 1.5;" width="285" x="6" y="114.0695"/><text fill="#000000" font-family="Helvetica" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="73" x="16" y="135.6945">1. Contribute</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="193" x="16" y="150.2141">receipt-QR survey · in-app survey</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="136" x="16" y="164.7336">noise snippet · presence</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="265" x="16" y="179.2531">(Surveys, QR Codes, Audio Analysis, Presence)</text><!--MD5=[68f82070d0aec4ff4b64d9b1102926da]
+entity E--><rect fill="#FFFFFF" height="78.0781" rx="6" ry="6" style="stroke: #555555; stroke-width: 1.5;" width="277" x="533" y="22.0695"/><text fill="#000000" font-family="Helvetica" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="65" x="543" y="43.6945">2. Estimate</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="115" x="543" y="58.2141">crowd · noise · Wi-Fi</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="257" x="543" y="72.7336">current &gt; hours ago &gt; historical &gt; unavailable</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="68" x="543" y="87.2531">(Conditions)</text><!--MD5=[118f42602524ad482f02b27ef22fc383]
+entity D--><rect fill="#FFFFFF" height="78.0781" rx="6" ry="6" style="stroke: #555555; stroke-width: 1.5;" width="229" x="1106" y="22.0695"/><text fill="#000000" font-family="Helvetica" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="67" x="1116" y="43.6945">3. Discover</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="209" x="1116" y="58.2141">search · nearby · filters · map · details</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="189" x="1116" y="72.7336">StudyMatch AI recommendations</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="180" x="1116" y="87.2531">(Venues &amp; Search, StudyMatch)</text><!--MD5=[ca4fca654d8994778fee589c6b3ae58e]
+entity R--><rect fill="#FFFFFF" height="78.0781" rx="6" ry="6" style="stroke: #555555; stroke-width: 1.5;" width="236" x="840" y="113.0695"/><text fill="#000000" font-family="Helvetica" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="60" x="850" y="134.6945">4. Reward</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="163" x="850" y="149.2141">points per answer (daily cap)</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="216" x="850" y="163.7336">coupon by e-mail, 5-minute activation</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="122" x="850" y="178.2531">(Rewards &amp; Coupons)</text><!--MD5=[9c35c66068622dad62ecac52c54c307b]
+entity V--><rect fill="#FFFFFF" height="63.5586" rx="6" ry="6" style="stroke: #555555; stroke-width: 1.5;" width="155" x="1516" y="119.0695"/><text fill="#000000" font-family="Helvetica" font-size="12" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="91" x="1526" y="140.6945">5. Visit the café</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="121" x="1526" y="155.2141">student studies, buys,</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="135" x="1526" y="169.7336">gets a new receipt code</text><!--MD5=[311cdee09890d755c451d6c721b78759]
+link C to E--><path d="M291.11,120.0195 C301.21,117.9195 311.25,115.9195 321,114.0695 C388.6,101.2795 464.01,89.5295 527.43,80.3595 " fill="none" id="C-&gt;E" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="532.75,79.5895,523.2704,76.9179,527.8014,80.3046,524.4146,84.8356,532.75,79.5895" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="96" x="364" y="66.6945">dynamic records</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="180" x="322" y="81.2141">(SurveyStored, NoiseRecorded)</text><!--MD5=[d9f0db18a21361db52f95f1c09405f86]
+link E to D--><path d="M810.18,61.0695 C899.7,61.0695 1015.24,61.0695 1100.73,61.0695 " fill="none" id="E-&gt;D" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="1105.8,61.0695,1096.8,57.0695,1100.8,61.0695,1096.8,65.0695,1105.8,61.0695" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="124" x="896" y="42.6945">status-labelled values</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="71" x="922.5" y="57.2141">(IConditions)</text><!--MD5=[92738d3e1adb0af4400e3895f0a88a89]
+link D to V--><path d="M1335.1,88.5095 C1381.85,99.8095 1436.53,113.0495 1486,125.0695 C1493.96,127.0095 1502.26,129.0295 1510.56,131.0495 " fill="none" id="D-&gt;V" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="1515.72,132.3095,1507.9087,126.3109,1510.8594,131.1373,1506.033,134.088,1515.72,132.3095" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="119" x="1366" y="93.6945">student picks a place</text><!--MD5=[92aae6a4c8a21bc07a96d21c87aa526b]
+link V to C--><path d="M1515.85,165.3395 C1415.31,183.2695 1233.19,213.0195 1076,224.0695 C800.38,243.4495 478.86,205.1195 296.22,177.6195 " fill="none" id="V-&gt;C" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="291.12,176.8495,299.4106,182.1661,296.0624,177.6066,300.6219,174.2584,291.12,176.8495" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="119" x="898.5" y="220.6945">receipt QR, presence</text><!--MD5=[97242ebbf705c5a0398670faed178970]
+link C to R--><path d="M291.41,153.1395 C355.97,153.1595 433.34,153.1495 503,153.0695 C615.36,152.9495 743.36,152.6495 834.75,152.4095 " fill="none" id="C-&gt;R" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="839.89,152.3995,830.89,148.3995,834.89,152.3995,830.89,156.3995,839.89,152.3995" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="78" x="373" y="134.6945">survey stored</text><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="61" x="381.5" y="149.2141">(IRewards)</text><!--MD5=[b214979a4072d568441ae72b15f3dd95]
+link R to V--><path d="M1076.3,151.8895 C1202.52,151.6895 1399.98,151.3695 1510.51,151.1995 " fill="none" id="R-&gt;V" style="stroke: #555555; stroke-width: 1.0;"/><polygon fill="#555555" points="1515.7,151.1895,1506.6886,147.2153,1510.7,151.2038,1506.7115,155.2152,1515.7,151.1895" style="stroke: #555555; stroke-width: 1.0;"/><text fill="#000000" font-family="Helvetica" font-size="12" lengthAdjust="spacingAndGlyphs" textLength="185" x="1128" y="148.6945">coupon redeemed at the counter</text><!--MD5=[43ba4e8276d3a0bed894f74ae72f003e]
+@startuml overview-core-loop
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam rectangle {
+  BackgroundColor white
+  BorderColor #555555
+  RoundCorner 12
+}
+skinparam ArrowColor #555555
+left to right direction
+
+title StudySpot core loop: contributions feed conditions, conditions drive discovery, discovery earns rewards
+
+rectangle "**1. Contribute**\nreceipt-QR survey · in-app survey\nnoise snippet · presence\n(Surveys, QR Codes, Audio Analysis, Presence)" as C
+rectangle "**2. Estimate**\ncrowd · noise · Wi-Fi\ncurrent > hours ago > historical > unavailable\n(Conditions)" as E
+rectangle "**3. Discover**\nsearch · nearby · filters · map · details\nStudyMatch AI recommendations\n(Venues & Search, StudyMatch)" as D
+rectangle "**4. Reward**\npoints per answer (daily cap)\ncoupon by e-mail, 5-minute activation\n(Rewards & Coupons)" as R
+rectangle "**5. Visit the café**\nstudent studies, buys,\ngets a new receipt code" as V
+
+C - -> E : dynamic records\n(SurveyStored, NoiseRecorded)
+E - -> D : status-labelled values\n(IConditions)
+D - -> V : student picks a place
+V - -> C : receipt QR, presence
+C - -> R : survey stored\n(IRewards)
+R - -> V : coupon redeemed at the counter
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 12:22:07 EET 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.12.1+1-1-24.04.4-Ubuntu
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>
