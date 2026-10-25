@@ -29,12 +29,24 @@ docs/testing/        test cases and results
 
 ## Quick start
 
+You need **Git**, **Node.js 20+** and **Docker Desktop** (running). Then, from the repo root:
+
 ```bash
-docker compose up -d db
-cd backend && cp .env.example .env && npm install
-npm run migration:run && npm run seed
-npm run start:dev
+git clone https://github.com/yasmeennasrr/StudySpot.git
+cd StudySpot
+npm run setup     # checks tools, starts the database, installs packages, creates tables, loads sample data
+npm run dev       # starts the backend
 ```
+
+Run `npm run setup` again after any `git pull`: it is safe to repeat and picks up new packages and migrations. No Docker? Put a Supabase connection string in `backend/.env` and run `npm run setup -- --no-docker`.
+
+| Command (repo root) | What it does |
+| --- | --- |
+| `npm run setup` | Everything needed to run the project, in one go |
+| `npm run dev` | Start the backend with auto-reload |
+| `npm run check` | Lint, type check, architecture rules and unit tests (run before a pull request) |
+| `npm test` | Unit and API tests |
+| `npm run db:up` / `db:down` | Start / stop the local database |
 
 API: <http://localhost:3000/api/v1> · Interactive docs: <http://localhost:3000/api/docs> · Health: `/api/v1/health`
 

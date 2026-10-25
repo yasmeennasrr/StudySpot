@@ -1,0 +1,18 @@
+{
+  "name": "studyspot",
+  "private": true,
+  "description": "StudySpot monorepo: run these from the repo root",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "npm --prefix backend run start:dev",
+    "test": "npm --prefix backend test",
+    "test:int": "npm --prefix backend run test:int",
+    "check": "npm --prefix backend run lint && npm --prefix backend run typecheck && npm --prefix backend run deps:check && npm --prefix backend test",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f db"
+  }
+}
