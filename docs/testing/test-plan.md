@@ -63,7 +63,7 @@ Put the ID in the automated test's name, e.g. `it('TC-M3-04 rejects a radius of 
 
 | Environment | Database | Used for |
 | --- | --- | --- |
-| Local | Docker `studyspot-db` (PostGIS) from `npm run setup`; tests use a separate `studyspot_test` database because integration tests wipe it | Development, `npm run check`, `npm run test:int` |
+| Local | Docker `studyspot-db` (PostGIS) from `npm run setup`. Integration tests always use the separate `studyspot_test` database in the same container (setup creates it), never the one in `backend/.env` | Development, `npm run check`, `npm run test:int` |
 | CI (GitHub Actions) | `postgis/postgis:16-3.4` service | Every pull request and every push to `main` |
 | Deployed | Supabase PostgreSQL + PostGIS, API on Render | Manual system tests from the app; the demo |
 
@@ -105,7 +105,7 @@ Put the issue number in the Actual column of the failing case.
 
 ```bash
 npm run check                    # lint, types, architecture rules, unit + API-layer tests
-npm run test:int                 # integration tests (point DATABASE_URL at a test database)
+npm run test:int                 # integration tests on studyspot_test (Docker running)
 npm run test:matrix              # rebuild docs/testing/traceability-matrix.md from the sheet
 npm run test:matrix -- --check   # the same, failing on sheet problems (CI runs this)
 cd app && flutter test           # Flutter widget tests
@@ -118,4 +118,4 @@ cd app && flutter test           # Flutter widget tests
 | Stubs replaced late in the week | Little time to test real code | Stubs keep the contract, so tests written against the API stay valid; merge day is Friday, not Sunday |
 | No Google key | Real geocoding untested against Google | Adapter fully tested with a mocked `fetch`; the fake stays active until a key is added |
 | Render free tier sleeps | First request after idle takes up to a minute | Open `/api/v1/health` before a demo |
-| Shared test database | Integration tests wipe it | Their default URL is the separate `studyspot_test` database; never point `DATABASE_URL` at your dev or the deployed database when running them |
+| Shared test database | Integration tests wipe it | They ignore `backend/.env` and only use `studyspot_test` (or `TEST_DATABASE_URL`); never set that to your dev or the deployed database |

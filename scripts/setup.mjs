@@ -115,6 +115,11 @@ async function main() {
     console.log('');
     if (status !== 'healthy') fail(`The database did not become ready (status: ${status || 'unknown'}).`, 'Run: docker compose logs db   and send the output to M1.');
     ok('Database is ready on localhost:5432');
+    // Separate database for the integration tests (they wipe it), so `npm run test:int` works.
+    const testDb = run('docker', ['exec', 'studyspot-db', 'createdb', '-U', 'studyspot', 'studyspot_test']);
+    if (testDb.ok) ok('Created the test database studyspot_test (used by npm run test:int)');
+    else if (/already exists/.test(testDb.out)) ok('Test database studyspot_test is ready');
+    else console.log('    - Could not create the test database studyspot_test (only needed for npm run test:int)');
   } else {
     ok('Skipping Docker');
   }

@@ -61,7 +61,7 @@ Before pushing:
 
 ```bash
 npm run check                 # lint, types, architecture rules, unit tests
-npm run test:int              # integration tests: point DATABASE_URL at a separate test database, they wipe it
+npm run test:int              # integration tests on the separate studyspot_test database (setup creates it; they wipe it)
 npm run test:matrix           # if you changed docs/testing/test-cases.csv: rebuilds the traceability matrix
 ```
 

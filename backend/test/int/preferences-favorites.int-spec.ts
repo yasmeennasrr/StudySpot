@@ -1,19 +1,20 @@
 /**
  * Integration tests for saved preferences (PB-13) and favorites (PB-14) on a real
  * PostgreSQL + PostGIS database, through the HTTP API. TC-M1-48..TC-M1-55.
- * Needs DATABASE_URL pointing at a throwaway test database (the schema is wiped).
+ * Uses the studyspot_test database (see ./test-database.ts); its schema is wiped.
  */
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
+import { TEST_DATABASE_URL } from './test-database';
 
 process.env.NODE_ENV = 'test';
 process.env.SCHEDULER_ENABLED = 'false';
 process.env.THROTTLE_LIMIT = '10000';
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgres://postgres@localhost:5432/studyspot_test';
+// Only ever the test database: backend/.env (your dev database) is ignored on purpose.
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? TEST_DATABASE_URL;
 
 const DEV_ID = '00000000-0000-4000-8000-000000000001';
 const DEV = `Bearer stub.${DEV_ID}`;

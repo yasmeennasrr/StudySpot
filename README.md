@@ -47,7 +47,7 @@ Run `npm run setup` again after any `git pull`: it is safe to repeat and picks u
 | `npm run dev` | Start the backend with auto-reload |
 | `npm run check` | Lint, type check, architecture rules and unit tests (run before a pull request) |
 | `npm test` | Unit and API tests |
-| `npm run test:int` | Integration tests on a real database (uses a separate test database) |
+| `npm run test:int` | Integration tests on a real database (the separate `studyspot_test`, created by setup) |
 | `npm run test:matrix` | Rebuild the requirements traceability matrix from the test case sheet |
 | `npm run db:up` / `db:down` | Start / stop the local database |
 
