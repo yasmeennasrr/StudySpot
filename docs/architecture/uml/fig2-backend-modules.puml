@@ -1,0 +1,134 @@
+@startuml fig2-backend-modules
+' SDS v0.3 Figure 2: backend modules with provided interfaces (lollipops),
+' «use» dependencies (dashed arrows to an interface) and domain events (blue).
+' The same links are generated from the code by `npm run deps:graph`.
+skinparam componentStyle uml2
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 16
+skinparam nodesep 28
+skinparam ranksep 38
+skinparam component {
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam interface {
+  BackgroundColor white
+  BorderColor #555555
+  FontSize 14
+}
+skinparam package {
+  BorderColor #AAAAAA
+  FontColor #444444
+}
+skinparam ArrowColor #666666
+top to bottom direction
+
+title StudySpot backend (SDS v0.3, Figure 2): every module has a caller and a reason
+
+() "IUserAPI" as IUserAPI
+component "API Layer\n(controllers · AuthGuard · validation\n· error filter · rate limit · request IDs)" as API
+IUserAPI - API
+
+package "Business modules" {
+  component "Accounts & Auth" as Accounts
+  () "IAuth" as IAuth
+  Accounts -up- IAuth
+
+  component "Venues & Search" as Venues
+  () "IVenueQuery\nIPreferences\nIFavorites" as IVenue
+  Venues -up- IVenue
+
+  component "Administration\n& Moderation" as Admin
+  component "StudyMatch\nOrchestrator" as StudyMatch
+  component "Scheduler" as Scheduler
+
+  component "Conditions" as Conditions
+  () "IConditions" as ICond
+  Conditions -up- ICond
+
+  component "QR Codes" as QR
+  () "IReceiptCodes" as IQR
+  QR -up- IQR
+
+  component "Surveys" as Surveys
+  () "ISurvey" as ISurvey
+  Surveys -up- ISurvey
+
+  component "Rewards & Coupons" as Rewards
+  () "IRewards" as IRewards
+  Rewards -up- IRewards
+
+  component "Presence\n«new v0.3»" as Presence #E7F1FB
+  () "IPresence" as IPresence
+  Presence -up- IPresence
+
+  component "Audio Analysis" as Audio
+  component "Notifications" as Notifications
+}
+
+package "Platform" {
+  component "Configuration\n«new v0.3»" as Config #E7F1FB
+  () "IConfig" as IConfig
+  Config -up- IConfig
+  component "Audit Log" as Audit
+  () "IAudit" as IAudit
+  Audit -up- IAudit
+}
+
+package "Adapters (only these call outside services)" {
+  component "Maps" as Maps
+  component "E-mail" as Email
+  component "Push" as Push
+  component "LLM (Gemini)\n+ circuit breaker" as LLM
+  component "Audio AI (Gemini)\n+ circuit breaker" as AudioAI
+}
+
+' API Layer: guard + controllers
+API ..> IAuth
+API ..> IVenue
+
+' «use» dependencies
+Admin ..> IAuth
+Admin ..> IAudit
+Admin ..> IConfig
+StudyMatch ..> IVenue
+StudyMatch ..> ICond
+StudyMatch ..> LLM : ILLM
+Venues ..> ICond
+Venues ..> Maps : IMaps
+Venues ..> IConfig
+Conditions ..> IPresence
+Conditions ..> IConfig
+Scheduler ..> IQR
+Scheduler ..> IRewards
+Scheduler ..> ICond
+Scheduler ..> ISurvey
+Scheduler ..> IPresence
+QR ..> ISurvey
+QR ..> IRewards
+QR ..> IPresence
+Surveys ..> IRewards
+Rewards ..> IPresence
+Rewards ..> IConfig
+Rewards ..> Email : IEmail
+Presence ..> IConfig
+Audio ..> AudioAI : IAudioAI
+Notifications ..> Push : IPush
+
+' Domain events (Observer): publisher -> listener, no import
+Surveys -[#1F6FEB,dashed]-> Conditions : <<event>>\nSurveyStored
+Audio -[#1F6FEB,dashed]-> Conditions : <<event>>\nNoiseRecorded
+Accounts -[#1F6FEB,dashed]-> Audit : <<event>>\nSignInFailed
+Admin -[#1F6FEB,dashed]-> Audit : <<event>>\nStaffAction
+Presence -[#1F6FEB,dashed]-> Notifications : <<event>>\nPresenceDwell
+
+legend right
+  |= Notation |= Meaning |
+  | circle on a component | provided interface (lollipop) |
+  | grey dashed arrow | «use»: depends on that interface |
+  | blue dashed arrow | domain event, publisher -> listener |
+  | blue box | new in SDS v0.3 |
+  | not drawn | IClock (new) and own repositories, used by every module |
+endlegend
+@enduml

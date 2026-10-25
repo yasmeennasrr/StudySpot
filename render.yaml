@@ -1,0 +1,37 @@
+# Render Blueprint: New > Blueprint > pick this repo. Set the secret values in the Render dashboard.
+services:
+  - type: web
+    name: studyspot-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '20'
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        sync: false # Supabase connection string (Session pooler URI)
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: DATABASE_RUN_MIGRATIONS
+        value: 'true'
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '*'
+      - key: PUBLIC_BASE_URL
+        sync: false # e.g. https://studyspot-api.onrender.com
+      - key: GOOGLE_GEOCODING_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false

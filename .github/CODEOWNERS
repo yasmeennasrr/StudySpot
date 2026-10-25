@@ -1,0 +1,13 @@
+# Uncomment each line after replacing the placeholder with a real GitHub username.
+# Replace the placeholders with GitHub usernames so reviews are requested automatically.
+# M1 owns the shared contracts: changes there need M1's review.
+# /contracts/                          @M1_GITHUB_USERNAME
+# /backend/src/contracts/              @M1_GITHUB_USERNAME
+# /backend/src/db/                     @M1_GITHUB_USERNAME
+# /.github/                            @M1_GITHUB_USERNAME
+# /backend/src/modules/accounts/       @M2_GITHUB_USERNAME
+# /backend/src/modules/venues/search/  @M3_GITHUB_USERNAME
+# /backend/src/adapters/maps/          @M3_GITHUB_USERNAME
+# /backend/src/modules/conditions/     @M4_GITHUB_USERNAME
+# /backend/src/modules/venues/details/ @M4_GITHUB_USERNAME
+# /app/                                @M5_GITHUB_USERNAME @M6_GITHUB_USERNAME

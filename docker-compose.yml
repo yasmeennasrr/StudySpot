@@ -1,0 +1,23 @@
+# Local database for development: PostgreSQL 16 + PostGIS 3.4 (same as Supabase).
+#   docker compose up -d db
+#   cd backend && cp .env.example .env && npm run migration:run && npm run seed
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: studyspot-db
+    environment:
+      POSTGRES_USER: studyspot
+      POSTGRES_PASSWORD: studyspot
+      POSTGRES_DB: studyspot
+    ports:
+      - '5432:5432'
+    volumes:
+      - studyspot-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U studyspot']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  studyspot-db:
