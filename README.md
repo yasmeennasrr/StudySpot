@@ -51,7 +51,9 @@ Run `npm run setup` again after any `git pull`: it is safe to repeat and picks u
 | `npm run test:matrix` | Rebuild the requirements traceability matrix from the test case sheet |
 | `npm run db:up` / `db:down` | Start / stop the local database |
 
-API: <http://localhost:3000/api/v1> · Interactive docs: <http://localhost:3000/api/docs> · Health: `/api/v1/health`
+Live (Render): <https://studyspot-api-x8u6.onrender.com/api/v1> · docs <https://studyspot-api-x8u6.onrender.com/api/docs>
+
+Local API: <http://localhost:3000/api/v1> · Interactive docs: <http://localhost:3000/api/docs> · Health: `/api/v1/health`
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the team rules, branches and pull requests.
 

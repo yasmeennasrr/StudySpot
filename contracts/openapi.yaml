@@ -19,8 +19,8 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
     description: Local
-  - url: https://studyspot-api.onrender.com/api/v1
-    description: Staging on Render (set the real URL after the first deploy)
+  - url: https://studyspot-api-x8u6.onrender.com/api/v1
+    description: Live on Render
 tags:
   - name: health
   - name: auth
