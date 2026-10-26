@@ -4,19 +4,20 @@
 
 ## Summary
 
-**94** test cases: **94** pass, **0** fail, **0** not run yet. They cover **54** requirement IDs.
+**109** test cases: **107** pass, **0** fail, **2** not run yet. They cover **71** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 55 | 55 | 0 | 0 | 55 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 25 | 25 | 0 | 0 | 25 |
+| M4 | 15 | 13 | 0 | 2 | 15 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 39 |
-| Unit | 45 |
+| Integration | 41 |
+| Unit | 58 |
 
 ## Requirement → test cases
 
@@ -45,22 +46,39 @@
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36 | Integration, Unit | ✅ all pass |
 | FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration | ✅ all pass |
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25 | Integration, Unit | ✅ all pass |
+| FR-016 | TC-M4-14 | Integration | ⏳ 1 not run |
+| FR-017 | TC-M4-14 | Integration | ⏳ 1 not run |
+| FR-018 | TC-M4-14 | Integration | ⏳ 1 not run |
+| FR-019 | TC-M4-14 | Integration | ⏳ 1 not run |
+| FR-021 | TC-M4-04 | Unit | ✅ all pass |
 | FR-022 | TC-M1-43, TC-M1-48 | Unit, Integration | ✅ all pass |
 | FR-023 | TC-M1-48 | Integration | ✅ all pass |
 | FR-024 | TC-M1-48 | Integration | ✅ all pass |
 | FR-026 | TC-M1-45, TC-M1-50, TC-M1-52 | Unit, Integration | ✅ all pass |
 | FR-027 | TC-M1-46, TC-M1-47, TC-M1-50, TC-M1-51 | Unit, Integration | ✅ all pass |
+| FR-029 | TC-M4-14, TC-M4-15 | Integration | ⏳ 2 not run |
 | FR-038 | TC-M2-08, TC-M2-09 | Unit | ✅ all pass |
 | FR-039 | TC-M1-19, TC-M1-21 | Unit | ✅ all pass |
+| PERF-005 | TC-M4-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03 | Unit | ✅ all pass |
-| PRIV-013 | TC-M1-24 | Unit | ✅ all pass |
+| PRIV-013 | TC-M1-24, TC-M4-13 | Unit | ✅ all pass |
+| PRIV-014 | TC-M4-14 | Integration | ⏳ 1 not run |
 | PRIV-016 | TC-M1-23 | Unit | ✅ all pass |
 | QR-007 | TC-M1-23 | Unit | ✅ all pass |
 | QR-009 | TC-M1-23 | Unit | ✅ all pass |
-| RT-001 | TC-M1-18 | Unit | ✅ all pass |
+| RT-001 | TC-M1-18, TC-M4-01, TC-M4-03, TC-M4-15 | Unit, Integration | ⏳ 1 not run |
 | RT-004 | TC-M1-31 | Integration | ✅ all pass |
-| RT-006 | TC-M1-20 | Unit | ✅ all pass |
+| RT-006 | TC-M1-20, TC-M4-12 | Unit | ✅ all pass |
 | RT-008 | TC-M1-18 | Unit | ✅ all pass |
+| RT-009 | TC-M4-07, TC-M4-08 | Unit | ✅ all pass |
+| RT-012 | TC-M4-08 | Unit | ✅ all pass |
+| RT-015 | TC-M4-11 | Unit | ✅ all pass |
+| RT-016 | TC-M4-02, TC-M4-15 | Unit, Integration | ⏳ 1 not run |
+| RT-017 | TC-M4-10, TC-M4-15 | Unit, Integration | ⏳ 1 not run |
+| RT-018 | TC-M4-04, TC-M4-15 | Unit, Integration | ⏳ 1 not run |
+| RT-020 | TC-M4-09 | Unit | ✅ all pass |
+| RT-021 | TC-M4-05, TC-M4-06, TC-M4-07 | Unit | ✅ all pass |
+| RT-022 | TC-M4-06 | Unit | ✅ all pass |
 | RWD-002 | TC-M1-18 | Unit | ✅ all pass |
 | RWD-009 | TC-M1-33 | Integration | ✅ all pass |
 | RWD-016 | TC-M1-18 | Unit | ✅ all pass |
@@ -178,6 +196,21 @@
 | TC-M2-12 | FR-003 | Use-case based | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-13 | SEC-001 | Equivalence partitioning | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-14 | SEC-001 | Error guessing | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
+| TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-04 | RT-018, FR-021 | Equivalence partitioning (no records) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-05 | RT-021 | Equivalence partitioning (mixed sources) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-06 | RT-021, RT-022 | Boundary value analysis (x.5 rounding) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-07 | RT-009, RT-021 | Equivalence partitioning (repeat answers) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-08 | RT-009, RT-012 | Decision table (present users x survey) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-09 | RT-020 | Boundary value analysis (size-class thresholds) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-10 | RT-017 | Equivalence partitioning (record sets) + boundary (60 / 70 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-11 | RT-015 | Equivalence partitioning (source x type) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
+| TC-M4-12 | RT-006, PERF-005 | State transition (cached / invalidated / expired) | Unit | pass | `backend/test/unit/conditions.service.spec.ts` |
+| TC-M4-13 | PRIV-013 | Boundary value analysis (90 days) | Unit | pass | `backend/test/unit/conditions.service.spec.ts` |
+| TC-M4-14 | FR-016, FR-017, FR-018, FR-019, FR-029, PRIV-014 | Equivalence partitioning (visible / removed / inactive) | Integration | not run | `backend/test/int/venue-details.int-spec.ts` |
+| TC-M4-15 | RT-001, RT-016, RT-017, RT-018, FR-029 | Equivalence partitioning (one class per status) | Integration | not run | `backend/test/int/venue-details.int-spec.ts` |
 
 ## Sheet problems
 

@@ -13,6 +13,8 @@ Everything here answers the Milestone 1 feedback: the big picture first, every b
 | [`generated/dependency-matrix.md`](generated/dependency-matrix.md) | Caller × provider matrix: interface or event in each cell, generated from the code | New 5.2 table |
 | [`uml/deployment.png`](uml/deployment.png) | UML deployment: phone, Render container, Supabase, Google, SendGrid, GitHub | Replaces the bullet list in 10.2 |
 | [`uml/er-diagram.png`](uml/er-diagram.png) | Database schema, 19 tables | New section 6.7 "Database schema" |
+| [`uml/conditions-class.puml`](uml/conditions-class.puml) | Conditions class diagram: `ConditionsService`, the Chain of Responsibility (`ConditionResolver` and its four handlers), the combining rules, and `VenueDetailsService` (M4) | Section 14 (Sprint 1 detailed design) |
+| [`uml/view-details-sequence.puml`](uml/view-details-sequence.puml) | "View details" sequence (UC-04): API → facade → details → conditions cache → records → chain, with the 400/404 branches (M4) | Section 14 (Sprint 1 detailed design) |
 
 Sources are PlantUML (`uml/*.puml`); re-render with `plantuml -tpng -tsvg docs/architecture/uml/*.puml`. The generated files come from `cd backend && npm run deps:graph`.
 
@@ -42,7 +44,7 @@ Sources are PlantUML (`uml/*.puml`); re-render with `plantuml -tpng -tsvg docs/a
 | Facade | Other modules see one small surface for venue data (AI-007, AI-008) | `VenueQueryFacade implements IVenueQuery` | `src/modules/venues/venue-query.service.ts` | Built |
 | Repository | Only repositories touch the database; easy to mock (SEC-006) | `Repository<VenueEntity>` etc. via `TypeOrmModule.forFeature` | `src/db/entities/`, each module | Built |
 | Strategy | Filters and estimation methods change without touching callers (FR-013, RT-020) | `IFilterCriterion`: `NoiseFilter`, `PriceFilter`, … in `VenueFilterPipeline` | `src/modules/venues/search/` | M3, Sprint 1 |
-| Chain of Responsibility | Fallback order in one place (RT-014, RT-018) | `ConditionResolver`: `CurrentHandler` → `HoursAgoHandler` → `HistoricalHandler` → `UnavailableHandler` | `src/modules/conditions/` | M4, Sprint 1 |
+| Chain of Responsibility | Fallback order in one place (RT-014, RT-018) | `ConditionResolver`: `CurrentHandler` → `HoursAgoHandler` → `HistoricalHandler` → `UnavailableHandler` | `src/modules/conditions/condition-resolver.ts` (rules in `condition-rules.ts`) | Built (M4) |
 | Global exception filter (API Layer) | One error format for every endpoint (USE-008) | `AllExceptionsFilter`, `AppError`, `AdapterUnavailableError` | `src/common/errors/` | Built |
 | State | Only valid transitions for codes and coupons (QR-006..QR-010, RWD-017..RWD-020) | receipt code unused → scanned → used/expired; coupon issued → active → expired | `receipt_codes.status`, `coupons.status` | Schema built; logic Sprint 2–3 |
 | Unit of Work | Points, code status and balance change together (RWD-009, RWD-011) | `dataSource.transaction(...)` (already used by `ConfigurationService.set`) | `src/modules/configuration/configuration.service.ts`; rewards Sprint 2 | Built (config); rewards Sprint 2 |

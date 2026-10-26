@@ -10,8 +10,10 @@
  *
  * Files (backend/seed/):
  *   venues.json   real cafés, written by M3. Falls back to venues.sample.json.
- *   records.json  optional synthetic history (90 days of survey inputs), written by M4,
- *                 so the details screen shows current, hours-ago and historical values.
+ *   records.json  optional synthetic history (90 days of survey inputs), written by M4
+ *                 with `npm run seed:records`, so the details screen shows current,
+ *                 hours-ago, historical and unavailable values. Its times are moved
+ *                 to the time of seeding (see shiftRecords).
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,6 +42,32 @@ export interface SeedRecord {
   value: 1 | 2 | 3;
   sourceType: 'qr_survey' | 'in_app_survey' | 'audio_analysis' | 'present_user_count';
   recordedAt: string;
+}
+
+/** records.json: the records and the time they were generated for. */
+export interface SeedRecordsFile {
+  anchor: string;
+  records: SeedRecord[];
+}
+
+const WEEK_MS = 7 * 86_400_000;
+const DAY_MS = 86_400_000;
+
+/**
+ * Moves generated records to the time of seeding, so the demo always shows every
+ * label (M4). Inputs from the last day before the anchor move by the exact time
+ * passed, so "current" stays current; older history moves by whole weeks only,
+ * so its weekday and hour patterns stay where they were (SDS 6.6.3).
+ */
+export function shiftRecords(file: SeedRecordsFile, now: Date): SeedRecord[] {
+  const anchor = new Date(file.anchor).getTime();
+  const passed = Math.max(0, now.getTime() - anchor);
+  const weeks = Math.floor(passed / WEEK_MS) * WEEK_MS;
+  return file.records.map((r) => {
+    const t = new Date(r.recordedAt).getTime();
+    const shift = anchor - t <= DAY_MS ? passed : weeks;
+    return { ...r, recordedAt: new Date(t + shift).toISOString() };
+  });
 }
 
 const SEED_DIR = join(__dirname, '../../../seed');
@@ -109,17 +137,22 @@ async function main(): Promise<void> {
           active: true,
         });
       }
-      const records = readJson<SeedRecord[]>('records.json');
-      if (records) {
+      const file = readJson<SeedRecordsFile>('records.json');
+      let records: SeedRecord[] | null = null;
+      if (file) {
         const ids = venues.map((v) => v.id);
-        await tx
-          .getRepository(DynamicRecordEntity)
-          .delete({ venueId: In(ids), surveyId: IsNull() });
-        await tx
-          .getRepository(DynamicRecordEntity)
-          .insert(
-            records.map((r) => ({ ...r, recordedAt: new Date(r.recordedAt), surveyId: null })),
+        const known = new Set(ids);
+        // Records of a venue that is not in the venue file are skipped, not an error.
+        records = shiftRecords(file, new Date()).filter((r) => known.has(r.venueId));
+        const repo = tx.getRepository(DynamicRecordEntity);
+        await repo.delete({ venueId: In(ids), surveyId: IsNull() });
+        for (let i = 0; i < records.length; i += 1000) {
+          await repo.insert(
+            records
+              .slice(i, i + 1000)
+              .map((r) => ({ ...r, recordedAt: new Date(r.recordedAt), surveyId: null })),
           );
+        }
       }
       console.log(
         `Seeded ${venues.length} venues${records ? ` and ${records.length} dynamic records` : ''}.`,
