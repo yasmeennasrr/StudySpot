@@ -11,6 +11,12 @@ Owner: M1. The API runs on Render's free tier; the database is Supabase PostgreS
   - Loaded data: the 3 sample venues and the development account `dev@studyspot.test` / `devpass123` (the account the token `stub.00000000-0000-4000-8000-000000000001` uses until M2's login lands).
 - **`render.yaml`** at the repo root describes the web service: build, start, health check, and environment variables.
 
+## Live service
+
+- API: https://studyspot-api-x8u6.onrender.com/api/v1
+- Docs: https://studyspot-api-x8u6.onrender.com/api/docs
+- Health: https://studyspot-api-x8u6.onrender.com/api/v1/health
+
 ## One-time steps (M1)
 
 ### 1. Get the database connection string
