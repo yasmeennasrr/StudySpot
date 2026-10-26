@@ -33,6 +33,11 @@ function mountApiDocs(app: INestApplication): void {
   const file = candidates.find((p) => existsSync(p));
   if (!file) return;
   const document = yaml.load(readFileSync(file, 'utf8')) as OpenAPIObject;
+  // "Try it out" calls the server that served the page first, whatever its URL (local, Render).
+  document.servers = [
+    { url: `/${API_PREFIX}`, description: 'This server' },
+    ...(document.servers ?? []).filter((s) => s.url !== `/${API_PREFIX}`),
+  ];
   SwaggerModule.setup('api/docs', app, document, { customSiteTitle: 'StudySpot API' });
 }
 
