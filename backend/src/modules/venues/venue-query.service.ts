@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { IVenueQuery, SearchParams, SearchResult, VenueDetails } from '../../contracts';
-import { StubVenueDetailsService } from './details/venue-details.service.stub';
+import { VenueDetailsService } from './details/venue-details.service';
 import { VenueSearchService } from './search/venue-search.service';
 
 /**
@@ -12,15 +12,15 @@ import { VenueSearchService } from './search/venue-search.service';
 export class VenueQueryFacade implements IVenueQuery {
   constructor(
     private readonly searchService: VenueSearchService,
-    private readonly detailsService: StubVenueDetailsService,
+    private readonly detailsService: VenueDetailsService,
   ) {}
 
   search(params: SearchParams): Promise<SearchResult> {
     return this.searchService.search(params);
   }
 
-  getDetails(venueId: string): Promise<VenueDetails> {
-    return this.detailsService.getDetails(venueId);
+  getDetails(venueId: string, viewerUserId?: string): Promise<VenueDetails> {
+    return this.detailsService.getDetails(venueId, viewerUserId);
   }
 
   exists(venueId: string): Promise<boolean> {

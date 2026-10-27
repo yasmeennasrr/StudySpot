@@ -57,7 +57,7 @@ Share the base URL (`https://<your-service>.onrender.com/api/v1`) with M5 and M6
 
 ## Later
 
-- **Seed data:** when M3's `backend/seed/venues.json` or M4's `records.json` change, load them into Supabase from your laptop. Put the Supabase URI in `backend/.env` together with `DATABASE_SSL=true`, then run `npm --prefix backend run seed`. Switch `.env` back to the local database afterwards.
+- **Seed data:** when M3's `backend/seed/venues.json` or M4's `records.json` change, load them into Supabase from your laptop. Put the Supabase URI in `backend/.env` together with `DATABASE_SSL=true`, then run `npm --prefix backend run seed`. Switch `.env` back to the local database afterwards. Reload the seed on the morning of a demo too: `npm run seed` moves the sample history in `records.json` to that day, so venues show "Current", "X hours ago", historical and "Unavailable" values. After `venues.json` changes, run `npm --prefix backend run seed:records` first to rebuild `records.json` for the new venues.
 - **Google geocoding:** in Google Cloud, create a key restricted to the Geocoding API, then add it as `GOOGLE_GEOCODING_API_KEY` in Render (Environment tab). The backend switches from the offline geocoder to Google on the next deploy. Locally, put it in `backend/.env`.
 - **Free-tier sleep:** Render's free service sleeps after 15 minutes idle, and the first request after that takes up to a minute. Open `/api/v1/health` a minute before a demo.
 - **Supabase pausing:** free projects pause after a week with no activity. Restore the project from the dashboard if the health check reports `database: down`.

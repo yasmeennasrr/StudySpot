@@ -1,0 +1,190 @@
+@startuml conditions-class
+' SDS v0.3 Section 14 (M4): Conditions class diagram.
+' Chain of Responsibility: current -> hours ago -> historical -> unavailable (SDS 6.6, 8).
+' Code: backend/src/modules/conditions/, backend/src/modules/venues/details/.
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam package {
+  BorderColor #AAAAAA
+  FontColor #444444
+}
+skinparam ArrowColor #555555
+hide empty members
+
+title Conditions (estimation engine) and Venue details: class diagram
+
+package "contracts" {
+  interface IConditions <<interface>> {
+    +getConditions(venueId: string, at?: Date): Promise<VenueConditions>
+    +getConditionsForMany(venueIds: string[], at?: Date): Promise<Map<string, VenueConditions>>
+    +invalidate(venueId: string): void
+    +purgeExpiredRecords(): Promise<number>
+  }
+  interface IVenueQuery <<interface>> {
+    +search(params: SearchParams): Promise<SearchResult>
+    +getDetails(venueId: string, viewerUserId?: string): Promise<VenueDetails>
+    +exists(venueId: string): Promise<boolean>
+  }
+  interface IPresence <<interface>> {
+    +countPresent(venueId: string): Promise<number>
+  }
+  interface IConfig <<interface>> {
+    +getAll(): Promise<ConfigValues>
+  }
+  interface IClock <<interface>> {
+    +now(): Date
+  }
+  class VenueConditions <<type>> {
+    venueId: string
+    crowd: ConditionValue
+    noise: ConditionValue
+    wifi: ConditionValue
+  }
+  class ConditionValue <<type>> {
+    level: 1 | 2 | 3 | null
+    label: string | null
+    status: current | hours_ago | historical | unavailable
+    newestInputAt: string | null
+    basedOn: ConditionInput[]
+    isEstimate: boolean
+  }
+  class VenueDetails <<type>> {
+    static: VenueStatic
+    dynamic: VenueConditions
+    averageRating: number | null
+    reviewCount: number
+    reviews: ReviewView[]
+    isFavorite: boolean | null
+  }
+}
+
+package "modules/conditions" {
+  class ConditionsService {
+    -cache: Map<string, CacheEntry>
+    -resolver: ConditionResolver
+    +getConditions(venueId, at?)
+    +getConditionsForMany(venueIds, at?)
+    +invalidate(venueId)
+    +purgeExpiredRecords(): Promise<number>
+    +onSurveyStored(e: SurveyStoredEvent) <<@OnEvent>>
+    +onNoiseRecorded(e: NoiseRecordedEvent) <<@OnEvent>>
+    +onConfigChanged() <<@OnEvent>>
+    -compute(venueIds, at, cfg)
+    -loadRecords(venueIds, since, at): RecordRow[]
+  }
+  class ConditionResolver {
+    -head: ConditionHandler
+    +resolve(ctx: ResolveContext): ConditionValue
+  }
+  abstract class ConditionHandler {
+    -next: ConditionHandler | null
+    +setNext(h: ConditionHandler): ConditionHandler
+    +resolve(ctx: ResolveContext): ConditionValue
+    #{abstract} tryResolve(ctx): ConditionValue | null
+  }
+  class CurrentHandler {
+    #tryResolve(ctx)
+  }
+  class HoursAgoHandler {
+    #tryResolve(ctx)
+  }
+  class HistoricalHandler {
+    #tryResolve(ctx)
+  }
+  class UnavailableHandler {
+    #tryResolve(ctx)
+  }
+  class ResolveContext <<type>> {
+    type: crowd | noise | wifi
+    at: Date
+    records: InputRecord[]
+    presentCount: number
+    sizeClass: small | medium | large
+    limits: ResolveLimits
+  }
+  class ResolveLimits <<type>> {
+    freshnessMinutes: number
+    lastKnownMaxHours: number
+    historicalMinRecords: number
+  }
+  class InputRecord <<type>> {
+    conditionType
+    value: 1 | 2 | 3
+    sourceType
+    recordedAt: Date
+    userId: string | null
+  }
+  class ConditionRules <<utility>> {
+    +usableFor(type, source): boolean
+    +weightOf(record): number
+    +newestPerUser(records): InputRecord[]
+    +weightedLevel(records): Level | null
+    +weightedUpperMedian(records): Level | null
+    +crowdLevelFromCount(count, sizeClass): Level | null
+    +historicalSets(records, at): InputRecord[][]
+    +cairoTime(at)
+  }
+}
+
+package "modules/venues" {
+  class VenueQueryFacade <<Facade>>
+  class VenueDetailsService {
+    +getDetails(venueId, viewerUserId?): Promise<VenueDetails>
+    +exists(venueId): Promise<boolean>
+    +ratingsFor(venueIds): Promise<Map<string, RatingSummary>>
+    -visibleReviews(venueId): Promise<ReviewView[]>
+  }
+}
+
+package "db (TypeORM repositories)" {
+  class DynamicRecordEntity <<entity>>
+  class VenueEntity <<entity>>
+  class ReviewEntity <<entity>>
+  class FavoriteEntity <<entity>>
+}
+
+ConditionsService ..|> IConditions
+ConditionsService *-- "1" ConditionResolver
+ConditionsService ..> IPresence : <<use>>
+ConditionsService ..> IConfig : <<use>>
+ConditionsService ..> IClock : <<use>>
+ConditionsService ..> DynamicRecordEntity : reads last 90 days
+ConditionsService ..> VenueEntity : size class
+ConditionsService ..> VenueConditions : returns
+
+ConditionResolver o-- "1 head" ConditionHandler
+ConditionHandler o-- "0..1 next" ConditionHandler
+CurrentHandler -up-|> ConditionHandler
+HoursAgoHandler -up-|> ConditionHandler
+HistoricalHandler -up-|> ConditionHandler
+UnavailableHandler -up-|> ConditionHandler
+ConditionHandler ..> ResolveContext
+ConditionHandler ..> ConditionValue : returns
+ResolveContext *-- ResolveLimits
+ResolveContext o-- "*" InputRecord
+CurrentHandler ..> ConditionRules
+HoursAgoHandler ..> ConditionRules
+HistoricalHandler ..> ConditionRules
+
+VenueQueryFacade ..|> IVenueQuery
+VenueQueryFacade --> VenueDetailsService
+VenueDetailsService ..> IConditions : <<use>>
+VenueDetailsService ..> VenueEntity
+VenueDetailsService ..> ReviewEntity
+VenueDetailsService ..> FavoriteEntity
+VenueDetailsService ..> VenueDetails : returns
+VenueConditions *-- "3" ConditionValue
+
+note bottom of ConditionResolver
+  Chain built once:
+  Current -> HoursAgo -> Historical -> Unavailable.
+  Each handler resolves the value or passes it on;
+  UnavailableHandler always answers.
+end note
+@enduml

@@ -12,7 +12,7 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { ClockModule } from '../clock/clock.module';
 import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
-import { StubVenueDetailsService } from './details/venue-details.service.stub';
+import { VenueDetailsService } from './details/venue-details.service';
 import { FavoritesService, PreferencesService } from './preferences-favorites.service';
 import { VenueSearchService } from './search/venue-search.service';
 import { VenueQueryFacade } from './venue-query.service';
@@ -35,7 +35,7 @@ import { MyVenuesController, VenuesController } from './venues.controller';
   controllers: [VenuesController, MyVenuesController],
   providers: [
     VenueSearchService,
-    StubVenueDetailsService,
+    VenueDetailsService,
     { provide: VENUE_QUERY, useClass: VenueQueryFacade },
     { provide: PREFERENCES, useClass: PreferencesService },
     { provide: FAVORITES, useClass: FavoritesService },

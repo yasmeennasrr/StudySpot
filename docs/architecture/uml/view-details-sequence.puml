@@ -1,0 +1,73 @@
+@startuml view-details-sequence
+' SDS v0.3 Section 14 (M4): "view details" sequence diagram (UC-04, PB-11).
+' Code: venues.controller.ts -> venue-query.service.ts -> details/venue-details.service.ts
+'       -> conditions/conditions.service.ts -> condition-resolver.ts
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor #555555
+skinparam ArrowColor #555555
+autonumber
+
+title View location details and conditions (UC-04)
+
+actor Student
+participant "App\n(VenueDetailsScreen)" as App
+participant "VenuesController\n(API Layer)" as API
+participant "VenueQueryFacade\n«IVenueQuery»" as Facade
+participant "VenueDetailsService" as Details
+participant "ConditionsService\n«IConditions»" as Cond
+participant "ConditionResolver\n(chain)" as Chain
+participant "IPresence" as Presence
+participant "IConfig" as Config
+database "PostgreSQL\n(PostGIS)" as DB
+
+Student -> App : open a venue
+App -> API : GET /api/v1/venues/{venueId}
+API -> API : ParseUUIDPipe
+alt venueId is not a UUID
+  API --> App : 400 INVALID_INPUT
+end
+API -> Facade : getDetails(venueId)
+Facade -> Details : getDetails(venueId)
+Details -> DB : SELECT venue WHERE id = :id AND active
+alt no active venue
+  Details --> API : AppError.notFound
+  API --> App : 404 NOT_FOUND\n"This study location was not found."
+end
+
+par static group
+  Details -> DB : AVG(rating), COUNT(*) of reviews\nWHERE removed_at IS NULL
+  Details -> DB : newest 20 visible reviews\n+ author display name
+else dynamic group
+  Details -> Cond : getConditions(venueId)
+  alt cached and younger than conditions.cacheSeconds (60 s)
+    Cond --> Details : cached VenueConditions
+  else cache miss, expired, or dropped by SurveyStored / NoiseRecorded
+    Cond -> Config : getAll()
+    Cond -> DB : dynamic_records of the last 90 days\n(LEFT JOIN surveys, removed_at IS NULL), newest first
+    Cond -> DB : venue size class
+    Cond -> Presence : countPresent(venueId)
+    loop for crowd, noise, wifi
+      Cond -> Chain : resolve(ResolveContext)
+      note right of Chain
+        CurrentHandler: inputs within freshness (60 min / 6 h)
+          -> HoursAgoHandler: newest input within 24 h
+          -> HistoricalHandler: weekday+hour / day type ±1 h / all, >= 3 records
+          -> UnavailableHandler
+      end note
+      Chain --> Cond : ConditionValue {level, label, status, newestInputAt, basedOn}
+    end
+    Cond -> Cond : cache for 60 s
+    Cond --> Details : VenueConditions
+  end
+end
+
+Details --> Facade : VenueDetails {static, dynamic, averageRating,\nreviewCount, reviews, isFavorite}
+Facade --> API : VenueDetails
+API --> App : 200 JSON
+App -> App : label each value\n"Current" / "X hours ago" /\n"Estimate based on historical data" / "Unavailable"
+App --> Student : static details, reviews and labelled conditions
+@enduml

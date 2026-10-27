@@ -26,6 +26,7 @@
     "migration:generate": "npm run typeorm -- migration:generate",
     "migration:run:prod": "typeorm -d dist/db/data-source.js migration:run",
     "seed": "ts-node src/db/seed/seed.ts",
+    "seed:records": "node scripts/generate-records.mjs",
     "contract:check": "node -e \"require('@apidevtools/swagger-parser').validate('../contracts/openapi.yaml').then(a=>console.log('OpenAPI valid:',Object.keys(a.paths).length,'paths')).catch(e=>{console.error(e.message);process.exit(1)})\""
   },
   "dependencies": {
