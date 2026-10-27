@@ -142,6 +142,33 @@ paths:
               schema: { $ref: '#/components/schemas/Profile' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /venues:
+    get:
+      tags: [venues]
+      summary: Browse every venue A to Z, with optional filters (no name, area or location needed)
+      description: |
+        Lists active venues alphabetically, up to `limit` (max 30). The FR-013 filters work the same
+        as in search, except `maxDistance`, which needs a location (use /venues/nearby for that).
+        `origin` is null and `distanceMeters` is null on each item. No sign-in needed (FR-006).
+      operationId: browseVenues
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Noise' }
+        - { $ref: '#/components/parameters/Wifi' }
+        - { $ref: '#/components/parameters/Crowd' }
+        - { $ref: '#/components/parameters/Outlets' }
+        - { $ref: '#/components/parameters/MaxPrice' }
+        - { $ref: '#/components/parameters/OpenNow' }
+        - { $ref: '#/components/parameters/StudyType' }
+      responses:
+        '200':
+          description: Venues A to Z
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchResult' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+
   /venues/search:
     get:
       tags: [venues]

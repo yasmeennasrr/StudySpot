@@ -26,6 +26,7 @@ import {
   type VenueSummary,
 } from '../../contracts';
 import {
+  BrowseVenuesQueryDto,
   fromFilterCriteria,
   NearbyVenuesQueryDto,
   PreferencesDto,
@@ -34,10 +35,21 @@ import {
   type FilterFieldsDto,
 } from './dto/venue-query.dto';
 
-/** User API, public venue routes (tag "venues"). Owners: M3 (search, nearby), M4 (details). */
+/** User API, public venue routes (tag "venues"). Owners: M3 (search, nearby, browse), M4 (details). */
 @Controller('venues')
 export class VenuesController {
   constructor(@Inject(VENUE_QUERY) private readonly venues: IVenueQuery) {}
+
+  /** Browse every active venue A to Z, optionally filtered, without a name, area or location. */
+  @Get()
+  browse(@Query() query: BrowseVenuesQueryDto): Promise<SearchResult> {
+    if (query.maxDistance !== undefined) {
+      throw AppError.invalidInput(
+        'maxDistance needs a location. Use /venues/nearby, or remove maxDistance to see all venues.',
+      );
+    }
+    return this.venues.search({ filters: toFilterCriteria(query), limit: query.limit });
+  }
 
   @Get('search')
   search(@Query() query: SearchVenuesQueryDto): Promise<SearchResult> {
