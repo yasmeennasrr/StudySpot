@@ -13,8 +13,8 @@ Everything here answers the Milestone 1 feedback: the big picture first, every b
 | [`generated/dependency-matrix.md`](generated/dependency-matrix.md) | Caller × provider matrix: interface or event in each cell, generated from the code | New 5.2 table |
 | [`uml/deployment.png`](uml/deployment.png) | UML deployment: phone, Render container, Supabase, Google, SendGrid, GitHub | Replaces the bullet list in 10.2 |
 | [`uml/er-diagram.png`](uml/er-diagram.png) | Database schema, 19 tables | New section 6.7 "Database schema" |
-| [`uml/conditions-class.puml`](uml/conditions-class.puml) | Conditions class diagram: `ConditionsService`, the Chain of Responsibility (`ConditionResolver` and its four handlers), the combining rules, and `VenueDetailsService` (M4) | Section 14 (Sprint 1 detailed design) |
-| [`uml/view-details-sequence.puml`](uml/view-details-sequence.puml) | "View details" sequence (UC-04): API → facade → details → conditions cache → records → chain, with the 400/404 branches (M4) | Section 14 (Sprint 1 detailed design) |
+| [`uml/conditions-class.png`](uml/conditions-class.png) | Conditions class diagram: `ConditionsService`, the Chain of Responsibility (`ConditionResolver` and its four handlers), the combining rules, and `VenueDetailsService` (M4) | Section 14 (Sprint 1 detailed design) |
+| [`uml/view-details-sequence.png`](uml/view-details-sequence.png) | "View details" sequence (UC-04): API → facade → details → conditions cache → records → chain, with the 400/404 branches (M4) | Section 14 (Sprint 1 detailed design) |
 
 Sources are PlantUML (`uml/*.puml`); re-render with `plantuml -tpng -tsvg docs/architecture/uml/*.puml`. The generated files come from `cd backend && npm run deps:graph`.
 

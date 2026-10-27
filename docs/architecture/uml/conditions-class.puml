@@ -181,6 +181,15 @@ VenueDetailsService ..> FavoriteEntity
 VenueDetailsService ..> VenueDetails : returns
 VenueConditions *-- "3" ConditionValue
 
+' Layout only: stack the contract boxes so the figure fits a page.
+IConditions -[hidden]down- IVenueQuery
+IVenueQuery -[hidden]down- VenueDetails
+IPresence -[hidden]down- IConfig
+IConfig -[hidden]down- IClock
+VenueConditions -[hidden]down- ConditionValue
+ConditionRules -[hidden]down- VenueQueryFacade
+VenueDetails -[hidden]down- DynamicRecordEntity
+
 note bottom of ConditionResolver
   Chain built once:
   Current -> HoursAgo -> Historical -> Unavailable.
