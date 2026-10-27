@@ -157,7 +157,7 @@ async function main() {
   Start the backend:   ${bold('npm run dev')}
   API docs:            http://localhost:3000/api/docs
   Health check:        http://localhost:3000/api/v1/health
-  Dev token:           stub.00000000-0000-4000-8000-000000000001  (until M2's login is done)
+  Dev sign-in:         dev@studyspot.test / devpass123  (POST /api/v1/auth/login for a token)
 
   Before your first pull request, read CONTRIBUTING.md.
 `);

@@ -12,8 +12,8 @@ info:
     - Base path /api/v1. JSON everywhere. Times are ISO 8601 UTC strings.
     - Every error has the body ErrorBody and an X-Request-Id response header.
     - Protected routes need "Authorization: Bearer <accessToken>".
-      Until M2's real auth lands, the stub accepts `stub.00000000-0000-4000-8000-000000000001`
-      for the dev user (dev@studyspot.test / devpass123).
+      Get one from POST /auth/login (dev user: dev@studyspot.test / devpass123). It lasts
+      15 minutes; POST /auth/refresh swaps the refresh token for new tokens.
     - Levels are words in the API (quiet/moderate/noisy, poor/average/good, low/moderate/high).
     - Dynamic values always carry a status: current, hours_ago, historical, unavailable (SRS 3.9).
 servers:

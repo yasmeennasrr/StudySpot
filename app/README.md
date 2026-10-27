@@ -36,7 +36,7 @@ lib/
 - The contract: `../contracts/openapi.yaml`. Browse it at `/api/docs` on any running backend.
 - Errors always look like `{ "code": "INVALID_INPUT", "message": "...", "details": [...], "requestId": "..." }`. Show `message` to the user.
 - Timeout for normal calls 10 s; StudyMatch (Sprint 3) 12 s (SDS 5.1).
-- Until M2's real sign-in lands, any protected call works with `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001`.
+- Protected calls need `Authorization: Bearer <accessToken>` from `POST /auth/login` (dev user `dev@studyspot.test` / `devpass123`). Access tokens last 15 minutes: on a 401, call `POST /auth/refresh` with the refresh token, then retry once. Each refresh returns a new refresh token; store it and drop the old one.
 - Status labels for crowd, noise and Wi-Fi come from `ConditionValue.status`:
   `current` → "Current: Quiet" · `hours_ago` → "3 hours ago: Quiet" (from `newestInputAt`) ·
   `historical` → "Estimate based on historical data: Quiet" · `unavailable` → "Unavailable". Mark crowd and noise as estimates.
