@@ -30,9 +30,9 @@ export class FilterFieldsDto {
   @IsOptional() @IsIn(NOISE_WORDS) noise?: (typeof NOISE_WORDS)[number];
   @IsOptional() @IsIn(WIFI_WORDS) wifi?: (typeof WIFI_WORDS)[number];
   @IsOptional() @IsIn(CROWD_WORDS) crowd?: (typeof CROWD_WORDS)[number];
-  @IsOptional() @Transform(toBool) @IsBoolean() outlets?: boolean;
+  @IsOptional() @Type(() => String) @Transform(toBool) @IsBoolean() outlets?: boolean;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(4) maxPrice?: number;
-  @IsOptional() @Transform(toBool) @IsBoolean() openNow?: boolean;
+  @IsOptional() @Type(() => String) @Transform(toBool) @IsBoolean() openNow?: boolean;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5000) maxDistance?: number;
   @IsOptional() @IsIn(['individual', 'group']) studyType?: 'individual' | 'group';
 }

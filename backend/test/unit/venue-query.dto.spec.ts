@@ -1,6 +1,9 @@
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
-import { SearchVenuesQueryDto } from '../../src/modules/venues/dto/venue-query.dto';
+import {
+  SearchVenuesQueryDto,
+  toFilterCriteria,
+} from '../../src/modules/venues/dto/venue-query.dto';
 
 describe('SearchVenuesQueryDto coordinates', () => {
   it('TC-M3-02 allows a text search without coordinates', () => {
@@ -13,6 +16,17 @@ describe('SearchVenuesQueryDto coordinates', () => {
     const dto = plainToInstance(SearchVenuesQueryDto, { lat: '30.02', lng: '31.49' });
 
     expect(validateSync(dto)).toHaveLength(0);
+  });
+
+  it('TC-M3-25 preserves false query booleans with implicit conversion enabled', () => {
+    const dto = plainToInstance(
+      SearchVenuesQueryDto,
+      { q: 'cafe', outlets: 'false', openNow: 'false' },
+      { enableImplicitConversion: true },
+    );
+
+    expect(validateSync(dto)).toHaveLength(0);
+    expect(toFilterCriteria(dto)).toMatchObject({ outlets: false, openNow: false });
   });
 
   it.each([
