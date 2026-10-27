@@ -4,19 +4,19 @@
 
 ## Summary
 
-**109** test cases: **109** pass, **0** fail, **0** not run yet. They cover **71** requirement IDs.
+**123** test cases: **123** pass, **0** fail, **0** not run yet. They cover **71** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 55 | 55 | 0 | 0 | 55 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
-| M3 | 25 | 25 | 0 | 0 | 25 |
+| M3 | 39 | 39 | 0 | 0 | 39 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 41 |
+| Integration | 55 |
 | Unit | 58 |
 
 ## Requirement → test cases
@@ -37,13 +37,13 @@
 | DATA-012 | TC-M1-19, TC-M1-21, TC-M1-22, TC-M1-30, TC-M1-32 | Unit, Integration | ✅ all pass |
 | EIR-008 | TC-M1-05, TC-M1-07, TC-M1-08, TC-M1-27, TC-M1-28 | Unit, API layer, Integration | ✅ all pass |
 | EIR-010 | TC-M1-28 | Integration | ✅ all pass |
-| EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41 | Unit, API layer | ✅ all pass |
+| EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35 | Unit, API layer, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12 | Unit | ✅ all pass |
-| FR-009 | TC-M3-02, TC-M3-03, TC-M3-04 | Unit | ✅ all pass |
-| FR-010 | TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration, Unit | ✅ all pass |
-| FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36 | Integration, Unit | ✅ all pass |
+| FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04 | Integration, Unit | ✅ all pass |
+| FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration, Unit | ✅ all pass |
+| FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36 | Integration, Unit | ✅ all pass |
 | FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration | ✅ all pass |
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25 | Integration, Unit | ✅ all pass |
 | FR-016 | TC-M4-14 | Integration | ✅ all pass |
@@ -91,7 +91,7 @@
 | SEC-009 | TC-M2-10, TC-M2-11 | Unit | ✅ all pass |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07 | API layer, Integration | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17 | Unit, API layer | ✅ all pass |
-| UC-03 | TC-M1-35 | Unit | ✅ all pass |
+| UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
 | USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44 | Unit, API layer | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
@@ -157,6 +157,20 @@
 | TC-M1-53 | SEC-004 | Use-case based (two users) | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
 | TC-M1-54 | SEC-001 | Equivalence partitioning (no token) | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
 | TC-M1-55 | Referential integrity (SDS 6.7) | Error guessing | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
+| TC-M3-27 | FR-009 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-28 | FR-009 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-29 | FR-009 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-30 | FR-009 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-31 | FR-009 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-32 | FR-011 | Use-case based (UC-03) | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-33 | FR-011 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-34 | FR-011, UC-03 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-35 | FR-011, EIR-011, UC-03 | Use-case based (maps unavailable alternative) | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-36 | FR-009, FR-011 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-37 | FR-009, FR-010 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-38 | FR-009 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-39 | FR-009 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-40 | FR-009 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
 | TC-M3-01 | FR-010, FR-012 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
 | TC-M3-02 | FR-009, FR-010 | Equivalence partitioning | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |
 | TC-M3-03 | FR-009, FR-010 | Equivalence partitioning | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |

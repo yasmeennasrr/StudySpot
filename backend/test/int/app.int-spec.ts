@@ -11,6 +11,7 @@ import * as yaml from 'js-yaml';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import * as contracts from '../../src/contracts';
+import { AdapterUnavailableError } from '../../src/common/errors/app-error';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
 import { VenueEntity } from '../../src/db/entities';
 import { SAMPLE_VENUES } from '../../src/modules/venues/venue-fixtures';
@@ -232,6 +233,118 @@ describe('StudySpot backend on a real database (integration)', () => {
         );
       }
     }
+  });
+
+  it('TC-M3-27 searches venue names case-insensitively', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=sAmPlE%20sTuDy');
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      '6f1c2a10-0000-4000-8000-000000000001',
+    ]);
+  });
+
+  it('TC-M3-28 matches a partial venue name', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=Quiet%20Corner');
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+  });
+
+  it('TC-M3-29 text search also matches the venue area', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=Zamalek');
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+  });
+
+  it('TC-M3-30 trims surrounding whitespace from a name query', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/search?q=%20%20Sample%20Study%20%20',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      '6f1c2a10-0000-4000-8000-000000000001',
+    ]);
+  });
+
+  it('TC-M3-31 treats percent as a literal character in a search query', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=%25');
+    expect(res.status).toBe(200);
+    expect(res.body.items).toEqual([]);
+  });
+
+  it('TC-M3-32 geocodes a known area and returns its nearby venues with an origin', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?area=Zamalek');
+    expect(res.status).toBe(200);
+    expect(res.body.origin).toEqual({ lat: 30.0609, lng: 31.2197 });
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+    expect(res.body.degraded).toBe(false);
+  });
+
+  it('TC-M3-33 trims and case-folds area names before geocoding', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/search?area=%20%20ZAMALEK%20%20',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.origin).toEqual({ lat: 30.0609, lng: 31.2197 });
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+  });
+
+  it('TC-M3-34 reports an unknown area distinctly from an empty search result', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?area=Atlantis');
+    expect(res.status).toBe(404);
+    expect(res.body.code).toBe('NOT_FOUND');
+  });
+
+  it('TC-M3-35 degrades to area-text matching when maps are unavailable', async () => {
+    const maps = app.get<contracts.IMaps>(contracts.MAPS);
+    const geocode = jest
+      .spyOn(maps, 'geocode')
+      .mockRejectedValue(new AdapterUnavailableError('maps', 'test outage'));
+    try {
+      const res = await request(app.getHttpServer()).get('/api/v1/venues/search?area=Zamalek');
+      expect(res.status).toBe(200);
+      expect(res.body.degraded).toBe(true);
+      expect(res.body.origin).toBeNull();
+      expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+    } finally {
+      geocode.mockRestore();
+    }
+  });
+
+  it('TC-M3-36 combines an area origin and a name query', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/search?area=Zamalek&q=Quiet',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([SAMPLE_VENUE]);
+  });
+
+  it('TC-M3-37 uses coordinates and text together to constrain search results', async () => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/search?q=Nearby&lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&radius=100`,
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[0].id,
+      NEARBY_TEST_VENUES[1].id,
+    ]);
+  });
+
+  it('TC-M3-38 rejects a search request with no query, area, or location', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search');
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_INPUT');
+  });
+
+  it('TC-M3-39 rejects a whitespace-only name query after normalization', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=%20%20');
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_INPUT');
+  });
+
+  it('TC-M3-40 treats underscore as a literal in a search query', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=_');
+    expect(res.status).toBe(200);
+    expect(res.body.items).toEqual([]);
   });
 
   it('TC-M3-01 finds database venues inside the requested nearby radius with distance', async () => {

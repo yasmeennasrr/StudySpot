@@ -68,15 +68,17 @@ export class VenueSearchService {
     );
     const maximumResults = await this.config.get('search.maxResults');
     const limit = Math.min(params.limit ?? maximumResults, maximumResults, 30);
-    const text = (params.q ?? (degraded ? params.area : undefined))?.toLowerCase();
+    const text = (params.q ?? (degraded ? params.area : undefined))?.trim().toLowerCase();
 
     const query = this.venues.createQueryBuilder('venue').where('venue.active = :active', {
       active: true,
     });
     if (text) {
+      // Treat user input as literal text; ILIKE's % and _ are pattern operators.
+      const escapedText = text.replace(/[\\%_]/g, '\\$&');
       query.andWhere(
-        '(venue.name ILIKE :searchText OR COALESCE(venue.area, \'\') ILIKE :searchText)',
-        { searchText: `%${text}%` },
+        "(venue.name ILIKE :searchText ESCAPE '\\' OR COALESCE(venue.area, '') ILIKE :searchText ESCAPE '\\')",
+        { searchText: `%${escapedText}%` },
       );
     }
     if (params.filters?.outlets !== undefined) {
