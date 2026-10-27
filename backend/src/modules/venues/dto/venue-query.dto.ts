@@ -39,12 +39,14 @@ export class FilterFieldsDto {
 
 /** GET /venues/search: by name (q), by area, or near a point (FR-009, FR-010, FR-011). */
 export class SearchVenuesQueryDto extends FilterFieldsDto {
-  @IsOptional() @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(1, 100)
   q?: string;
 
-  @IsOptional() @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Length(2, 100)
   area?: string;
@@ -61,6 +63,11 @@ export class SearchVenuesQueryDto extends FilterFieldsDto {
   lng?: number;
 
   @IsOptional() @Type(() => Number) @IsInt() @Min(100) @Max(5000) radius?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(30) limit?: number;
+}
+
+/** GET /venues: every active venue, A to Z, with the same filters (no location needed). */
+export class BrowseVenuesQueryDto extends FilterFieldsDto {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(30) limit?: number;
 }
 
