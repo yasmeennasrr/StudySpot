@@ -12,6 +12,8 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import * as contracts from '../../src/contracts';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
+import { VenueEntity } from '../../src/db/entities';
+import { SAMPLE_VENUES } from '../../src/modules/venues/venue-fixtures';
 import { TEST_DATABASE_URL } from './test-database';
 
 process.env.NODE_ENV = 'test';
@@ -22,6 +24,33 @@ process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? TEST_DATABASE_URL;
 
 const DEV_TOKEN = 'stub.00000000-0000-4000-8000-000000000001';
 const SAMPLE_VENUE = '6f1c2a10-0000-4000-8000-000000000002';
+const NEARBY_TEST_ORIGIN = { lat: 30.05, lng: 31.3 };
+const NEARBY_TEST_VENUES = [
+  {
+    id: '6f1c2a10-0000-4000-8000-000000000004',
+    name: 'Nearby test origin',
+    coordinates: [31.3, 30.05] as [number, number],
+    active: true,
+  },
+  {
+    id: '6f1c2a10-0000-4000-8000-000000000005',
+    name: 'Nearby test inside radius',
+    coordinates: [31.3008, 30.05] as [number, number],
+    active: true,
+  },
+  {
+    id: '6f1c2a10-0000-4000-8000-000000000006',
+    name: 'Nearby test outside radius',
+    coordinates: [31.302, 30.05] as [number, number],
+    active: true,
+  },
+  {
+    id: '6f1c2a10-0000-4000-8000-000000000007',
+    name: 'Nearby test inactive',
+    coordinates: [31.3, 30.05] as [number, number],
+    active: false,
+  },
+];
 
 describe('StudySpot backend on a real database (integration)', () => {
   let app: INestApplication;
@@ -42,6 +71,33 @@ describe('StudySpot backend on a real database (integration)', () => {
     configureApp(app);
     await app.init();
     db = app.get(DataSource);
+    await db.getRepository(VenueEntity).save(
+      SAMPLE_VENUES.map((venue) => ({
+        id: venue.id,
+        name: venue.name,
+        location: {
+          type: 'Point' as const,
+          coordinates: [venue.location.lng, venue.location.lat] as [number, number],
+        },
+        address: venue.address,
+        area: venue.area,
+        openingHours: venue.openingHours,
+        priceLevel: venue.priceLevel,
+        wifiAvailable: venue.wifiAvailable,
+        outletsAvailable: venue.outletsAvailable,
+        studyType: venue.studyType,
+        source: 'team' as const,
+        active: true,
+      })),
+    );
+    await db.getRepository(VenueEntity).save(
+      NEARBY_TEST_VENUES.map((venue) => ({
+        id: venue.id,
+        name: venue.name,
+        location: { type: 'Point' as const, coordinates: venue.coordinates },
+        active: venue.active,
+      })),
+    );
   });
 
   afterAll(async () => {
@@ -140,6 +196,115 @@ describe('StudySpot backend on a real database (integration)', () => {
         );
       }
     }
+  });
+
+  it('TC-M3-01 finds database venues inside the requested nearby radius with distance', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/nearby?lat=30.0205&lng=31.4952&radius=100&limit=30',
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      '6f1c2a10-0000-4000-8000-000000000001',
+    ]);
+    expect(res.body.items[0].distanceMeters).toBe(0);
+
+    const defaultRadius = await request(app.getHttpServer()).get(
+      '/api/v1/venues/nearby?lat=30.0195&lng=31.4996',
+    );
+    expect(defaultRadius.status).toBe(200);
+    expect(defaultRadius.body.items.map((item: { id: string }) => item.id)).toEqual([
+      '6f1c2a10-0000-4000-8000-000000000001',
+    ]);
+  });
+
+  it('TC-M3-05 includes venues within the radius and excludes venues beyond it', async () => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&radius=100`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[0].id,
+      NEARBY_TEST_VENUES[1].id,
+    ]);
+  });
+
+  it('TC-M3-06 returns nearby venues in ascending distance order', async () => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&radius=500`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.slice(0, 3).map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[0].id,
+      NEARBY_TEST_VENUES[1].id,
+      NEARBY_TEST_VENUES[2].id,
+    ]);
+    const distances = res.body.items
+      .slice(0, 3)
+      .map((item: { distanceMeters: number }) => item.distanceMeters);
+    expect(distances[0]).toBe(0);
+    expect(distances[1]).toBeLessThan(distances[2]);
+  });
+
+  it('TC-M3-07 applies the requested result limit after nearest-first ordering', async () => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&radius=500&limit=1`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].id).toBe(NEARBY_TEST_VENUES[0].id);
+  });
+
+  it('TC-M3-08 excludes inactive venues from nearby results', async () => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&radius=100`,
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).not.toContain(
+      NEARBY_TEST_VENUES[3].id,
+    );
+  });
+
+  it('TC-M3-09 returns an empty list when no active venue is within range', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/nearby?lat=30&lng=34&radius=100',
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.origin).toEqual({ lat: 30, lng: 34 });
+    expect(res.body.items).toEqual([]);
+  });
+
+  it.each([99, 5001])('TC-M3-10 rejects radius %i outside the supported range', async (radius) => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=30&lng=31&radius=${radius}`,
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_INPUT');
+  });
+
+  it.each([0, 31])('TC-M3-11 rejects result limit %i outside the supported range', async (limit) => {
+    const res = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=30&lng=31&limit=${limit}`,
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_INPUT');
+  });
+
+  it.each([
+    ['latitude', 'lat=91&lng=31'],
+    ['longitude', 'lat=30&lng=181'],
+  ])('TC-M3-12 rejects an out-of-range %s', async (_field, coordinates) => {
+    const res = await request(app.getHttpServer()).get(`/api/v1/venues/nearby?${coordinates}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_INPUT');
   });
 
   it('TC-M1-32 creates the full schema with PostGIS', async () => {
