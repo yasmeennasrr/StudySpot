@@ -24,7 +24,7 @@ import { VenueEntity } from '../../../db/entities';
  * FR-013 filters are a separate follow-up; they are not applied here yet.
  */
 @Injectable()
-export class StubVenueSearchService {
+export class VenueSearchService {
   private readonly logger = new Logger('VenuesSearch');
 
   constructor(
@@ -57,7 +57,7 @@ export class StubVenueSearchService {
     const maximumRadius = await this.config.get('search.maxRadiusMeters');
     const radius = Math.min(params.radiusMeters ?? configuredRadius, maximumRadius);
     const maximumResults = await this.config.get('search.maxResults');
-    const limit = Math.min(params.limit ?? maximumResults, maximumResults);
+    const limit = Math.min(params.limit ?? maximumResults, maximumResults, 30);
     const text = (params.q ?? (degraded ? params.area : undefined))?.toLowerCase();
 
     const query = this.venues.createQueryBuilder('venue').where('venue.active = :active', {
@@ -78,7 +78,8 @@ export class StubVenueSearchService {
           radius,
         })
         .addSelect(`ST_Distance(venue.location, ${point})`, 'distanceMeters')
-        .orderBy('"distanceMeters"', 'ASC');
+        .orderBy('"distanceMeters"', 'ASC')
+        .addOrderBy('venue.id', 'ASC');
     } else {
       query.orderBy('venue.name', 'ASC').addOrderBy('venue.id', 'ASC');
     }

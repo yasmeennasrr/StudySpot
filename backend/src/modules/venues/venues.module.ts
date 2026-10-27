@@ -14,7 +14,7 @@ import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { StubVenueDetailsService } from './details/venue-details.service.stub';
 import { FavoritesService, PreferencesService } from './preferences-favorites.service';
-import { StubVenueSearchService } from './search/venue-search.service.stub';
+import { VenueSearchService } from './search/venue-search.service';
 import { VenueQueryFacade } from './venue-query.service';
 import { MyVenuesController, VenuesController } from './venues.controller';
 
@@ -34,7 +34,7 @@ import { MyVenuesController, VenuesController } from './venues.controller';
   ],
   controllers: [VenuesController, MyVenuesController],
   providers: [
-    StubVenueSearchService,
+    VenueSearchService,
     StubVenueDetailsService,
     { provide: VENUE_QUERY, useClass: VenueQueryFacade },
     { provide: PREFERENCES, useClass: PreferencesService },
