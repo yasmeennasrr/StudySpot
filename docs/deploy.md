@@ -8,7 +8,7 @@ Owner: M1. The API runs on Render's free tier; the database is Supabase PostgreS
   - The schema from `InitialSchema1792946643956` is applied: 19 tables, with PostGIS, pg_trgm and uuid-ossp in the `extensions` schema.
   - It is recorded in `schema_migrations`, so `migration:run` on Render sees nothing to do and only applies newer migrations.
   - Row Level Security is on for every table, with no policies. Supabase's public Data API (anon key) can read nothing; the backend connects as the database owner and is not affected.
-  - Loaded data: the 3 sample venues and the development account `dev@studyspot.test` / `devpass123` (the account the token `stub.00000000-0000-4000-8000-000000000001` uses until M2's login lands).
+  - Loaded data: the 3 sample venues and the development account `dev@studyspot.test` / `devpass123`.
 - **`render.yaml`** at the repo root describes the web service: build, start, health check, and environment variables.
 
 ## Live service
@@ -51,7 +51,7 @@ Owner: M1. The API runs on Render's free tier; the database is Supabase PostgreS
 
 - Open `https://<your-service>.onrender.com/api/v1/health`. It should return `{"status":"ok","database":"up",...}`.
 - Open `https://<your-service>.onrender.com/api/docs` for the interactive API docs.
-- Try `GET /api/v1/venues/search?area=zamalek`, then `PUT /api/v1/me/favorites/6f1c2a10-0000-4000-8000-000000000002` with the header `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001`, then `GET /api/v1/me/favorites`.
+- Try `GET /api/v1/venues/search?area=zamalek`. Then sign in with `POST /api/v1/auth/login` (`dev@studyspot.test` / `devpass123`), and with the header `Authorization: Bearer <accessToken>` call `PUT /api/v1/me/favorites/6f1c2a10-0000-4000-8000-000000000002`, then `GET /api/v1/me/favorites`.
 
 Share the base URL (`https://<your-service>.onrender.com/api/v1`) with M5 and M6 for the app's `API_BASE_URL`.
 

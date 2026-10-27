@@ -5,6 +5,7 @@
  */
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
@@ -17,7 +18,7 @@ process.env.THROTTLE_LIMIT = '10000';
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? TEST_DATABASE_URL;
 
 const DEV_ID = '00000000-0000-4000-8000-000000000001';
-const DEV = `Bearer stub.${DEV_ID}`;
+const DEV_PASSWORD = 'devpass123';
 const ZAMALEK = '6f1c2a10-0000-4000-8000-000000000002';
 const MAADI = '6f1c2a10-0000-4000-8000-000000000003';
 const NOT_A_VENUE = '6f1c2a10-0000-4000-8000-0000000000ff';
@@ -26,14 +27,8 @@ describe('Preferences and favorites on a real database (integration)', () => {
   let app: INestApplication;
   let db: DataSource;
   const api = () => request(app.getHttpServer());
-
-  /** Inserts a users row, as M2's real registration will. */
-  const addUserRow = (id: string, email: string) =>
-    db.query(
-      `INSERT INTO users (id, email, password_hash, display_name, terms_accepted_at)
-       VALUES ($1, $2, 'x', 'Test', now()) ON CONFLICT DO NOTHING`,
-      [id, email],
-    );
+  /** Authorization header for the dev user, from a real sign-in in beforeAll. */
+  let DEV: string;
 
   beforeAll(async () => {
     const admin = new DataSource(buildDataSourceOptions());
@@ -58,7 +53,15 @@ describe('Preferences and favorites on a real database (integration)', () => {
     configureApp(app);
     await app.init();
     db = app.get(DataSource);
-    await addUserRow(DEV_ID, 'dev@studyspot.test');
+    await db.query(
+      `INSERT INTO users (id, email, password_hash, display_name, terms_accepted_at)
+       VALUES ($1, 'dev@studyspot.test', $2, 'Dev Student', now())`,
+      [DEV_ID, await bcrypt.hash(DEV_PASSWORD, 4)],
+    );
+    const login = await api()
+      .post('/api/v1/auth/login')
+      .send({ email: 'dev@studyspot.test', password: DEV_PASSWORD });
+    DEV = `Bearer ${login.body.accessToken}`;
   });
 
   afterAll(async () => {
@@ -162,9 +165,7 @@ describe('Preferences and favorites on a real database (integration)', () => {
       termsAccepted: true,
     });
     expect(reg.status).toBe(201);
-    const otherId: string = reg.body.user.id;
     const OTHER = `Bearer ${reg.body.accessToken}`;
-    await addUserRow(otherId, 'other@studyspot.test');
 
     // The other user starts empty and cannot remove the dev user's favorite.
     expect(

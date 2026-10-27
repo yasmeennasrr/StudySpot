@@ -65,7 +65,7 @@ npm run test:int              # integration tests on the separate studyspot_test
 npm run test:matrix           # if you changed docs/testing/test-cases.csv: rebuilds the traceability matrix
 ```
 
-Development sign-in while M2's work is in progress: send `Authorization: Bearer stub.00000000-0000-4000-8000-000000000001` (dev user `dev@studyspot.test` / `devpass123`). `npm run setup` also creates this user in the database, so saved preferences and favorites work with it. **M2:** when registration writes real rows to `users`, every account can use them; until then, accounts made with the stub's register exist only in memory, and saving preferences or favorites for them answers 404 "account could not be found".
+Development sign-in: `npm run setup` creates the user `dev@studyspot.test` / `devpass123`. Call `POST /api/v1/auth/login` (or "Try it out" at `/api/docs`) and send the `accessToken` as `Authorization: Bearer <accessToken>`. It lasts 15 minutes; sign in again or call `POST /auth/refresh`. Accounts you register are real rows in `users`, so every account works with preferences and favorites. The old `stub.` token no longer works.
 
 ## Test cases (PB-45)
 

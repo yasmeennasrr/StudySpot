@@ -20,12 +20,12 @@ process.env.THROTTLE_LIMIT = '10000';
 // Only ever the test database: backend/.env (your dev database) is ignored on purpose.
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? TEST_DATABASE_URL;
 
-const DEV_TOKEN = 'stub.00000000-0000-4000-8000-000000000001';
 const SAMPLE_VENUE = '6f1c2a10-0000-4000-8000-000000000002';
 
 describe('StudySpot backend on a real database (integration)', () => {
   let app: INestApplication;
   let db: DataSource;
+  let accessToken: string;
 
   beforeAll(async () => {
     // Fresh schema through the real migrations.
@@ -42,6 +42,14 @@ describe('StudySpot backend on a real database (integration)', () => {
     configureApp(app);
     await app.init();
     db = app.get(DataSource);
+
+    const signUp = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
+      email: 'int-test@studyspot.test',
+      password: 'testpass123',
+      displayName: 'Integration Test',
+      termsAccepted: true,
+    });
+    accessToken = signUp.body.accessToken;
   });
 
   afterAll(async () => {
@@ -95,7 +103,7 @@ describe('StudySpot backend on a real database (integration)', () => {
           request(app.getHttpServer()) as unknown as Record<string, (u: string) => request.Test>
         )
           [method](url)
-          .set('Authorization', `Bearer ${DEV_TOKEN}`)
+          .set('Authorization', `Bearer ${accessToken}`)
           .send({});
         const unrouted = res.status === 404 && /^Cannot /.test(String(res.body?.message ?? ''));
         if (unrouted) missing.push(`${method.toUpperCase()} ${path}`);
