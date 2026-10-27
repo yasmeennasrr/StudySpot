@@ -5,12 +5,12 @@
  *   npm run setup
  *
  * It checks your tools, creates backend/.env, starts the local database (Docker),
- * installs all packages, creates the tables and loads the sample data. Safe to run
+ * installs all packages, creates the tables and loads the venue seed data. Safe to run
  * again at any time (for example after a `git pull` that added packages or migrations).
  *
  * Options:
  *   --no-docker   use the database already set in backend/.env (e.g. Supabase) instead of Docker
- *   --skip-seed   don't (re)load the sample venues
+ *   --skip-seed   don't (re)load the venue seed data
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, readFileSync } from 'node:fs';
@@ -139,10 +139,10 @@ async function main() {
 
   // 6. Sample data ----------------------------------------------------------------
   if (!args.has('--skip-seed')) {
-    title('Loading sample venues (seed)');
+    title('Loading venue seed data');
     const seed = run('npm', ['run', 'seed'], { cwd: BACKEND, show: true });
     if (!seed.ok) fail('Loading the seed data failed.', 'Check backend/seed/*.json for a typo (the error above names the entry).');
-    ok('Sample data loaded');
+    ok('Venue seed data loaded');
   }
 
   // 7. Flutter app (only once M5 has created it) ------------------------------------

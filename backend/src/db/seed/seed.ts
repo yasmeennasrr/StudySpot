@@ -9,7 +9,7 @@
  * Set SEED_DEV_USER=false to skip it.
  *
  * Files (backend/seed/):
- *   venues.json   real cafés, written by M3. Falls back to venues.sample.json.
+ *   venues.json   M3's fictional demo cafés. Falls back to venues.sample.json.
  *   records.json  optional synthetic history (90 days of survey inputs), written by M4
  *                 with `npm run seed:records`, so the details screen shows current,
  *                 hours-ago, historical and unavailable values. Its times are moved
