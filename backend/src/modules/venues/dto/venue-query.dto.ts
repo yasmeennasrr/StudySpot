@@ -42,12 +42,13 @@ export class SearchVenuesQueryDto extends FilterFieldsDto {
   @IsOptional() @IsString() @Length(1, 100) q?: string;
   @IsOptional() @IsString() @Length(2, 100) area?: string;
 
-  @ValidateIf((o: SearchVenuesQueryDto) => o.lng !== undefined)
+  // Coordinates are optional as a pair, but a partially supplied pair is invalid.
+  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined || o.lng !== undefined)
   @Type(() => Number)
   @IsLatitude()
   lat?: number;
 
-  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined)
+  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined || o.lng !== undefined)
   @Type(() => Number)
   @IsLongitude()
   lng?: number;

@@ -1,4 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AdapterUnavailableError, AppError } from '../../../common/errors/app-error';
 import {
   CONDITIONS,
@@ -12,30 +14,28 @@ import {
   type SearchResult,
   type VenueSummary,
 } from '../../../contracts';
-import { haversineMeters, SAMPLE_VENUES } from '../venue-fixtures';
+import type { PriceLevel } from '../../../contracts/domain.types';
+import { VenueEntity } from '../../../db/entities';
 
 /**
- * STUB for search and nearby. Owner: M3 (PB-07, PB-08, PB-10).
- * Works on the 3 sample venues in memory so the app can integrate today.
- * The Venues -> Maps and Venues -> Conditions calls are already real.
- *
- * TODO(M3): replace with VenueSearchService over VenueRepository (PostGIS
- * ST_DWithin + ST_Distance, trigram ILIKE on name), and the Strategy filters:
- * one IFilterCriterion per FR-013 criterion combined by VenueFilterPipeline.
- * Filters are accepted but ignored by this stub.
+ * Venue search and nearby read path. Owner: M3 (PB-07, PB-08, PB-10).
+ * Area resolution stays behind IMaps, dynamic conditions stay behind
+ * IConditions, and spatial filtering uses PostGIS geography in the database.
+ * FR-013 filters are a separate follow-up; they are not applied here yet.
  */
 @Injectable()
 export class StubVenueSearchService {
   private readonly logger = new Logger('VenuesSearch');
 
   constructor(
+    @InjectRepository(VenueEntity) private readonly venues: Repository<VenueEntity>,
     @Inject(MAPS) private readonly maps: IMaps,
     @Inject(CONDITIONS) private readonly conditions: IConditions,
     @Inject(CONFIG) private readonly config: IConfig,
   ) {}
 
   async search(params: SearchParams): Promise<SearchResult> {
-    this.logger.debug({ params }, 'Venues.search (stub)');
+    this.logger.debug({ params }, 'Venues.search');
     let origin: GeoPoint | null = params.near ?? null;
     let degraded = false;
 
@@ -53,36 +53,54 @@ export class StubVenueSearchService {
       }
     }
 
-    const radius = params.radiusMeters ?? (await this.config.get('search.defaultRadiusMeters'));
-    const limit = params.limit ?? (await this.config.get('search.maxResults'));
+    const configuredRadius = await this.config.get('search.defaultRadiusMeters');
+    const maximumRadius = await this.config.get('search.maxRadiusMeters');
+    const radius = Math.min(params.radiusMeters ?? configuredRadius, maximumRadius);
+    const maximumResults = await this.config.get('search.maxResults');
+    const limit = Math.min(params.limit ?? maximumResults, maximumResults);
     const text = (params.q ?? (degraded ? params.area : undefined))?.toLowerCase();
 
-    let rows = SAMPLE_VENUES.map((v) => ({
-      venue: v,
-      distance: origin ? haversineMeters(origin, v.location) : null,
-    }));
+    const query = this.venues.createQueryBuilder('venue').where('venue.active = :active', {
+      active: true,
+    });
     if (text) {
-      rows = rows.filter(
-        (r) =>
-          r.venue.name.toLowerCase().includes(text) ||
-          (r.venue.area ?? '').toLowerCase().includes(text),
+      query.andWhere(
+        '(venue.name ILIKE :searchText OR COALESCE(venue.area, \'\') ILIKE :searchText)',
+        { searchText: `%${text}%` },
       );
     }
     if (origin) {
-      rows = rows
-        .filter((r) => (r.distance ?? 0) <= radius)
-        .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+      const point = 'ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography';
+      query
+        .andWhere(`ST_DWithin(venue.location, ${point}, :radius)`, {
+          lat: origin.lat,
+          lng: origin.lng,
+          radius,
+        })
+        .addSelect(`ST_Distance(venue.location, ${point})`, 'distanceMeters')
+        .orderBy('"distanceMeters"', 'ASC');
+    } else {
+      query.orderBy('venue.name', 'ASC').addOrderBy('venue.id', 'ASC');
     }
-    rows = rows.slice(0, limit);
+    const { entities, raw } = await query.take(limit).getRawAndEntities();
 
-    const conditions = await this.conditions.getConditionsForMany(rows.map((r) => r.venue.id));
-    const items: VenueSummary[] = rows.map((r) => ({
-      ...r.venue,
-      distanceMeters: r.distance,
+    const conditions = await this.conditions.getConditionsForMany(entities.map((v) => v.id));
+    const items: VenueSummary[] = entities.map((v, index) => ({
+      id: v.id,
+      name: v.name,
+      location: { lat: v.location.coordinates[1], lng: v.location.coordinates[0] },
+      address: v.address,
+      area: v.area,
+      openingHours: v.openingHours,
+      priceLevel: v.priceLevel as PriceLevel | null,
+      wifiAvailable: v.wifiAvailable,
+      outletsAvailable: v.outletsAvailable,
+      studyType: v.studyType,
+      distanceMeters: origin ? Math.round(Number(raw[index]?.distanceMeters)) : null,
       openNow: null,
       averageRating: null,
       reviewCount: 0,
-      conditions: conditions.get(r.venue.id) ?? null,
+      conditions: conditions.get(v.id) ?? null,
     }));
     return { origin, items, degraded };
   }

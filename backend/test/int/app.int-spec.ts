@@ -12,6 +12,8 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import * as contracts from '../../src/contracts';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
+import { VenueEntity } from '../../src/db/entities';
+import { SAMPLE_VENUES } from '../../src/modules/venues/venue-fixtures';
 import { TEST_DATABASE_URL } from './test-database';
 
 process.env.NODE_ENV = 'test';
@@ -42,6 +44,25 @@ describe('StudySpot backend on a real database (integration)', () => {
     configureApp(app);
     await app.init();
     db = app.get(DataSource);
+    await db.getRepository(VenueEntity).save(
+      SAMPLE_VENUES.map((venue) => ({
+        id: venue.id,
+        name: venue.name,
+        location: {
+          type: 'Point' as const,
+          coordinates: [venue.location.lng, venue.location.lat] as [number, number],
+        },
+        address: venue.address,
+        area: venue.area,
+        openingHours: venue.openingHours,
+        priceLevel: venue.priceLevel,
+        wifiAvailable: venue.wifiAvailable,
+        outletsAvailable: venue.outletsAvailable,
+        studyType: venue.studyType,
+        source: 'team' as const,
+        active: true,
+      })),
+    );
   });
 
   afterAll(async () => {
@@ -140,6 +161,18 @@ describe('StudySpot backend on a real database (integration)', () => {
         );
       }
     }
+  });
+
+  it('TC-M3-01 finds database venues inside the requested nearby radius with distance', async () => {
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/nearby?lat=30.0205&lng=31.4952&radius=100&limit=30',
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      '6f1c2a10-0000-4000-8000-000000000001',
+    ]);
+    expect(res.body.items[0].distanceMeters).toBe(0);
   });
 
   it('TC-M1-32 creates the full schema with PostGIS', async () => {
