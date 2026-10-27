@@ -126,6 +126,20 @@ describe('StudySpot backend on a real database (integration)', () => {
         openingHours: venue.openingHours,
       })),
     );
+    await db.query(
+      `INSERT INTO dynamic_records (venue_id, condition_type, value, source_type, recorded_at)
+       VALUES
+         ($1, 'noise', 1, 'qr_survey', now() - interval '10 minutes'),
+         ($1, 'wifi', 2, 'in_app_survey', now() - interval '10 minutes'),
+         ($1, 'crowd', 1, 'in_app_survey', now() - interval '10 minutes'),
+         ($2, 'noise', 2, 'qr_survey', now() - interval '10 minutes'),
+         ($2, 'wifi', 3, 'in_app_survey', now() - interval '10 minutes'),
+         ($2, 'crowd', 2, 'in_app_survey', now() - interval '10 minutes'),
+         ($3, 'noise', 3, 'qr_survey', now() - interval '10 minutes'),
+         ($3, 'wifi', 1, 'in_app_survey', now() - interval '10 minutes'),
+         ($3, 'crowd', 3, 'in_app_survey', now() - interval '10 minutes')`,
+      [NEARBY_TEST_VENUES[0].id, NEARBY_TEST_VENUES[1].id, NEARBY_TEST_VENUES[2].id],
+    );
 
     const signUp = await request(app.getHttpServer()).post('/api/v1/auth/register').send({
       email: 'int-test@studyspot.test',
@@ -419,88 +433,80 @@ describe('StudySpot backend on a real database (integration)', () => {
     expect(res.body.items.every((item: { openNow: boolean }) => item.openNow === false)).toBe(true);
   });
 
-  it('TC-M3-20 excludes venues without available noise data', async () => {
+  it('TC-M3-20 matches current noise levels returned by the real conditions service', async () => {
     const res = await request(app.getHttpServer()).get(
       `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&noise=quiet`,
     );
     expect(res.status).toBe(200);
-    expect(res.body.items).toEqual([]);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[0].id,
+    ]);
+    expect(res.body.items[0].conditions.noise).toMatchObject({
+      level: 1,
+      label: 'Quiet',
+      status: 'current',
+    });
   });
 
-  it('TC-M3-21 excludes venues without available Wi-Fi quality data', async () => {
+  it('TC-M3-21 matches current Wi-Fi quality returned by the real conditions service', async () => {
     const res = await request(app.getHttpServer()).get(
       `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&wifi=good`,
     );
     expect(res.status).toBe(200);
-    expect(res.body.items).toEqual([]);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[1].id,
+    ]);
+    expect(res.body.items[0].conditions.wifi).toMatchObject({
+      level: 3,
+      label: 'Good',
+      status: 'current',
+    });
   });
 
-  it('TC-M3-22 excludes venues without available crowd data', async () => {
+  it('TC-M3-22 matches current crowd levels returned by the real conditions service', async () => {
     const res = await request(app.getHttpServer()).get(
       `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&crowd=low`,
     );
     expect(res.status).toBe(200);
-    expect(res.body.items).toEqual([]);
+    expect(res.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[0].id,
+    ]);
+    expect(res.body.items[0].conditions.crowd).toMatchObject({
+      level: 1,
+      label: 'Low',
+      status: 'current',
+    });
   });
 
-  it('TC-M3-24 applies exact noise Wi-Fi and crowd levels from the conditions contract', async () => {
-    const makeValue = (
-      level: contracts.Level | null,
-      label: string | null,
-      isEstimate: boolean,
-    ): contracts.ConditionValue => ({
-      level,
-      label,
-      status: 'current',
-      newestInputAt: new Date().toISOString(),
-      basedOn: ['surveys'],
-      isEstimate,
-    });
-    const levels: Record<string, [contracts.Level, contracts.Level, contracts.Level]> = {
-      [NEARBY_TEST_VENUES[0].id]: [1, 2, 1],
-      [NEARBY_TEST_VENUES[1].id]: [2, 3, 2],
-      [NEARBY_TEST_VENUES[2].id]: [3, 1, 3],
-      [NEARBY_TEST_VENUES[3].id]: [1, 3, 1],
-    };
-    const conditionsService = app.get<contracts.IConditions>(contracts.CONDITIONS);
-    const conditionsSpy = jest
-      .spyOn(conditionsService, 'getConditionsForMany')
-      .mockImplementation(async (venueIds) => {
-        const values = new Map<string, contracts.VenueConditions>();
-        for (const venueId of venueIds) {
-          const [noise, wifi, crowd] = levels[venueId] ?? [null, null, null];
-          values.set(venueId, {
-            venueId,
-            noise: makeValue(noise, noise === null ? null : ['Quiet', 'Moderate', 'Noisy'][noise - 1], true),
-            wifi: makeValue(wifi, wifi === null ? null : ['Poor', 'Average', 'Good'][wifi - 1], false),
-            crowd: makeValue(crowd, crowd === null ? null : ['Low', 'Moderate', 'High'][crowd - 1], true),
-          });
-        }
-        return values;
-      });
+  it('TC-M3-24 matches selected levels 2 and 3 from real conditions data', async () => {
+    const moderateNoise = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&noise=moderate`,
+    );
+    const poorWifi = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&wifi=poor`,
+    );
+    const highCrowd = await request(app.getHttpServer()).get(
+      `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&crowd=high`,
+    );
+    expect(moderateNoise.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[1].id,
+    ]);
+    expect(poorWifi.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[2].id,
+    ]);
+    expect(highCrowd.body.items.map((item: { id: string }) => item.id)).toEqual([
+      NEARBY_TEST_VENUES[2].id,
+    ]);
+  });
 
-    try {
-      const noise = await request(app.getHttpServer()).get(
-        `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&noise=quiet`,
-      );
-      const wifi = await request(app.getHttpServer()).get(
-        `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&wifi=good`,
-      );
-      const crowd = await request(app.getHttpServer()).get(
-        `/api/v1/venues/nearby?lat=${NEARBY_TEST_ORIGIN.lat}&lng=${NEARBY_TEST_ORIGIN.lng}&crowd=low`,
-      );
-      expect(noise.body.items.map((item: { id: string }) => item.id)).toEqual([
-        NEARBY_TEST_VENUES[0].id,
-      ]);
-      expect(wifi.body.items.map((item: { id: string }) => item.id)).toEqual([
-        NEARBY_TEST_VENUES[1].id,
-      ]);
-      expect(crowd.body.items.map((item: { id: string }) => item.id)).toEqual([
-        NEARBY_TEST_VENUES[0].id,
-      ]);
-    } finally {
-      conditionsSpy.mockRestore();
-    }
+  it('TC-M3-26 excludes unavailable condition values from the matching filter', async () => {
+    const base = '/api/v1/venues/nearby?lat=30.0626&lng=31.2197&radius=100';
+    const noise = await request(app.getHttpServer()).get(`${base}&noise=quiet`);
+    const wifi = await request(app.getHttpServer()).get(`${base}&wifi=good`);
+    const crowd = await request(app.getHttpServer()).get(`${base}&crowd=low`);
+    expect(noise.body.items).toEqual([]);
+    expect(wifi.body.items).toEqual([]);
+    expect(crowd.body.items).toEqual([]);
   });
 
   it('TC-M3-23 returns no matches for maxDistance without an origin', async () => {
