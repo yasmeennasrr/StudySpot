@@ -30,9 +30,9 @@ export class FilterFieldsDto {
   @IsOptional() @IsIn(NOISE_WORDS) noise?: (typeof NOISE_WORDS)[number];
   @IsOptional() @IsIn(WIFI_WORDS) wifi?: (typeof WIFI_WORDS)[number];
   @IsOptional() @IsIn(CROWD_WORDS) crowd?: (typeof CROWD_WORDS)[number];
-  @IsOptional() @Transform(toBool) @IsBoolean() outlets?: boolean;
+  @IsOptional() @Type(() => String) @Transform(toBool) @IsBoolean() outlets?: boolean;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(4) maxPrice?: number;
-  @IsOptional() @Transform(toBool) @IsBoolean() openNow?: boolean;
+  @IsOptional() @Type(() => String) @Transform(toBool) @IsBoolean() openNow?: boolean;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(5000) maxDistance?: number;
   @IsOptional() @IsIn(['individual', 'group']) studyType?: 'individual' | 'group';
 }
@@ -42,12 +42,13 @@ export class SearchVenuesQueryDto extends FilterFieldsDto {
   @IsOptional() @IsString() @Length(1, 100) q?: string;
   @IsOptional() @IsString() @Length(2, 100) area?: string;
 
-  @ValidateIf((o: SearchVenuesQueryDto) => o.lng !== undefined)
+  // Coordinates are optional as a pair, but a partially supplied pair is invalid.
+  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined || o.lng !== undefined)
   @Type(() => Number)
   @IsLatitude()
   lat?: number;
 
-  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined)
+  @ValidateIf((o: SearchVenuesQueryDto) => o.lat !== undefined || o.lng !== undefined)
   @Type(() => Number)
   @IsLongitude()
   lng?: number;

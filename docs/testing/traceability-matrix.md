@@ -4,18 +4,19 @@
 
 ## Summary
 
-**69** test cases: **69** pass, **0** fail, **0** not run yet. They cover **50** requirement IDs.
+**94** test cases: **94** pass, **0** fail, **0** not run yet. They cover **54** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 55 | 55 | 0 | 0 | 55 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
+| M3 | 25 | 25 | 0 | 0 | 25 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 18 |
-| Unit | 41 |
+| Integration | 39 |
+| Unit | 45 |
 
 ## Requirement → test cases
 
@@ -39,7 +40,11 @@
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12 | Unit | ✅ all pass |
+| FR-009 | TC-M3-02, TC-M3-03, TC-M3-04 | Unit | ✅ all pass |
+| FR-010 | TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36 | Integration, Unit | ✅ all pass |
+| FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12 | Integration | ✅ all pass |
+| FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25 | Integration, Unit | ✅ all pass |
 | FR-022 | TC-M1-43, TC-M1-48 | Unit, Integration | ✅ all pass |
 | FR-023 | TC-M1-48 | Integration | ✅ all pass |
 | FR-024 | TC-M1-48 | Integration | ✅ all pass |
@@ -134,6 +139,31 @@
 | TC-M1-53 | SEC-004 | Use-case based (two users) | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
 | TC-M1-54 | SEC-001 | Equivalence partitioning (no token) | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
 | TC-M1-55 | Referential integrity (SDS 6.7) | Error guessing | Integration | pass | `backend/test/int/preferences-favorites.int-spec.ts` |
+| TC-M3-01 | FR-010, FR-012 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-02 | FR-009, FR-010 | Equivalence partitioning | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |
+| TC-M3-03 | FR-009, FR-010 | Equivalence partitioning | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |
+| TC-M3-04 | FR-009, FR-010 | Equivalence partitioning | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |
+| TC-M3-05 | FR-010, FR-012 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-06 | FR-010, FR-012 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-07 | FR-010, FR-012 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-08 | FR-010, FR-012 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-09 | FR-010, FR-012 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-10 | FR-010, FR-012 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-11 | FR-010, FR-012 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-12 | FR-010, FR-012 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-13 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-14 | FR-013 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-15 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-16 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-17 | FR-013 | Boundary value analysis | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-18 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-19 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-20 | FR-013 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-21 | FR-013 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-22 | FR-013 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-23 | FR-013 | Error guessing | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-24 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/app.int-spec.ts` |
+| TC-M3-25 | FR-013 | Boundary value analysis | Unit | pass | `backend/test/unit/venue-query.dto.spec.ts` |
 | TC-M2-01 | SEC-002, FR-001 | Boundary value analysis | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-02 | SEC-002 | Equivalence partitioning | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-03 | FR-001, PRIV-011 | Equivalence partitioning | Unit | pass | `backend/test/unit/auth.service.spec.ts` |

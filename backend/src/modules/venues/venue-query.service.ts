@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { IVenueQuery, SearchParams, SearchResult, VenueDetails } from '../../contracts';
 import { StubVenueDetailsService } from './details/venue-details.service.stub';
-import { StubVenueSearchService } from './search/venue-search.service.stub';
+import { VenueSearchService } from './search/venue-search.service';
 
 /**
  * Facade (SDS 8): the one entry point other modules use for venue data.
@@ -11,7 +11,7 @@ import { StubVenueSearchService } from './search/venue-search.service.stub';
 @Injectable()
 export class VenueQueryFacade implements IVenueQuery {
   constructor(
-    private readonly searchService: StubVenueSearchService,
+    private readonly searchService: VenueSearchService,
     private readonly detailsService: StubVenueDetailsService,
   ) {}
 
