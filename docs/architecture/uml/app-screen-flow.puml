@@ -1,0 +1,66 @@
+@startuml app-screen-flow
+' SDS v0.3 Section 14 (M5): app screen flow (Sprint 1).
+' Routes and rules: app/lib/core/routing/router.dart (appRedirect).
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam ArrowColor #555555
+skinparam state {
+  BackgroundColor white
+  BorderColor #555555
+  BackgroundColor<<m6>> #F4F4F4
+  BorderColor<<m6>> #AAAAAA
+  FontColor<<m6>> #777777
+}
+hide empty description
+
+title StudySpot app: screen flow (UML state machine of the navigation)
+
+state "Terms and privacy\n/terms" as Terms : PRIV-011
+state "Location purpose\n/location" as Location : PRIV-003, FR-010
+state "Type an area" as Area : FR-011, USE-007
+state "Home\n/home" as Home
+state "Sign in\n/signin" as SignIn : FR-002, FR-003
+state "Create account\n/register" as Register : FR-001
+state "My account\n/account" as Account
+state "Study preferences\n/preferences" as Prefs : FR-022..FR-024
+state "Favorites\n/favorites" as Favs : FR-027
+state "Search, map, details\n(M6)" as M6 <<m6>> : FR-009..FR-021
+
+[*] --> Terms : first launch
+[*] --> Home : terms already accepted
+Terms --> Location : accept + Continue
+Location --> Home : Allow (granted)
+Location --> Area : Not now / denied
+Area --> Home : Continue (area saved)\nor Skip
+
+Home --> M6 : search / map (visitor allowed, FR-006)
+M6 --> SignIn : heart while signed out
+Home --> SignIn : login icon
+SignIn --> Register : "New here?"
+Register --> SignIn : "Already have an account?"
+SignIn --> Home : signed in
+Register --> Home : account created
+
+Home --> Account : account icon (signed in)
+Account --> Prefs
+Account --> Favs
+Account --> Location : Location settings
+Account --> Home : Sign out (FR-004)
+
+Home --> Prefs
+Home --> Favs
+
+note right of Prefs
+  <b>Protected screens</b> (FR-007):
+  /account, /preferences, /favorites.
+  Signed out -> redirected to
+  /signin?from=<screen>, then back
+  to that screen after sign-in.
+end note
+
+note bottom of SignIn
+  Session expired (401 and refresh refused, SEC-009):
+  any screen -> Sign in with "Please sign in again".
+end note
+@enduml
