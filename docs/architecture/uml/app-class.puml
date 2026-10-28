@@ -1,0 +1,133 @@
+@startuml app-class
+' SDS v0.3 Section 14 (M5): Flutter app class diagram (Sprint 1).
+' Layers (MVVM, SDS 8): View -> ViewModel -> Repository -> ApiClient. Code: app/lib/.
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam nodesep 25
+skinparam ranksep 45
+skinparam class {
+  BackgroundColor white
+  BorderColor #555555
+  BackgroundColor<<View>> #EEF4FB
+  BackgroundColor<<ViewModel>> #EEF7F0
+  BackgroundColor<<Repository>> #FBF6EA
+}
+skinparam ArrowColor #555555
+hide empty members
+hide stereotype
+
+title StudySpot app (Flutter): MVVM class diagram, M5 part of Sprint 1
+
+' ---------- Layer 1: Views (Flutter widgets) ----------
+class TermsView <<View>>
+class RegisterView <<View>>
+class SignInView <<View>>
+class AccountView <<View>>
+class LocationView <<View>>
+class PreferencesView <<View>>
+class FavoritesView <<View>>
+class "FavoriteButton\n(for M6 details)" as FavoriteButton <<View>>
+
+' ---------- Layer 2: ViewModels (plain Dart) ----------
+class RegisterViewModel <<ViewModel>> {
+  +errors: Map<String,String>
+  +submit(): Future<bool>
+}
+class SignInViewModel <<ViewModel>> {
+  +generalError: String?
+  +submit(): Future<bool>
+}
+class LocationViewModel <<ViewModel>> {
+  +step: LocationStep
+  +allow() / notNow() / saveArea()
+}
+class PreferencesViewModel <<ViewModel>> {
+  +current: Preferences
+  +load() / save() / clearAll()
+}
+class FavoritesViewModel <<ViewModel>> {
+  +items: List<VenueSummary>
+  +load() / remove(id)
+}
+class FavoriteToggleViewModel <<ViewModel>> {
+  +isFavorite: bool
+  +toggle()
+}
+
+' ---------- Layer 3: Repositories ----------
+class AuthRepository <<Repository>> {
+  +register() / signIn() / signOut()
+}
+class PreferencesRepository <<Repository>> {
+  +load() / save() / clear()
+}
+class FavoritesRepository <<Repository>> {
+  +list() / add(id) / remove(id)
+}
+
+' ---------- Layer 4: core ----------
+package "core (shared with M6)" {
+  class Session {
+    +isSignedIn / user
+    +signIn() / signOut() / handleExpired()
+  }
+  abstract class ApiClient <<interface>> {
+    +register() / login() / refresh() / logout()
+    +preferences + favorites calls
+    +searchVenues() / nearbyVenues() / getVenue()
+  }
+  class DioApiClient {
+    adds Bearer token (interceptor)
+    on 401: refresh once, retry
+  }
+  class MockApiClient {
+    in memory, for tests
+  }
+  interface TokenStore
+  interface LocalFlags {
+    termsAccepted / locationAsked / manualArea
+  }
+  interface LocationService
+  class "router.dart (go_router)" as Router {
+    +appRedirect(): terms, location, sign-in rules
+  }
+}
+
+TermsView -down-> LocalFlags : acceptTerms()
+RegisterView -down-> RegisterViewModel
+SignInView -down-> SignInViewModel
+AccountView -down-> Session : signOut()
+LocationView -down-> LocationViewModel
+PreferencesView -down-> PreferencesViewModel
+FavoritesView -down-> FavoritesViewModel
+FavoriteButton -down-> FavoriteToggleViewModel
+
+RegisterViewModel -down-> AuthRepository
+SignInViewModel -down-> AuthRepository
+LocationViewModel -down-> LocationService
+LocationViewModel -down-> LocalFlags
+PreferencesViewModel -down-> PreferencesRepository
+FavoritesViewModel -down-> FavoritesRepository
+FavoriteToggleViewModel -down-> FavoritesRepository
+
+AuthRepository -down-> ApiClient
+AuthRepository -down-> Session
+PreferencesRepository -down-> ApiClient
+FavoritesRepository -down-> ApiClient
+
+ApiClient <|-down- DioApiClient
+ApiClient <|-down- MockApiClient
+DioApiClient -right-> TokenStore
+Session -down-> TokenStore
+Session .right.> ApiClient : onUnauthorized
+Router .up.> Session : listens (Observer)
+
+legend bottom left
+  <back:#EEF4FB> View </back>  Flutter widget: draws the screen, no logic
+  <back:#EEF7F0> ViewModel </back>  plain Dart: screen state + rules, testable without UI; View rebuilds on notify()
+  <back:#FBF6EA> Repository </back>  one per feature: hides the API from the ViewModel
+  ApiClient has two implementations (Strategy): DioApiClient talks to the real backend; MockApiClient runs the tests.
+endlegend
+@enduml
