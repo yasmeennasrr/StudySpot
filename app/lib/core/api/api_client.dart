@@ -40,6 +40,10 @@ abstract class ApiClient {
   Future<void> removeFavorite(String venueId);
 
   // Venues (M6: PB-07 to PB-11)
+  /// GET /venues: every venue A to Z (no name, area or location needed).
+  /// `maxDistance` is ignored here; it needs a location.
+  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}});
+
   /// [filters] uses the query names in the spec: noise, wifi, crowd, outlets,
   /// maxPrice, openNow, maxDistance, studyType, radius, limit.
   Future<SearchResult> searchVenues({

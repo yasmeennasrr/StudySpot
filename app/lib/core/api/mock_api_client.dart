@@ -161,6 +161,29 @@ class MockApiClient extends ApiClient {
     favoriteIds.remove(venueId);
   }
 
+  /// Every venue call, e.g. "search q=quiet", "nearby", "browse": tests check
+  /// which endpoint the screen chose (FR-009 to FR-012).
+  final List<String> venueCalls = [];
+
+  /// Filters sent with the last venue call.
+  Map<String, Object> lastFilters = const {};
+
+  /// Set to make venue lists come back empty / degraded.
+  bool returnNoVenues = false;
+  bool degradedSearch = false;
+
+  SearchResult _result(List<VenueSummary> items) => SearchResult(
+      items: returnNoVenues ? const [] : items, degraded: degradedSearch);
+
+  @override
+  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}}) async {
+    venueCalls.add('browse');
+    lastFilters = Map.of(filters)..remove('maxDistance');
+    await _step();
+    final items = List.of(venues)..sort((a, b) => a.name.compareTo(b.name));
+    return _result(items);
+  }
+
   @override
   Future<SearchResult> searchVenues({
     String? q,
@@ -169,15 +192,20 @@ class MockApiClient extends ApiClient {
     double? lng,
     Map<String, Object> filters = const {},
   }) async {
+    venueCalls.add([
+      'search',
+      if (q != null) 'q=$q',
+      if (area != null) 'area=$area',
+      if (lat != null) 'point',
+    ].join(' '));
+    lastFilters = filters;
     await _step();
     final text = (q ?? area ?? '').toLowerCase();
-    return SearchResult(
-      items: venues
-          .where((v) =>
-              v.name.toLowerCase().contains(text) ||
-              (v.area ?? '').toLowerCase().contains(text))
-          .toList(),
-    );
+    return _result(venues
+        .where((v) =>
+            v.name.toLowerCase().contains(text) ||
+            (v.area ?? '').toLowerCase().contains(text))
+        .toList());
   }
 
   @override
@@ -186,12 +214,15 @@ class MockApiClient extends ApiClient {
     required double lng,
     Map<String, Object> filters = const {},
   }) async {
+    venueCalls.add('nearby');
+    lastFilters = filters;
     await _step();
-    return SearchResult(items: venues);
+    return _result(venues);
   }
 
   @override
   Future<Map<String, dynamic>> getVenue(String venueId) async {
+    venueCalls.add('details');
     await _step();
     final v = venues.firstWhere(
       (v) => v.id == venueId,
@@ -199,7 +230,70 @@ class MockApiClient extends ApiClient {
           code: 'NOT_FOUND', statusCode: 404, message: 'This place was not found.'),
     );
     return {
-      'static': {'id': v.id, 'name': v.name, 'area': v.area},
+      'static': {
+        'id': v.id,
+        'name': v.name,
+        'location': {'lat': v.lat, 'lng': v.lng},
+        'address': v.address,
+        'area': v.area,
+        'openingHours': {
+          '0': [
+            {'open': '08:00', 'close': '23:00'}
+          ],
+          '5': [
+            {'open': '12:00', 'close': '02:00'}
+          ],
+        },
+        'priceLevel': v.priceLevel,
+        'wifiAvailable': v.wifiAvailable,
+        'outletsAvailable': v.outletsAvailable,
+        'studyType': v.studyType,
+      },
+      'dynamic': {
+        'venueId': v.id,
+        'crowd': {
+          'level': 1,
+          'label': 'Low',
+          'status': 'current',
+          'newestInputAt': DateTime.now().toUtc().toIso8601String(),
+          'basedOn': ['surveys'],
+          'isEstimate': true,
+        },
+        'noise': {
+          'level': 1,
+          'label': 'Quiet',
+          'status': 'historical',
+          'newestInputAt': null,
+          'basedOn': ['historical'],
+          'isEstimate': true,
+        },
+        'wifi': {
+          'level': null,
+          'label': null,
+          'status': 'unavailable',
+          'newestInputAt': null,
+          'basedOn': <String>[],
+          'isEstimate': false,
+        },
+      },
+      'averageRating': 4.5,
+      'reviewCount': 2,
+      'reviews': [
+        {
+          'id': 'r1',
+          'rating': 5,
+          'text': 'Quiet upstairs, good Wi-Fi.',
+          'authorDisplayName': 'Mona',
+          'createdAt': '2026-10-20T10:00:00Z',
+        },
+        {
+          'id': 'r2',
+          'rating': 4,
+          'text': null,
+          'authorDisplayName': 'Omar',
+          'createdAt': '2026-10-18T10:00:00Z',
+        },
+      ],
       'isFavorite': favoriteIds.contains(v.id),
     };
   }

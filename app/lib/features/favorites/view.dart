@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/models/venue.dart';
 import '../../core/services.dart';
@@ -80,8 +81,7 @@ class _FavoriteTile extends StatelessWidget {
       key: Key('favorite_${venue.id}'),
       title: Text(venue.name),
       subtitle: venue.area == null ? null : Text(venue.area!),
-      // M6: open the details screen once the /venues/:id route exists, e.g.
-      // onTap: () => context.push('/venues/${venue.id}'),
+      onTap: () => context.push('/venues/${venue.id}'),
       trailing: IconButton(
         key: Key('favorite_remove_${venue.id}'),
         tooltip: 'Remove from favorites',
