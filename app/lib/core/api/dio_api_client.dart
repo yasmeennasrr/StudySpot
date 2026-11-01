@@ -194,6 +194,13 @@ class DioApiClient extends ApiClient {
   }
 
   @override
+  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}}) async {
+    final query = Map<String, Object>.of(filters)..remove('maxDistance');
+    final r = await _send(() => _dio.get<dynamic>('/venues', queryParameters: query));
+    return SearchResult.fromJson(_json(r));
+  }
+
+  @override
   Future<SearchResult> searchVenues({
     String? q,
     String? area,

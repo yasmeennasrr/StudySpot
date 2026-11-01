@@ -6,9 +6,10 @@ import '../../features/auth/register_view.dart';
 import '../../features/auth/sign_in_view.dart';
 import '../../features/auth/terms_view.dart';
 import '../../features/favorites/view.dart';
-import '../../features/home/home_view.dart';
 import '../../features/permissions/location_view.dart';
 import '../../features/preferences/view.dart';
+import '../../features/search/search_view.dart';
+import '../../features/venue_details/details_view.dart';
 import '../services.dart';
 
 /// Screens that need a signed-in user (FR-007). Visitors can still search and
@@ -17,7 +18,7 @@ const protectedRoutes = {'/account', '/preferences', '/favorites'};
 
 /// Screen flow:
 ///   first launch: /terms -> /location -> /home
-///   /home -> search, map, details (M6) and /signin or /account
+///   /home (search list + map) -> /venues/:id (details); /signin or /account
 ///   /signin <-> /register; protected screens redirect to /signin?from=...
 GoRouter buildRouter(AppServices services) {
   return GoRouter(
@@ -31,7 +32,7 @@ GoRouter buildRouter(AppServices services) {
     routes: [
       GoRoute(path: '/terms', builder: (context, state) => const TermsView()),
       GoRoute(path: '/location', builder: (context, state) => const LocationView()),
-      GoRoute(path: '/home', builder: (context, state) => const HomeView()),
+      GoRoute(path: '/home', builder: (context, state) => const SearchView()),
       GoRoute(
         path: '/signin',
         builder: (context, state) =>
@@ -45,7 +46,11 @@ GoRouter buildRouter(AppServices services) {
       GoRoute(path: '/account', builder: (context, state) => const AccountView()),
       GoRoute(path: '/preferences', builder: (context, state) => const PreferencesView()),
       GoRoute(path: '/favorites', builder: (context, state) => const FavoritesView()),
-      // M6: /venues/:id (details), search and map routes go here.
+      GoRoute(
+        path: '/venues/:id',
+        builder: (context, state) =>
+            VenueDetailsView(venueId: state.pathParameters['id']!),
+      ),
     ],
   );
 }
