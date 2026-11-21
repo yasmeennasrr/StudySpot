@@ -17,6 +17,7 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { AuditModule } from '../audit/audit.module';
 import { ClockModule } from '../clock/clock.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
+import { StaffSecurityController } from './staff-security.controller';
 import { StaffSettingsController } from './staff-settings.controller';
 
 /**
@@ -48,14 +49,6 @@ export class StubAdminService implements IAdmin {
   async removeReportedContent(): Promise<void> {
     throw AppError.notImplemented('Moderation', 'Sprint 3');
   }
-  async statistics(): Promise<{
-    users: number;
-    surveys: number;
-    pointsIssued: number;
-    couponsRedeemed: number;
-  }> {
-    throw AppError.notImplemented('Statistics', 'Sprint 3');
-  }
 }
 
 /** Administration & Moderation. Provides IAdmin. Uses IAuth, IAudit, IConfig; publishes StaffAction -> Audit Log. */
@@ -67,7 +60,7 @@ export class StubAdminService implements IAdmin {
     ConfigurationModule,
     ClockModule,
   ],
-  controllers: [StaffSettingsController],
+  controllers: [StaffSettingsController, StaffSecurityController],
   providers: [{ provide: ADMIN, useClass: StubAdminService }],
   exports: [ADMIN],
 })

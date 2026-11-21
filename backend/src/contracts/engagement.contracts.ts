@@ -70,15 +70,15 @@ export interface INotify {
 // ---------------------------------------------------------------- IAdmin
 export const ADMIN = Symbol('IAdmin');
 
-/** Staff functions (FR-029, FR-035..FR-044). Every call emits DomainEvent.StaffAction. */
+/**
+ * Staff functions (FR-029, FR-035..FR-044). Every call emits DomainEvent.StaffAction.
+ * Statistics and the security log (FR-041, FR-042) are read-only and served by
+ * StaffSecurityController (PB-36); settings by StaffSettingsController (PB-34).
+ */
 export interface IAdmin {
   suspendUser(staffUserId: string, userId: string): Promise<void>;
   reactivateUser(staffUserId: string, userId: string): Promise<void>;
   registerVenueKey(staffUserId: string, venueId: string): Promise<{ apiKey: string }>;
   revokeVenueKey(staffUserId: string, venueId: string): Promise<void>;
   removeReportedContent(staffUserId: string, kind: 'review' | 'survey', id: string): Promise<void>;
-  statistics(
-    from: Date,
-    to: Date,
-  ): Promise<{ users: number; surveys: number; pointsIssued: number; couponsRedeemed: number }>;
 }

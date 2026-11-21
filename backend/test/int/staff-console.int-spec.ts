@@ -1,6 +1,7 @@
 /**
  * Integration tests for the Staff Console and Staff API on a real PostgreSQL
- * database, through HTTP: PB-32 staff sign-in (TC-M1-66..68), PB-34 settings (TC-M1-72, 73).
+ * database, through HTTP: PB-32 staff sign-in (TC-M1-66..68), PB-34 settings (TC-M1-72, 73),
+ * PB-36 statistics and security log (TC-M1-74, 75).
  * Uses the studyspot_test database (see ./test-database.ts); its schema is wiped.
  */
 import { INestApplication } from '@nestjs/common';
@@ -253,5 +254,106 @@ describe('Staff Console and staff sign-in on a real database (integration)', () 
     expect(underCap.status).toBe(400);
     const [{ n }] = await db.query(`SELECT count(*)::int AS n FROM config_history`);
     expect(n).toBe(1); // only the change from TC-M1-72
+  });
+
+  it('TC-M1-74 statistics count only what falls in the period: start included, end excluded (FR-042)', async () => {
+    const VENUE = '6f1c2a10-0000-4000-8000-000000000002';
+    await db.query(
+      `INSERT INTO venues (id, name, location) VALUES ($1, 'Stats Cafe', ST_SetSRID(ST_MakePoint(31.2, 30.06), 4326)::geography)`,
+      [VENUE],
+    );
+    // Period: 2026-11-01T00:00Z (in) .. 2026-11-08T00:00Z (out).
+    const before = '2026-10-31T23:59:59Z';
+    const start = '2026-11-01T00:00:00Z';
+    const inside = '2026-11-05T12:00:00Z';
+    const end = '2026-11-08T00:00:00Z';
+    const hash = await bcrypt.hash('x', 4);
+    for (const [i, at] of [before, start, inside, end].entries()) {
+      await db.query(
+        `INSERT INTO users (email, password_hash, display_name, terms_accepted_at, created_at)
+         VALUES ($1, $2, 'S', now(), $3)`,
+        [`stats${i}@studyspot.test`, hash, at],
+      );
+      await db.query(
+        `INSERT INTO surveys (venue_id, source, noise_answer, submitted_at) VALUES ($1, 'in_app', 'quiet', $2)`,
+        [VENUE, at],
+      );
+      await db.query(
+        `INSERT INTO points_ledger (user_id, delta, reason, created_at) VALUES ($1, 10, 'survey_award', $2),
+                                                                         ($1, -5, 'coupon_redemption', $2)`,
+        [STUDENT.id, at],
+      );
+    }
+    const [offer] = await db.query(
+      `INSERT INTO coupon_offers (venue_id, reward, point_cost) VALUES ($1, 'Free tea', 5) RETURNING id`,
+      [VENUE],
+    );
+    for (const [i, at] of [before, inside, end].entries()) {
+      await db.query(
+        `INSERT INTO coupons (code, offer_id, reward, venue_id, owner_user_id, point_cost, redeemed_at, activation_token_hash)
+         VALUES ($1, $2, 'Free tea', $3, $4, 5, $5, $1)`,
+        [`CODE${i}`, offer.id, VENUE, STUDENT.id, at],
+      );
+    }
+
+    const admin = await staffAuth(ADMIN.email);
+    const res = await api()
+      .get(`/api/v1/staff/statistics?from=${start}&to=${end}`)
+      .set('Authorization', admin);
+    expect(res.status).toBe(200);
+    // Users: the student from beforeAll (created now) is after the period, so total = 3
+    // (before, start, inside); new in period = 2 (start, inside).
+    expect(res.body).toMatchObject({
+      period: { from: '2026-11-01T00:00:00.000Z', to: '2026-11-08T00:00:00.000Z' },
+      users: { total: 3, newInPeriod: 2 },
+      surveysSubmitted: 2,
+      pointsIssued: 20,
+      couponsRedeemed: 1,
+    });
+  });
+
+  it('TC-M1-75 the security log lists failed sign-ins and staff actions with filters; bad periods and moderators are refused (FR-041)', async () => {
+    await api()
+      .post('/api/v1/auth/login')
+      .send({ email: 'nobody@studyspot.test', password: 'whatever1' });
+    await auditRows(db, `target = 'nobody@studyspot.test'`);
+    const admin = await staffAuth(ADMIN.email);
+
+    const failed = await api()
+      .get('/api/v1/staff/security-log?action=auth.sign_in_failed')
+      .set('Authorization', admin);
+    expect(failed.status).toBe(200);
+    expect(failed.body.every((r: { action: string }) => r.action === 'auth.sign_in_failed')).toBe(
+      true,
+    );
+    expect(failed.body.map((r: { target: string }) => r.target)).toEqual(
+      expect.arrayContaining(['nobody@studyspot.test', STUDENT.email]),
+    );
+    const appFailure = failed.body.find(
+      (r: { target: string }) => r.target === 'nobody@studyspot.test',
+    );
+    expect(appFailure.details).toEqual({ reason: 'unknown_email', channel: 'app' });
+
+    const all = await api().get('/api/v1/staff/security-log').set('Authorization', admin);
+    const change = all.body.find((r: { action: string }) => r.action === 'config.changed');
+    expect(change.actor).toEqual({ email: ADMIN.email, displayName: 'admin' });
+    // Newest first.
+    const times = all.body.map((r: { createdAt: string }) => r.createdAt);
+    expect([...times].sort().reverse()).toEqual(times);
+
+    const get = (q: string) =>
+      api().get(`/api/v1/staff/security-log?${q}`).set('Authorization', admin);
+    expect((await get('from=2026-11-08&to=2026-11-01')).status).toBe(400);
+    expect((await get('from=2025-01-01&to=2026-11-08')).status).toBe(400);
+    expect((await get('action=drop.tables')).status).toBe(400);
+    expect((await get('limit=501')).status).toBe(400);
+
+    const moderator = await staffAuth(MOD.email);
+    expect(
+      (await api().get('/api/v1/staff/statistics').set('Authorization', moderator)).status,
+    ).toBe(403);
+    expect(
+      (await api().get('/api/v1/staff/security-log').set('Authorization', moderator)).status,
+    ).toBe(403);
   });
 });

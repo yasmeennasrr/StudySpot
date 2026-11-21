@@ -4,11 +4,11 @@
 
 ## Summary
 
-**169** test cases: **169** pass, **0** fail, **0** not run yet. They cover **87** requirement IDs.
+**171** test cases: **171** pass, **0** fail, **0** not run yet. They cover **89** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 73 | 73 | 0 | 0 | 73 |
+| M1 | 75 | 75 | 0 | 0 | 75 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -18,7 +18,7 @@
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 64 |
+| Integration | 66 |
 | Unit | 93 |
 | Widget | 2 |
 
@@ -66,10 +66,12 @@
 | FR-026 | TC-M1-45, TC-M1-50, TC-M1-52, TC-M5-14, TC-M6-11 | Unit, Integration | ✅ all pass |
 | FR-027 | TC-M1-46, TC-M1-47, TC-M1-50, TC-M1-51, TC-M5-14 | Unit, Integration | ✅ all pass |
 | FR-029 | TC-M4-14, TC-M4-15 | Integration | ✅ all pass |
-| FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66, TC-M1-73 | Unit, Integration | ✅ all pass |
+| FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66, TC-M1-73, TC-M1-75 | Unit, Integration | ✅ all pass |
 | FR-038 | TC-M2-08, TC-M2-09, TC-M1-62, TC-M1-65 | Unit | ✅ all pass |
 | FR-039 | TC-M1-19, TC-M1-21, TC-M1-70, TC-M1-71, TC-M1-72, TC-M1-73 | Unit, Integration | ✅ all pass |
 | FR-040 | TC-M1-70, TC-M1-72 | Unit, Integration | ✅ all pass |
+| FR-041 | TC-M1-75 | Integration | ✅ all pass |
+| FR-042 | TC-M1-74 | Integration | ✅ all pass |
 | FR-044 | TC-M1-59, TC-M1-66, TC-M1-72 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
@@ -104,7 +106,7 @@
 | SEC-004 | TC-M1-46, TC-M1-53 | Unit, Integration | ✅ all pass |
 | SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68 | Unit, API layer, Integration | ✅ all pass |
 | SEC-009 | TC-M2-10, TC-M2-11, TC-M5-10 | Unit | ✅ all pass |
-| SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67 | API layer, Integration, Unit | ✅ all pass |
+| SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
@@ -290,6 +292,8 @@
 | TC-M1-71 | RWD-016, FR-039 | Cause-effect (cap vs points per answer) | Unit | pass | `backend/test/unit/configuration.service.spec.ts` |
 | TC-M1-72 | FR-039, FR-040, DATA-012, FR-044 | Use-case based (UC-19 main flow) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
 | TC-M1-73 | FR-035, FR-039 | Use-case based (UC-19 alternative: invalid value) and equivalence partitioning (roles) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-74 | FR-042 | Boundary value analysis (period start included, end excluded) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-75 | FR-041, SEC-010, FR-035 | Use-case based (UC-20) and equivalence partitioning (filters, bad input, roles) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
 
 ## Sheet problems
 
