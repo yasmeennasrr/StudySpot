@@ -85,7 +85,8 @@ describe('Reviews and moderation on a real database (integration)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication({ logger: false });
     configureApp(app);
-    await app.init();
+    // Listen once, so a request that awaits a sign-in first does not race supertest closing the server.
+    await app.listen(0);
     db = app.get(DataSource);
   });
 
