@@ -15,7 +15,9 @@ import {
 import { ReviewEntity, SurveyEntity, UserEntity, VenueApiKeyEntity } from '../../db/entities';
 import { AccountsModule } from '../accounts/accounts.module';
 import { AuditModule } from '../audit/audit.module';
+import { ClockModule } from '../clock/clock.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
+import { StaffSettingsController } from './staff-settings.controller';
 
 /**
  * STUB. Venue keys in Sprint 2 (PB-35, by script until then); the rest in Sprint 3 (PB-32..PB-37).
@@ -63,7 +65,9 @@ export class StubAdminService implements IAdmin {
     AccountsModule,
     AuditModule,
     ConfigurationModule,
+    ClockModule,
   ],
+  controllers: [StaffSettingsController],
   providers: [{ provide: ADMIN, useClass: StubAdminService }],
   exports: [ADMIN],
 })

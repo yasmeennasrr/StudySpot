@@ -386,6 +386,71 @@ paths:
         '204': { description: Signed out }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /staff/settings:
+    get:
+      tags: [staff]
+      summary: Settings an administrator may change, with value, default and allowed range (PB-34, FR-039, FR-040)
+      operationId: staffListSettings
+      security: [{ staffToken: [] }]
+      responses:
+        '200':
+          description: The editable settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Setting' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/settings/history:
+    get:
+      tags: [staff]
+      summary: Recent setting changes, newest first, with who made them (DATA-012)
+      operationId: staffSettingsHistory
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200':
+          description: Changes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SettingChange' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/settings/{key}:
+    put:
+      tags: [staff]
+      summary: Change one setting. Whole number in range; the daily cap is never below one answer's points
+      description: Kept in config_history and logged as staff action config.changed (FR-044). Applies within 30 s.
+      operationId: staffUpdateSetting
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string, example: points.dailyCap } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                value: { type: integer }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Setting' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
 security:
   - bearerAuth: []
 
@@ -694,3 +759,31 @@ components:
         expiresIn: { type: integer, description: 'Seconds (900 by default)' }
         expiresAt: { type: string, format: date-time }
         user: { $ref: '#/components/schemas/AuthUser' }
+
+    Setting:
+      type: object
+      properties:
+        key: { type: string, example: points.dailyCap }
+        group: { type: string, enum: [Rewards, Freshness, Presence] }
+        label: { type: string }
+        unit: { type: string }
+        min: { type: integer }
+        max: { type: integer }
+        requirement: { type: string }
+        value: { type: integer }
+        defaultValue: { type: integer }
+
+    SettingChange:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        oldValue: { nullable: true }
+        newValue: {}
+        changedBy:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string, nullable: true }
+            displayName: { type: string, nullable: true }
+        changedAt: { type: string, format: date-time }

@@ -64,11 +64,116 @@ export const CONFIG_DEFAULTS: ConfigValues = {
   'search.maxResults': 30,
 };
 
+/**
+ * The settings an administrator may change in the Staff Console (PB-34, FR-039,
+ * FR-040, UC-19). Every value is a whole number within [min, max]. Other keys stay
+ * technical defaults that only a code change moves.
+ */
+export interface EditableSetting {
+  key: ConfigKey;
+  group: 'Rewards' | 'Freshness' | 'Presence';
+  label: string;
+  unit: string;
+  min: number;
+  max: number;
+  requirement: string;
+}
+
+export const EDITABLE_SETTINGS: readonly EditableSetting[] = [
+  {
+    key: 'points.crowd',
+    group: 'Rewards',
+    label: 'Points for a crowd answer',
+    unit: 'points',
+    min: 0,
+    max: 100,
+    requirement: 'RWD-002',
+  },
+  {
+    key: 'points.noise',
+    group: 'Rewards',
+    label: 'Points for a noise answer',
+    unit: 'points',
+    min: 0,
+    max: 100,
+    requirement: 'RWD-002',
+  },
+  {
+    key: 'points.wifi',
+    group: 'Rewards',
+    label: 'Points for a Wi-Fi answer',
+    unit: 'points',
+    min: 0,
+    max: 100,
+    requirement: 'RWD-002',
+  },
+  {
+    key: 'points.dailyCap',
+    group: 'Rewards',
+    label: 'Daily points cap per student',
+    unit: 'points',
+    min: 0,
+    max: 1000,
+    requirement: 'RWD-016',
+  },
+  {
+    key: 'freshness.crowdMinutes',
+    group: 'Freshness',
+    label: 'Crowd counts as current for',
+    unit: 'minutes',
+    min: 5,
+    max: 1440,
+    requirement: 'RT-001',
+  },
+  {
+    key: 'freshness.noiseMinutes',
+    group: 'Freshness',
+    label: 'Noise counts as current for',
+    unit: 'minutes',
+    min: 5,
+    max: 1440,
+    requirement: 'RT-001',
+  },
+  {
+    key: 'freshness.wifiMinutes',
+    group: 'Freshness',
+    label: 'Wi-Fi counts as current for',
+    unit: 'minutes',
+    min: 5,
+    max: 1440,
+    requirement: 'RT-001',
+  },
+  {
+    key: 'presence.venueRadiusMeters',
+    group: 'Presence',
+    label: 'Venue radius',
+    unit: 'meters',
+    min: 10,
+    max: 500,
+    requirement: 'FR-040, RT-008',
+  },
+];
+
+/** One row of config_history (DATA-012). */
+export interface ConfigChange {
+  key: string;
+  oldValue: unknown;
+  newValue: unknown;
+  changedBy: string;
+  changedAt: string;
+}
+
 export interface IConfig {
   get<K extends ConfigKey>(key: K): Promise<ConfigValues[K]>;
   getAll(): Promise<ConfigValues>;
-  /** Staff only (FR-039, FR-040). Records who changed what and when (DATA-012). */
+  /**
+   * Staff only (FR-039, FR-040). Records who changed what and when (DATA-012).
+   * Editable settings are checked against EDITABLE_SETTINGS and the daily cap must
+   * be at least the largest per-category points value; a bad value is INVALID_INPUT.
+   */
   set<K extends ConfigKey>(key: K, value: ConfigValues[K], changedByUserId: string): Promise<void>;
+  /** Newest changes first (DATA-012). */
+  history(filter: { key?: ConfigKey; limit?: number }): Promise<ConfigChange[]>;
 }
 
 // ---------------------------------------------------------------- IAudit
