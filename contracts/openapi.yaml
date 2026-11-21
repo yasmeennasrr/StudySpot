@@ -451,6 +451,51 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /staff/security-log:
+    get:
+      tags: [staff]
+      summary: Security log, newest first (PB-36, FR-041, SEC-010). Administrators only
+      description: Period from (inclusive) to (exclusive); default the last 30 days, at most 366 days.
+      operationId: staffSecurityLog
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/PeriodFrom' }
+        - { $ref: '#/components/parameters/PeriodTo' }
+        - name: action
+          in: query
+          schema: { type: string, enum: [auth.sign_in_failed, staff.sign_in, staff.sign_out, config.changed] }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+      responses:
+        '200':
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SecurityLogEntry' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/statistics:
+    get:
+      tags: [staff]
+      summary: Users, surveys, points issued, coupons redeemed and failed sign-ins for a period (PB-36, FR-042)
+      operationId: staffStatistics
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/PeriodFrom' }
+        - { $ref: '#/components/parameters/PeriodTo' }
+      responses:
+        '200':
+          description: Totals
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Statistics' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
 security:
   - bearerAuth: []
 
@@ -465,6 +510,16 @@ components:
       description: Staff token from POST /staff/session (not an app access token)
 
   parameters:
+    PeriodFrom:
+      name: from
+      in: query
+      description: Start of the period, inclusive (date or date-time)
+      schema: { type: string, example: '2026-11-01' }
+    PeriodTo:
+      name: to
+      in: query
+      description: End of the period, exclusive (date or date-time)
+      schema: { type: string, example: '2026-11-08' }
     VenueId:
       name: venueId
       in: path
@@ -787,3 +842,39 @@ components:
             email: { type: string, nullable: true }
             displayName: { type: string, nullable: true }
         changedAt: { type: string, format: date-time }
+
+    SecurityLogEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        actorType: { type: string, enum: [user, staff, system, anonymous] }
+        actorId: { type: string, format: uuid, nullable: true }
+        actor:
+          type: object
+          nullable: true
+          properties:
+            email: { type: string }
+            displayName: { type: string }
+        action: { type: string }
+        target: { type: string, nullable: true }
+        details: { type: object, additionalProperties: true }
+        ip: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    Statistics:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            from: { type: string, format: date-time }
+            to: { type: string, format: date-time }
+        users:
+          type: object
+          properties:
+            total: { type: integer }
+            newInPeriod: { type: integer }
+        surveysSubmitted: { type: integer }
+        pointsIssued: { type: integer }
+        couponsRedeemed: { type: integer }
+        failedSignIns: { type: integer }
