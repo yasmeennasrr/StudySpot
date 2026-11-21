@@ -40,6 +40,7 @@ export const envValidationSchema = Joi.object({
   // Noise sampling (PB-19): gemini | loudness | fake. Empty: Gemini with a key, else loudness.
   AUDIO_AI_PROVIDER: Joi.string().valid('', 'gemini', 'loudness', 'fake').default(''),
   GEMINI_AUDIO_MODEL: Joi.string().allow('').default('gemini-3.8-flash'),
+  GEMINI_LLM_MODEL: Joi.string().allow('').default('gemini-3.8-flash'),
   SENDGRID_API_KEY: Joi.string().allow('').default(''),
   SENDGRID_FROM_EMAIL: Joi.string().allow('').default(''),
   FCM_SERVICE_ACCOUNT_JSON: Joi.string().allow('').default(''),
