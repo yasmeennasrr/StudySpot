@@ -4,12 +4,12 @@
 
 ## Summary
 
-**192** test cases: **190** pass, **1** fail, **1** not run yet. They cover **105** requirement IDs.
+**198** test cases: **196** pass, **1** fail, **1** not run yet. They cover **106** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 17 | 17 | 0 | 0 | 17 |
+| M2 | 23 | 23 | 0 | 0 | 23 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -20,7 +20,7 @@
 | API layer | 10 |
 | Integration | 70 |
 | Performance | 3 |
-| Unit | 101 |
+| Unit | 107 |
 | Unit (app) | 6 |
 | Widget | 2 |
 
@@ -31,7 +31,8 @@
 | AI-001 | TC-M2-26, TC-M2-27 | Unit | ✅ all pass |
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
-| AI-029 | TC-M2-28 | Unit | ✅ all pass |
+| AI-028 | TC-M2-33 | Unit | ✅ all pass |
+| AI-029 | TC-M2-28, TC-M2-30 | Unit | ✅ all pass |
 | DATA-001 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-002 | TC-M1-32, TC-M1-33 | Integration | ✅ all pass |
 | DATA-003 | TC-M1-32 | Integration | ✅ all pass |
@@ -47,7 +48,7 @@
 | EIR-008 | TC-M1-05, TC-M1-07, TC-M1-08, TC-M1-27, TC-M1-28 | Unit, API layer, Integration | ✅ all pass |
 | EIR-010 | TC-M1-28 | Integration | ✅ all pass |
 | EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M6-08, TC-M6-09 | Unit, API layer, Integration | ✅ all pass |
-| EIR-015 | TC-M2-26, TC-M2-28, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
+| EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M5-06 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
@@ -113,7 +114,7 @@
 | RWD-018 | TC-M1-23 | Unit | ✅ all pass |
 | SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14 | Integration, Unit | ✅ all pass |
 | SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M1-69 | Unit, Integration | ✅ all pass |
-| SEC-003 | TC-M1-06, TC-M1-16, TC-M2-26 | Unit, API layer | ✅ all pass |
+| SEC-003 | TC-M1-06, TC-M1-16, TC-M2-26, TC-M2-34 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53 | Unit, Integration | ✅ all pass |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
 | SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
@@ -253,6 +254,12 @@
 | TC-M2-26 | AI-001, SEC-003, EIR-015 | Inspection | Unit | pass | `backend/test/unit/gemini-llm.adapter.spec.ts` |
 | TC-M2-27 | AI-001 | Equivalence partitioning | Unit | pass | `backend/test/unit/gemini-llm.adapter.spec.ts` |
 | TC-M2-28 | EIR-015, AI-029 | Equivalence partitioning (one class per failure) | Unit | pass | `backend/test/unit/gemini-llm.adapter.spec.ts` |
+| TC-M2-29 | EIR-015 | Boundary value analysis | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
+| TC-M2-30 | EIR-015, AI-029 | Boundary value analysis | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
+| TC-M2-31 | EIR-015 | State transition | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
+| TC-M2-32 | EIR-015 | Error guessing | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
+| TC-M2-33 | EIR-015, AI-028 | Boundary value analysis | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
+| TC-M2-34 | EIR-015, SEC-003 | Equivalence partitioning | Unit | pass | `backend/test/unit/resilient-llm.spec.ts` |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
