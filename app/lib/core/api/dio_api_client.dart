@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../auth/token_store.dart';
 import '../config.dart';
 import '../models/auth.dart';
+import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
@@ -233,5 +236,40 @@ class DioApiClient extends ApiClient {
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     final r = await _send(() => _dio.get<dynamic>('/venues/$venueId'));
     return _json(r);
+  }
+
+  @override
+  Future<bool> noiseSampleEligible(String venueId,
+      {required double lat, required double lng}) async {
+    final r = await _send(() => _dio.get<dynamic>('/venues/$venueId/noise-samples/eligibility',
+        queryParameters: {'lat': lat, 'lng': lng}));
+    return _json(r)['eligible'] == true;
+  }
+
+  @override
+  Future<NoiseSampleResult> sendNoiseSample(
+    String venueId,
+    Uint8List wav, {
+    required double lat,
+    required double lng,
+  }) async {
+    // The form is built inside the request so a retry after a token refresh
+    // sends a fresh one (a FormData can be sent only once).
+    final r = await _send(() => _dio.post<dynamic>(
+          '/venues/$venueId/noise-samples',
+          data: FormData.fromMap({
+            'lat': lat.toString(),
+            'lng': lng.toString(),
+            'audio': MultipartFile.fromBytes(wav,
+                filename: 'sample.wav', contentType: DioMediaType('audio', 'wav')),
+          }),
+          // Dio sets "multipart/form-data; boundary=..." itself for FormData.
+          options: Options(
+            // The AI gets 8 s on the server (SDS 5.1), plus the upload.
+            receiveTimeout: const Duration(seconds: 20),
+            sendTimeout: const Duration(seconds: 20),
+          ),
+        ));
+    return NoiseSampleResult.fromJson(_json(r));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:studyspot/core/api/mock_api_client.dart';
+import 'package:studyspot/core/audio/noise_recorder.dart';
 import 'package:studyspot/core/auth/token_store.dart';
 import 'package:studyspot/core/location/location_service.dart';
 import 'package:studyspot/core/services.dart';
@@ -13,13 +14,16 @@ class TestWorld {
   })  : api = MockApiClient(),
         tokens = MemoryTokenStore(),
         flags = MemoryFlags(termsAccepted: termsAccepted, locationAsked: locationAsked),
-        location = FakeLocationService(access: locationAccess) {
-    services = AppServices(api: api, tokens: tokens, flags: flags, location: location);
+        location = FakeLocationService(access: locationAccess),
+        noise = FakeNoiseRecorder() {
+    services = AppServices(
+        api: api, tokens: tokens, flags: flags, location: location, noise: noise);
   }
 
   final MockApiClient api;
   final MemoryTokenStore tokens;
   final MemoryFlags flags;
   final FakeLocationService location;
+  final FakeNoiseRecorder noise;
   late final AppServices services;
 }

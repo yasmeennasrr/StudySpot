@@ -1,43 +1,33 @@
-import { Inject, Injectable, Module } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AudioAiAdapterModule } from '../../adapters/audio-ai/audio-ai-adapter.module';
-import {
-  AUDIO_AI,
-  CLOCK,
-  NOISE,
-  type IAudioAI,
-  type IClock,
-  type INoise,
-  type NoiseResult,
-} from '../../contracts';
+import { NOISE } from '../../contracts';
 import { DynamicRecordEntity } from '../../db/entities';
+import { AccountsModule } from '../accounts/accounts.module';
 import { ClockModule } from '../clock/clock.module';
+import { ConfigurationModule } from '../configuration/configuration.module';
+import { PresenceModule } from '../presence/presence.module';
+import { VenuesModule } from '../venues/venues.module';
+import { AudioAnalysisService } from './audio-analysis.service';
+import { NoiseSamplesController } from './noise-samples.controller';
 
 /**
- * STUB. Real version in Sprint 3 (PB-19, PB-46).
- * TODO: pass the in-memory buffer to IAudioAI.classifyNoise; on a level, store
- * one dynamic_records row (noise, level, time, venue only: DATA-005) and emit
- * DomainEvent.NoiseRecorded -> Conditions. On AdapterUnavailableError or
- * "inconclusive": no record, drop the buffer, return { status: 'unavailable' } (AI-026).
+ * Audio Analysis (PB-19). Owner: M1. Provides INoise.
+ * Uses IAudioAI (behind its circuit breaker), IPresence, IVenueQuery, IConfig, IClock;
+ * publishes NoiseRecorded -> Conditions.
  */
-@Injectable()
-export class StubAudioAnalysisService implements INoise {
-  constructor(
-    @Inject(AUDIO_AI) private readonly audioAi: IAudioAI,
-    private readonly events: EventEmitter2,
-    @Inject(CLOCK) private readonly clock: IClock,
-  ) {}
-
-  async analyzeSnippet(): Promise<NoiseResult> {
-    return { status: 'unavailable', level: null };
-  }
-}
-
-/** Audio Analysis. Provides INoise. Uses IAudioAI, IClock; publishes NoiseRecorded -> Conditions. */
 @Module({
-  imports: [TypeOrmModule.forFeature([DynamicRecordEntity]), AudioAiAdapterModule, ClockModule],
-  providers: [{ provide: NOISE, useClass: StubAudioAnalysisService }],
+  imports: [
+    TypeOrmModule.forFeature([DynamicRecordEntity]),
+    AudioAiAdapterModule,
+    AccountsModule,
+    ClockModule,
+    ConfigurationModule,
+    PresenceModule,
+    VenuesModule,
+  ],
+  controllers: [NoiseSamplesController],
+  providers: [{ provide: NOISE, useClass: AudioAnalysisService }],
   exports: [NOISE],
 })
 export class AudioModule {}

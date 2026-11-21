@@ -140,13 +140,12 @@ export class VenueSearchService {
           conditions: conditions.get(venue.id) ?? null,
         };
         const criteria = params.filters;
-        if (
-          criteria?.openNow !== undefined &&
-          item.openNow !== criteria.openNow
-        ) continue;
-        if (criteria?.noise !== undefined && item.conditions?.noise.level !== criteria.noise) continue;
+        if (criteria?.openNow !== undefined && item.openNow !== criteria.openNow) continue;
+        if (criteria?.noise !== undefined && item.conditions?.noise.level !== criteria.noise)
+          continue;
         if (criteria?.wifi !== undefined && item.conditions?.wifi.level !== criteria.wifi) continue;
-        if (criteria?.crowd !== undefined && item.conditions?.crowd.level !== criteria.crowd) continue;
+        if (criteria?.crowd !== undefined && item.conditions?.crowd.level !== criteria.crowd)
+          continue;
         items.push(item);
         if (items.length === limit) break;
       }

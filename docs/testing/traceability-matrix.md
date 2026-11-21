@@ -4,11 +4,11 @@
 
 ## Summary
 
-**171** test cases: **171** pass, **0** fail, **0** not run yet. They cover **89** requirement IDs.
+**185** test cases: **180** pass, **0** fail, **5** not run yet. They cover **100** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 75 | 75 | 0 | 0 | 75 |
+| M1 | 89 | 84 | 0 | 5 | 89 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -18,19 +18,22 @@
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 66 |
-| Unit | 93 |
+| Integration | 70 |
+| Unit | 98 |
+| Unit (app) | 5 |
 | Widget | 2 |
 
 ## Requirement → test cases
 
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
+| AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
+| AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ⏳ 1 not run |
 | DATA-001 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-002 | TC-M1-32, TC-M1-33 | Integration | ✅ all pass |
 | DATA-003 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-004 | TC-M1-32 | Integration | ✅ all pass |
-| DATA-005 | TC-M1-32 | Integration | ✅ all pass |
+| DATA-005 | TC-M1-32, TC-M1-79 | Integration, Unit | ✅ all pass |
 | DATA-006 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-007 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-008 | TC-M1-32 | Integration | ✅ all pass |
@@ -41,6 +44,7 @@
 | EIR-008 | TC-M1-05, TC-M1-07, TC-M1-08, TC-M1-27, TC-M1-28 | Unit, API layer, Integration | ✅ all pass |
 | EIR-010 | TC-M1-28 | Integration | ✅ all pass |
 | EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M6-08, TC-M6-09 | Unit, API layer, Integration | ✅ all pass |
+| EIR-015 | TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M5-06 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
@@ -69,11 +73,12 @@
 | FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66, TC-M1-73, TC-M1-75 | Unit, Integration | ✅ all pass |
 | FR-038 | TC-M2-08, TC-M2-09, TC-M1-62, TC-M1-65 | Unit | ✅ all pass |
 | FR-039 | TC-M1-19, TC-M1-21, TC-M1-70, TC-M1-71, TC-M1-72, TC-M1-73 | Unit, Integration | ✅ all pass |
-| FR-040 | TC-M1-70, TC-M1-72 | Unit, Integration | ✅ all pass |
+| FR-040 | TC-M1-70, TC-M1-72, TC-M1-80 | Unit, Integration | ✅ all pass |
 | FR-041 | TC-M1-75 | Integration | ✅ all pass |
 | FR-042 | TC-M1-74 | Integration | ✅ all pass |
 | FR-044 | TC-M1-59, TC-M1-66, TC-M1-72 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
+| PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ⏳ 2 not run |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03, TC-M5-01, TC-M5-15 | Unit, Widget | ✅ all pass |
@@ -94,7 +99,7 @@
 | RT-017 | TC-M4-10, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-018 | TC-M4-04, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-020 | TC-M4-09 | Unit | ✅ all pass |
-| RT-021 | TC-M4-05, TC-M4-06, TC-M4-07 | Unit | ✅ all pass |
+| RT-021 | TC-M4-05, TC-M4-06, TC-M4-07, TC-M1-82 | Unit, Integration | ✅ all pass |
 | RT-022 | TC-M4-06 | Unit | ✅ all pass |
 | RWD-002 | TC-M1-18 | Unit | ✅ all pass |
 | RWD-009 | TC-M1-33 | Integration | ✅ all pass |
@@ -104,11 +109,18 @@
 | SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M1-69 | Unit, Integration | ✅ all pass |
 | SEC-003 | TC-M1-06, TC-M1-16 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53 | Unit, Integration | ✅ all pass |
-| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68 | Unit, API layer, Integration | ✅ all pass |
+| SEC-005 | TC-M1-77 | Unit | ✅ all pass |
+| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
 | SEC-009 | TC-M2-10, TC-M2-11, TC-M5-10 | Unit | ✅ all pass |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
+| SEN-004 | TC-M1-87 | Unit (app) | ⏳ 1 not run |
+| SEN-005 | TC-M1-82, TC-M1-85, TC-M1-88 | Integration, Unit (app) | ⏳ 2 not run |
+| SEN-006 | TC-M1-87 | Unit (app) | ⏳ 1 not run |
+| SEN-007 | TC-M1-79, TC-M1-82 | Unit, Integration | ✅ all pass |
+| SEN-008 | TC-M1-88 | Unit (app) | ⏳ 1 not run |
+| SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ⏳ 1 not run |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
 | USE-003 | TC-M6-01 | Unit | ✅ all pass |
@@ -294,6 +306,20 @@
 | TC-M1-73 | FR-035, FR-039 | Use-case based (UC-19 alternative: invalid value) and equivalence partitioning (roles) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
 | TC-M1-74 | FR-042 | Boundary value analysis (period start included, end excluded) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
 | TC-M1-75 | FR-041, SEC-010, FR-035 | Use-case based (UC-20) and equivalence partitioning (filters, bad input, roles) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-76 | EIR-015 | State-based (breaker closed, open, half-open) and boundary values (4 vs 5 failures; 29 vs 30 s) | Unit | pass | `backend/test/unit/noise-sampling.spec.ts` |
+| TC-M1-77 | AI-023, SEC-005 (key never in URL) | Equivalence partitioning (provider answers) and error guessing (timeout, bad output) | Unit | pass | `backend/test/unit/noise-sampling.spec.ts` |
+| TC-M1-78 | AI-023 (offline fallback) | Equivalence partitioning (loudness bands) | Unit | pass | `backend/test/unit/noise-sampling.spec.ts` |
+| TC-M1-79 | AI-026, PRIV-001, SEN-007, DATA-005 | Cause-effect (classifier outcome -> record or not) | Unit | pass | `backend/test/unit/noise-sampling.spec.ts` |
+| TC-M1-80 | SEN-009, FR-040 | Boundary value analysis (49.9 vs 50.1 m) | Unit | pass | `backend/test/unit/noise-sampling.spec.ts` |
+| TC-M1-81 | SEN-009 | Equivalence partitioning (position classes) | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
+| TC-M1-82 | AI-023, SEN-005, SEN-007, PRIV-001, RT-021 | Use-case based (UC-11 main flow) | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
+| TC-M1-83 | SEN-009, SEC-007, PRIV-001 | Equivalence partitioning (invalid uploads) and boundary value (1 MB + 1 byte) | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
+| TC-M1-84 | AI-026, EIR-015 | Error guessing (AI service down) and state-based | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
+| TC-M1-85 | PRIV-001, SEN-005 | Inspection of the built file and boundary values (sample rates) | Unit (app) | not run | `app/test/core/wav_test.dart` |
+| TC-M1-86 | SEN-009 | Equivalence partitioning (who sees the card) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-87 | SEN-004, SEN-006 | Use-case based (UC-11 alternative: permission refused) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-88 | SEN-005, SEN-008, PRIV-001 | Use-case based (UC-11 main flow and cancel) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-89 | AI-026 | Error guessing (analysis unavailable; left the venue) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
 
 ## Sheet problems
 
