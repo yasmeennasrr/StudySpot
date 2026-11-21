@@ -92,9 +92,11 @@ const fmt = (ms) => (Number.isFinite(ms) ? `${Math.round(ms)} ms` : "-");
 const verdict = (s, limit = LIMIT_MS) =>
   !s.ok
     ? "Not measured"
-    : s.p95 <= limit && s.errors / s.count < 0.01
-      ? "Pass"
-      : "Fail";
+    : s.limited > 0
+      ? "Not valid (429)"
+      : s.p95 <= limit && s.errors / s.count < 0.01
+        ? "Pass"
+        : "Fail";
 
 async function sequential(paths) {
   const out = [];
