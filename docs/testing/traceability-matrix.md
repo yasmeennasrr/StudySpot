@@ -4,11 +4,11 @@
 
 ## Summary
 
-**188** test cases: **183** pass, **0** fail, **5** not run yet. They cover **103** requirement IDs.
+**188** test cases: **187** pass, **1** fail, **0** not run yet. They cover **103** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 92 | 87 | 0 | 5 | 92 |
+| M1 | 92 | 91 | 1 | 0 | 92 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -29,7 +29,7 @@
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
-| AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ⏳ 1 not run |
+| AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
 | DATA-001 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-002 | TC-M1-32, TC-M1-33 | Integration | ✅ all pass |
 | DATA-003 | TC-M1-32 | Integration | ✅ all pass |
@@ -81,8 +81,8 @@
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
-| PERF-006 | TC-M1-92 | Performance | ✅ all pass |
-| PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ⏳ 2 not run |
+| PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
+| PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ✅ all pass |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03, TC-M5-01, TC-M5-15 | Unit, Widget | ✅ all pass |
@@ -119,12 +119,12 @@
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
-| SEN-004 | TC-M1-87 | Unit (app) | ⏳ 1 not run |
-| SEN-005 | TC-M1-82, TC-M1-85, TC-M1-88 | Integration, Unit (app) | ⏳ 2 not run |
-| SEN-006 | TC-M1-87 | Unit (app) | ⏳ 1 not run |
+| SEN-004 | TC-M1-87 | Unit (app) | ✅ all pass |
+| SEN-005 | TC-M1-82, TC-M1-85, TC-M1-88 | Integration, Unit (app) | ✅ all pass |
+| SEN-006 | TC-M1-87 | Unit (app) | ✅ all pass |
 | SEN-007 | TC-M1-79, TC-M1-82 | Unit, Integration | ✅ all pass |
-| SEN-008 | TC-M1-88 | Unit (app) | ⏳ 1 not run |
-| SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ⏳ 1 not run |
+| SEN-008 | TC-M1-88 | Unit (app) | ✅ all pass |
+| SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
 | USE-003 | TC-M6-01 | Unit | ✅ all pass |
@@ -319,14 +319,14 @@
 | TC-M1-82 | AI-023, SEN-005, SEN-007, PRIV-001, RT-021 | Use-case based (UC-11 main flow) | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
 | TC-M1-83 | SEN-009, SEC-007, PRIV-001 | Equivalence partitioning (invalid uploads) and boundary value (1 MB + 1 byte) | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
 | TC-M1-84 | AI-026, EIR-015 | Error guessing (AI service down) and state-based | Integration | pass | `backend/test/int/noise-samples.int-spec.ts` |
-| TC-M1-85 | PRIV-001, SEN-005 | Inspection of the built file and boundary values (sample rates) | Unit (app) | not run | `app/test/core/wav_test.dart` |
-| TC-M1-86 | SEN-009 | Equivalence partitioning (who sees the card) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
-| TC-M1-87 | SEN-004, SEN-006 | Use-case based (UC-11 alternative: permission refused) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
-| TC-M1-88 | SEN-005, SEN-008, PRIV-001 | Use-case based (UC-11 main flow and cancel) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
-| TC-M1-89 | AI-026 | Error guessing (analysis unavailable; left the venue) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-85 | PRIV-001, SEN-005 | Inspection of the built file and boundary values (sample rates) | Unit (app) | pass | `app/test/core/wav_test.dart` |
+| TC-M1-86 | SEN-009 | Equivalence partitioning (who sees the card) | Unit (app) | pass | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-87 | SEN-004, SEN-006 | Use-case based (UC-11 alternative: permission refused) | Unit (app) | pass | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-88 | SEN-005, SEN-008, PRIV-001 | Use-case based (UC-11 main flow and cancel) | Unit (app) | pass | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-89 | AI-026 | Error guessing (analysis unavailable; left the venue) | Unit (app) | pass | `app/test/features/noise/noise_sample_view_model_test.dart` |
 | TC-M1-90 | PERF-001 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
 | TC-M1-91 | PERF-002 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
-| TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | pass | `scripts/perf.mjs` |
+| TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | fail | `scripts/perf.mjs` |
 
 ## Sheet problems
 
