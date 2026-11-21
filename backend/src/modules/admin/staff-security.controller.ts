@@ -19,6 +19,9 @@ export const SECURITY_LOG_ACTIONS = [
   'moderation.review_removed',
   'moderation.reports_dismissed',
   'moderation.survey_removed',
+  'account.created',
+  'account.suspended',
+  'account.reactivated',
 ] as const;
 
 export class PeriodQuery {

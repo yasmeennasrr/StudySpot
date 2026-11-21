@@ -4,23 +4,23 @@
 
 ## Summary
 
-**197** test cases: **189** pass, **1** fail, **7** not run yet. They cover **105** requirement IDs.
+**200** test cases: **191** pass, **1** fail, **8** not run yet. They cover **107** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
-| M4 | 23 | 17 | 0 | 6 | 23 |
+| M4 | 26 | 19 | 0 | 7 | 26 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
 | M6 | 12 | 12 | 0 | 0 | 12 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 74 |
+| Integration | 75 |
 | Performance | 3 |
-| Unit | 100 |
+| Unit | 102 |
 | Unit (app) | 8 |
 | Widget | 2 |
 
@@ -74,12 +74,14 @@
 | FR-029 | TC-M4-14, TC-M4-15, TC-M4-20, TC-M4-21 | Integration | ⏳ 2 not run |
 | FR-034 | TC-M4-17, TC-M4-19, TC-M4-23 | Unit, Integration, Unit (app) | ⏳ 2 not run |
 | FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66, TC-M1-73, TC-M1-75 | Unit, Integration | ✅ all pass |
-| FR-038 | TC-M2-08, TC-M2-09, TC-M1-62, TC-M1-65 | Unit | ✅ all pass |
+| FR-036 | TC-M4-24, TC-M4-26 | Unit, Integration | ⏳ 1 not run |
+| FR-037 | TC-M4-24, TC-M4-26 | Unit, Integration | ⏳ 1 not run |
+| FR-038 | TC-M2-08, TC-M2-09, TC-M4-25, TC-M4-26, TC-M1-62, TC-M1-65 | Unit, Integration | ⏳ 1 not run |
 | FR-039 | TC-M1-19, TC-M1-21, TC-M1-70, TC-M1-71, TC-M1-72, TC-M1-73 | Unit, Integration | ✅ all pass |
 | FR-040 | TC-M1-70, TC-M1-72, TC-M1-80 | Unit, Integration | ✅ all pass |
 | FR-041 | TC-M1-75 | Integration | ✅ all pass |
 | FR-042 | TC-M1-74 | Integration | ✅ all pass |
-| FR-044 | TC-M4-20, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ⏳ 1 not run |
+| FR-044 | TC-M4-20, TC-M4-24, TC-M4-25, TC-M4-26, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ⏳ 2 not run |
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
@@ -112,12 +114,12 @@
 | RWD-016 | TC-M1-18, TC-M1-71 | Unit | ✅ all pass |
 | RWD-018 | TC-M1-23 | Unit | ✅ all pass |
 | SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14 | Integration, Unit | ✅ all pass |
-| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M1-69 | Unit, Integration | ✅ all pass |
+| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M4-24, TC-M1-69 | Unit, Integration | ✅ all pass |
 | SEC-003 | TC-M1-06, TC-M1-16 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18 | Unit, Integration | ⏳ 1 not run |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
 | SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M4-16, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
-| SEC-009 | TC-M2-10, TC-M2-11, TC-M5-10 | Unit | ✅ all pass |
+| SEC-009 | TC-M2-10, TC-M2-11, TC-M4-26, TC-M5-10 | Unit, Integration | ⏳ 1 not run |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
@@ -273,6 +275,9 @@
 | TC-M4-21 | FR-029, RT-006 | State transition (reported -> kept; survey counted -> removed) | Integration | not run | `backend/test/int/reviews-moderation.int-spec.ts` |
 | TC-M4-22 | FR-025, USE-008 | Boundary value analysis (0 stars; 1000/1001 characters) and use-case based (write then edit) | Unit (app) | not run | `app/test/features/reviews/reviews_view_model_test.dart` |
 | TC-M4-23 | FR-034, FR-007 | Equivalence partitioning (other / own review; signed in or not) | Unit (app) | not run | `app/test/features/reviews/reviews_view_model_test.dart` |
+| TC-M4-24 | FR-036, FR-037, FR-044, SEC-002 | Boundary value analysis (7/8 and 9/10 characters per role) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
+| TC-M4-25 | FR-038, FR-044 | State transition (active -> suspended -> active) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
+| TC-M4-26 | FR-036, FR-037, FR-038, FR-044, SEC-009 | Use-case based (UC-18 create and suspend) | Integration | not run | `backend/test/int/staff-accounts.int-spec.ts` |
 | TC-M1-56 | FR-009, FR-006 | Use-case based (browse without searching) | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-57 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-58 | SEC-007 | Boundary value analysis | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |

@@ -11,8 +11,6 @@
     );
   };
   const C = window.StaffConsole;
-  C.registerPage({ id: 'accounts', title: 'Accounts', story: 'PB-33', roles: ['admin'],
-    render: soon('PB-33', 'Staff and user accounts') });
   C.registerPage({ id: 'venues', title: 'Venues and API keys', story: 'PB-35', roles: ['admin'],
     render: soon('PB-35', 'Venues and API keys') });
 })();

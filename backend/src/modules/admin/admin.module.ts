@@ -8,6 +8,7 @@ import { ClockModule } from '../clock/clock.module';
 import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { AdminService } from './admin.service';
+import { StaffAccountsController } from './staff-accounts.controller';
 import { StaffModerationController } from './staff-moderation.controller';
 import { StaffSecurityController } from './staff-security.controller';
 import { StaffSettingsController } from './staff-settings.controller';
@@ -26,7 +27,12 @@ import { StaffSettingsController } from './staff-settings.controller';
     ClockModule,
     ConditionsModule,
   ],
-  controllers: [StaffSettingsController, StaffSecurityController, StaffModerationController],
+  controllers: [
+    StaffSettingsController,
+    StaffSecurityController,
+    StaffModerationController,
+    StaffAccountsController,
+  ],
   providers: [{ provide: ADMIN, useClass: AdminService }],
   exports: [ADMIN],
 })
