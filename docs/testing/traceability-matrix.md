@@ -4,11 +4,11 @@
 
 ## Summary
 
-**185** test cases: **180** pass, **0** fail, **5** not run yet. They cover **100** requirement IDs.
+**188** test cases: **183** pass, **0** fail, **5** not run yet. They cover **103** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 89 | 84 | 0 | 5 | 89 |
+| M1 | 92 | 87 | 0 | 5 | 92 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -19,6 +19,7 @@
 | --- | ---: |
 | API layer | 10 |
 | Integration | 70 |
+| Performance | 3 |
 | Unit | 98 |
 | Unit (app) | 5 |
 | Widget | 2 |
@@ -77,7 +78,10 @@
 | FR-041 | TC-M1-75 | Integration | ✅ all pass |
 | FR-042 | TC-M1-74 | Integration | ✅ all pass |
 | FR-044 | TC-M1-59, TC-M1-66, TC-M1-72 | Unit, Integration | ✅ all pass |
+| PERF-001 | TC-M1-90 | Performance | ✅ all pass |
+| PERF-002 | TC-M1-91 | Performance | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
+| PERF-006 | TC-M1-92 | Performance | ✅ all pass |
 | PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ⏳ 2 not run |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
@@ -320,6 +324,9 @@
 | TC-M1-87 | SEN-004, SEN-006 | Use-case based (UC-11 alternative: permission refused) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
 | TC-M1-88 | SEN-005, SEN-008, PRIV-001 | Use-case based (UC-11 main flow and cancel) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
 | TC-M1-89 | AI-026 | Error guessing (analysis unavailable; left the venue) | Unit (app) | not run | `app/test/features/noise/noise_sample_view_model_test.dart` |
+| TC-M1-90 | PERF-001 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
+| TC-M1-91 | PERF-002 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
+| TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | pass | `scripts/perf.mjs` |
 
 ## Sheet problems
 

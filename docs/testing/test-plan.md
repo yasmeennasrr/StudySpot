@@ -119,3 +119,12 @@ cd app && flutter test           # Flutter widget tests
 | No Google key | Real geocoding untested against Google | Adapter fully tested with a mocked `fetch`; the fake stays active until a key is added |
 | Render free tier sleeps | First request after idle takes up to a minute | Open `/api/v1/health` before a demo |
 | Shared test database | Integration tests wipe it | They ignore `backend/.env` and only use `studyspot_test` (or `TEST_DATABASE_URL`); never set that to your dev or the deployed database |
+
+## Performance (PB-41, Sprint 3)
+
+`npm run perf` (scripts/perf.mjs) measures PERF-001 (search) and PERF-002 (details) with requests one at a time, and PERF-006 with 100 virtual users at once for 30 seconds, each searching nearby and opening a venue. Pass: 95% of answers within 2 s and under 1% errors. Results go to [performance-results.md](performance-results.md) with `--out`.
+
+- **Where:** on the local production build for development, and against Render from a laptop for the final numbers: `npm run perf -- --base https://studyspot-api-x8u6.onrender.com/api/v1 --out docs/testing/performance-results.md --env "Render free tier + Supabase, from a laptop"`. Open `/health` first: the free server sleeps.
+- **Rate limit:** the API allows 120 requests per minute per address. 100 real users have 100 addresses; one test machine has one, so set `THROTTLE_LIMIT` higher on the server for the load run and back afterwards. The script reports 429 answers separately and marks such a run as not valid.
+- **Later:** PERF-003 and PERF-007 with StudyMatch (PB-29, PB-46), PERF-005 with surveys (PB-17), PERF-009 with receipt codes (PB-21), PERF-010 with coupon e-mails (PB-26). The table in the results file lists them until then.
+
