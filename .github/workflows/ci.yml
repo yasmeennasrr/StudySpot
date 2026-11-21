@@ -85,6 +85,9 @@ jobs:
         if: steps.has_app.outputs.present == 'true'
         with:
           channel: stable
+          # Pinned to the team's version. Flutter 3.50 deprecates material.dart in favour of
+          # the material_ui package; move to it in one planned change, not in a CI surprise.
+          flutter-version: 3.47.8
           cache: true
       - if: steps.has_app.outputs.present == 'true'
         run: flutter pub get
