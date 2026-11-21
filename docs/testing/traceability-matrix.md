@@ -4,11 +4,11 @@
 
 ## Summary
 
-**188** test cases: **187** pass, **1** fail, **0** not run yet. They cover **103** requirement IDs.
+**189** test cases: **187** pass, **1** fail, **1** not run yet. They cover **103** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 92 | 91 | 1 | 0 | 92 |
+| M1 | 93 | 91 | 1 | 1 | 93 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -21,7 +21,7 @@
 | Integration | 70 |
 | Performance | 3 |
 | Unit | 98 |
-| Unit (app) | 5 |
+| Unit (app) | 6 |
 | Widget | 2 |
 
 ## Requirement → test cases
@@ -52,11 +52,11 @@
 | FR-004 | TC-M5-09, TC-M5-10 | Unit | ✅ all pass |
 | FR-006 | TC-M1-56, TC-M5-15, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-007 | TC-M5-15 | Unit | ✅ all pass |
-| FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06 | Integration, Unit | ✅ all pass |
+| FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36, TC-M5-12, TC-M6-06 | Integration, Unit | ✅ all pass |
-| FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06 | Integration, Unit | ✅ all pass |
-| FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08 | Integration, Unit | ✅ all pass |
+| FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
+| FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-014 | TC-M6-12 | Widget | ✅ all pass |
 | FR-015 | TC-M6-11, TC-M6-12 | Unit, Widget | ✅ all pass |
 | FR-016 | TC-M4-14, TC-M6-05, TC-M6-10 | Integration, Unit | ✅ all pass |
@@ -327,6 +327,7 @@
 | TC-M1-90 | PERF-001 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
 | TC-M1-91 | PERF-002 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
 | TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | fail | `scripts/perf.mjs` |
+| TC-M1-93 | FR-009, FR-012, FR-013 | Use-case based (plan a visit far away) and boundary (distance math) | Unit (app) | not run | `app/test/features/search/search_view_model_test.dart` |
 
 ## Sheet problems
 

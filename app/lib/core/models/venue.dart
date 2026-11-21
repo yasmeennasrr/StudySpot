@@ -119,6 +119,25 @@ class VenueSummary {
 
   bool get hasLocation => lat != null && lng != null;
 
+  /// The same venue with a distance worked out in the app (the "All places" list).
+  VenueSummary copyWithDistance(int meters) => VenueSummary(
+        id: id,
+        name: name,
+        lat: lat,
+        lng: lng,
+        address: address,
+        area: area,
+        priceLevel: priceLevel,
+        wifiAvailable: wifiAvailable,
+        outletsAvailable: outletsAvailable,
+        studyType: studyType,
+        distanceMeters: meters,
+        openNow: openNow,
+        averageRating: averageRating,
+        reviewCount: reviewCount,
+        conditions: conditions,
+      );
+
   factory VenueSummary.fromJson(Map<String, dynamic> json) {
     final location = _m(json['location']);
     return VenueSummary(

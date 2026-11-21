@@ -74,4 +74,33 @@ void main() {
     expect(vm.error, isNull);
     expect(vm.items, isNotEmpty);
   });
+
+  test('TC-M1-93 "All places" lists every venue however far, nearest first, with distances', () async {
+    final w = TestWorld(locationAccess: LocationAccess.granted); // device at (30.0444, 31.2357)
+    final vm = vmFor(w);
+    await vm.load();
+    expect(vm.source, SearchSource.nearby);
+    expect(vm.hasLocation, isTrue);
+
+    await vm.applyFilters(const Preferences(noise: 'quiet', maxDistance: 1000));
+    await vm.setShowAll(true);
+    expect(w.api.venueCalls.last, 'browse');
+    expect(vm.source, SearchSource.all);
+    expect(vm.sourceLabel, 'All study places, nearest first');
+    expect(w.api.lastFilters, {'noise': 'quiet'}, reason: 'maxDistance does not apply to all places');
+    // Zamalek is about 2.5 km away, New Cairo about 25 km: both listed, nearest first.
+    expect(vm.items.map((v) => v.area), ['Zamalek', 'New Cairo']);
+    expect(vm.items.first.distanceMeters, inInclusiveRange(2000, 3000));
+    expect(vm.items.last.distanceMeters, inInclusiveRange(24000, 27000));
+
+    await vm.setShowAll(false);
+    expect(w.api.venueCalls.last, 'nearby');
+    expect(vm.source, SearchSource.nearby);
+  });
+
+  test('TC-M1-93 distance: one degree of latitude is about 111.2 km', () {
+    expect(distanceMeters(30, 31, 31, 31), closeTo(111195, 50));
+    expect(distanceMeters(30.0626, 31.2197, 30.0626, 31.2197), 0);
+  });
 }
+
