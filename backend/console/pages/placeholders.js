@@ -15,6 +15,4 @@
     render: soon('PB-33', 'Staff and user accounts') });
   C.registerPage({ id: 'venues', title: 'Venues and API keys', story: 'PB-35', roles: ['admin'],
     render: soon('PB-35', 'Venues and API keys') });
-  C.registerPage({ id: 'moderation', title: 'Moderation queue', story: 'PB-37', roles: ['admin', 'moderator'],
-    render: soon('PB-37', 'Moderation queue') });
 })();

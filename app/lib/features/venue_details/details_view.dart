@@ -9,6 +9,7 @@ import '../../core/widgets/error_view.dart';
 import '../../core/widgets/view_model_builder.dart';
 import '../favorites/favorite_button.dart';
 import '../noise/noise_sample_card.dart';
+import '../reviews/reviews_section.dart';
 import 'details_view_model.dart';
 
 /// PB-11: venue details. Dynamic conditions and static information are shown
@@ -39,7 +40,7 @@ class VenueDetailsView extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator())
               : vm.error != null
                   ? ErrorView(message: vm.error!, onRetry: vm.load)
-                  : RefreshIndicator(onRefresh: vm.load, child: _Body(details: d!)),
+                  : RefreshIndicator(onRefresh: vm.load, child: _Body(details: d!, onChanged: vm.load)),
         );
       },
     );
@@ -47,9 +48,12 @@ class VenueDetailsView extends StatelessWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.details});
+  const _Body({required this.details, required this.onChanged});
 
   final VenueDetails details;
+
+  /// Reloads the details, e.g. after the student saves a review.
+  final Future<void> Function() onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -78,17 +82,8 @@ class _Body extends StatelessWidget {
         const _Heading('Opening hours'),
         if (hours.isEmpty) const Text('Not known'),
         for (final (day, time) in hours) _Fact(day, time),
-        const _Heading('Reviews'),
-        if (details.reviews.isEmpty) const Text('No reviews yet.'),
-        for (final r in details.reviews)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('★' * r.rating),
-            subtitle: Text([
-              if (r.text != null && r.text!.isNotEmpty) r.text!,
-              '${r.authorDisplayName} · ${r.createdAt.day}/${r.createdAt.month}/${r.createdAt.year}',
-            ].join('\n')),
-          ),
+        // PB-15 / PB-16 (M4): write, edit and report reviews.
+        VenueReviewsSection(venueId: v.id, reviews: details.reviews, onChanged: onChanged),
       ],
     );
   }

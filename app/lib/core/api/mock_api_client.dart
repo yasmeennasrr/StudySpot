@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -50,6 +51,11 @@ class MockApiClient extends ApiClient {
   NoiseSampleResult noiseResult = const NoiseSampleResult(
       recorded: true, level: 'quiet', message: 'Thanks! The noise level was saved.');
   final List<int> noiseSamples = [];
+
+  /// PB-15 / PB-16: the signed-in student's reviews by venue, and the ids of
+  /// reviews they reported.
+  final Map<String, MyReview> myReviews = {};
+  final Set<String> reportedReviewIds = {};
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -239,6 +245,7 @@ class MockApiClient extends ApiClient {
       orElse: () => throw const ApiError(
           code: 'NOT_FOUND', statusCode: 404, message: 'This place was not found.'),
     );
+    final mine = myReviews[v.id];
     return {
       'static': {
         'id': v.id,
@@ -289,6 +296,14 @@ class MockApiClient extends ApiClient {
       'averageRating': 4.5,
       'reviewCount': 2,
       'reviews': [
+        if (mine != null && !mine.hidden)
+          {
+            'id': mine.id,
+            'rating': mine.rating,
+            'text': mine.text,
+            'authorDisplayName': 'Dev User',
+            'createdAt': mine.createdAt.toUtc().toIso8601String(),
+          },
         {
           'id': 'r1',
           'rating': 5,
@@ -306,6 +321,46 @@ class MockApiClient extends ApiClient {
       ],
       'isFavorite': favoriteIds.contains(v.id),
     };
+  }
+
+  @override
+  Future<MyReview?> getMyReview(String venueId) async {
+    await _step();
+    return myReviews[venueId];
+  }
+
+  @override
+  Future<MyReview> writeReview(String venueId, {required int rating, String? text}) async {
+    await _step();
+    if (rating < 1 || rating > 5) {
+      throw const ApiError(
+          code: 'INVALID_INPUT',
+          statusCode: 400,
+          message: 'Please check rating: rating must be 1 to 5 stars.',
+          fieldErrors: {'rating': 'rating must be 1 to 5 stars'});
+    }
+    final trimmed = text?.trim();
+    final review = MyReview(
+      id: myReviews[venueId]?.id ?? 'mine-$venueId',
+      venueId: venueId,
+      rating: rating,
+      text: trimmed == null || trimmed.isEmpty ? null : trimmed,
+      createdAt: DateTime.now(),
+    );
+    myReviews[venueId] = review;
+    return review;
+  }
+
+  @override
+  Future<void> reportReview(String reviewId) async {
+    await _step();
+    if (myReviews.values.any((r) => r.id == reviewId)) {
+      throw const ApiError(
+          code: 'NOT_ALLOWED',
+          statusCode: 403,
+          message: 'You cannot report your own review. Edit it instead.');
+    }
+    reportedReviewIds.add(reviewId);
   }
 
   @override

@@ -10,6 +10,9 @@
     ['staff.sign_in', 'Staff sign-ins'],
     ['staff.sign_out', 'Staff sign-outs'],
     ['config.changed', 'Setting changes'],
+    ['moderation.review_removed', 'Reviews removed'],
+    ['moderation.reports_dismissed', 'Reports dismissed'],
+    ['moderation.survey_removed', 'Surveys removed'],
   ];
   const REASONS = {
     wrong_password: 'Wrong password',
@@ -29,6 +32,12 @@
         return 'Staff sign-out';
       case 'config.changed':
         return `Setting changed from ${d.oldValue} to ${d.newValue}`;
+      case 'moderation.review_removed':
+        return `Review removed (${d.reports || 0} report${d.reports === 1 ? '' : 's'})`;
+      case 'moderation.reports_dismissed':
+        return `Review kept, ${d.reports || 0} report${d.reports === 1 ? '' : 's'} dismissed`;
+      case 'moderation.survey_removed':
+        return 'Survey removed';
       default:
         return entry.action;
     }
