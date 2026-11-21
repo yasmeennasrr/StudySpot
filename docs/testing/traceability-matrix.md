@@ -4,23 +4,23 @@
 
 ## Summary
 
-**200** test cases: **191** pass, **1** fail, **8** not run yet. They cover **107** requirement IDs.
+**207** test cases: **197** pass, **1** fail, **9** not run yet. They cover **115** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
-| M4 | 26 | 19 | 0 | 7 | 26 |
+| M4 | 33 | 25 | 0 | 8 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
 | M6 | 12 | 12 | 0 | 0 | 12 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 75 |
+| Integration | 76 |
 | Performance | 3 |
-| Unit | 102 |
+| Unit | 108 |
 | Unit (app) | 8 |
 | Widget | 2 |
 
@@ -28,6 +28,14 @@
 
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
+| AI-009 | TC-M4-32 | Unit | ✅ all pass |
+| AI-011 | TC-M4-33 | Integration | ⏳ 1 not run |
+| AI-012 | TC-M4-27, TC-M4-28, TC-M4-29, TC-M4-30, TC-M4-32, TC-M4-33 | Unit, Integration | ⏳ 1 not run |
+| AI-013 | TC-M4-27, TC-M4-33 | Unit, Integration | ⏳ 1 not run |
+| AI-014 | TC-M4-30, TC-M4-31, TC-M4-33 | Unit, Integration | ⏳ 1 not run |
+| AI-015 | TC-M4-31 | Unit | ✅ all pass |
+| AI-016 | TC-M4-29 | Unit | ✅ all pass |
+| AI-017 | TC-M4-31 | Unit | ✅ all pass |
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
 | DATA-001 | TC-M1-32 | Integration | ✅ all pass |
@@ -65,7 +73,7 @@
 | FR-019 | TC-M4-14, TC-M6-10, TC-M6-12 | Integration, Unit, Widget | ✅ all pass |
 | FR-020 | TC-M6-01, TC-M6-02, TC-M6-10, TC-M6-12 | Unit, Widget | ✅ all pass |
 | FR-021 | TC-M4-04, TC-M6-01, TC-M6-10 | Unit | ✅ all pass |
-| FR-022 | TC-M1-43, TC-M1-48, TC-M5-13 | Unit, Integration | ✅ all pass |
+| FR-022 | TC-M1-43, TC-M1-48, TC-M4-28, TC-M4-33, TC-M5-13 | Unit, Integration | ⏳ 1 not run |
 | FR-023 | TC-M1-48, TC-M5-13 | Integration, Unit | ✅ all pass |
 | FR-024 | TC-M1-48, TC-M5-13 | Integration, Unit | ✅ all pass |
 | FR-025 | TC-M4-16, TC-M4-17, TC-M4-18, TC-M4-22 | Unit, Integration, Unit (app) | ⏳ 2 not run |
@@ -96,7 +104,7 @@
 | QR-007 | TC-M1-23 | Unit | ✅ all pass |
 | QR-009 | TC-M1-23 | Unit | ✅ all pass |
 | RT-001 | TC-M1-18, TC-M4-01, TC-M4-03, TC-M4-15 | Unit, Integration | ✅ all pass |
-| RT-004 | TC-M1-31 | Integration | ✅ all pass |
+| RT-004 | TC-M1-31, TC-M4-27 | Integration, Unit | ✅ all pass |
 | RT-005 | TC-M6-02 | Unit | ✅ all pass |
 | RT-006 | TC-M1-20, TC-M4-12, TC-M4-21 | Unit, Integration | ⏳ 1 not run |
 | RT-008 | TC-M1-18 | Unit | ✅ all pass |
@@ -118,7 +126,7 @@
 | SEC-003 | TC-M1-06, TC-M1-16 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18 | Unit, Integration | ⏳ 1 not run |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
-| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M4-16, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
+| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M4-16, TC-M4-32, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
 | SEC-009 | TC-M2-10, TC-M2-11, TC-M4-26, TC-M5-10 | Unit, Integration | ⏳ 1 not run |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
@@ -131,7 +139,7 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
-| USE-003 | TC-M6-01 | Unit | ✅ all pass |
+| USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
 | USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ⏳ 1 not run |
@@ -278,6 +286,13 @@
 | TC-M4-24 | FR-036, FR-037, FR-044, SEC-002 | Boundary value analysis (7/8 and 9/10 characters per role) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
 | TC-M4-25 | FR-038, FR-044 | State transition (active -> suspended -> active) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
 | TC-M4-26 | FR-036, FR-037, FR-038, FR-044, SEC-009 | Use-case based (UC-18 create and suspend) | Integration | not run | `backend/test/int/staff-accounts.int-spec.ts` |
+| TC-M4-27 | AI-012, AI-013, RT-004 | Decision table (SDS 6.6.4 match-score table) and boundary value analysis | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-28 | AI-012, FR-022 | Equivalence partitioning (request / preference / covered preference) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-29 | AI-012, AI-016 | Decision table (some / none meet the requirement) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-30 | AI-012, AI-014 | Equivalence partitioning (ties on score / rating / distance) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-31 | AI-014, AI-015, AI-017, USE-003 | Equivalence partitioning (one class per status and per static criterion) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-32 | AI-009, SEC-007, AI-012 | Equivalence partitioning (valid / invalid input) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-33 | AI-011, AI-012, AI-013, AI-014, FR-022 | Use-case based (UC-05 quiet place near me) | Integration | not run | `backend/test/int/recommendations.int-spec.ts` |
 | TC-M1-56 | FR-009, FR-006 | Use-case based (browse without searching) | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-57 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-58 | SEC-007 | Boundary value analysis | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |

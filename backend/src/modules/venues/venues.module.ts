@@ -15,6 +15,7 @@ import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { VenueDetailsService } from './details/venue-details.service';
 import { FavoritesService, PreferencesService } from './preferences-favorites.service';
+import { RecommendationService } from './recommendations/recommendation.service';
 import { ReviewsController } from './reviews/reviews.controller';
 import { ReviewsService } from './reviews/reviews.service';
 import { VenueSearchService } from './search/venue-search.service';
@@ -45,6 +46,7 @@ import { MyVenuesController, VenuesController } from './venues.controller';
   providers: [
     VenueSearchService,
     VenueDetailsService,
+    RecommendationService,
     ReviewsService,
     { provide: VENUE_QUERY, useClass: VenueQueryFacade },
     { provide: PREFERENCES, useClass: PreferencesService },
