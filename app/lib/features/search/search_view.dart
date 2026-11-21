@@ -133,6 +133,28 @@ class _SearchViewState extends State<SearchView> {
                 ],
               ),
             ),
+            // Near me / All places: see every café, however far (planning ahead).
+            if (vm.hasLocation && vm.query.trim().isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      key: const Key('scope_nearby'),
+                      label: const Text('Near me'),
+                      selected: !vm.showAll,
+                      onSelected: (_) => vm.setShowAll(false),
+                    ),
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      key: const Key('scope_all'),
+                      label: const Text('All places'),
+                      selected: vm.showAll,
+                      onSelected: (_) => vm.setShowAll(true),
+                    ),
+                  ],
+                ),
+              ),
             if (vm.degraded)
               Container(
                 key: const Key('search_degraded'),
