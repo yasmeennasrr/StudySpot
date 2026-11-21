@@ -7,6 +7,12 @@
  *   npm --prefix backend run staff:create -- moderator someone@aucegypt.edu "Their Name"
  *
  * Asks for the password without showing it. Uses DATABASE_URL from backend/.env.
+ *
+ * Git Bash (mintty) does not give Node a real terminal, so the prompt cannot work
+ * there. Use PowerShell, or read the password into a variable first (not saved in
+ * the shell history):
+ *   read -rs -p "Password: " STAFF_PASSWORD; echo; export STAFF_PASSWORD
+ *   npm --prefix backend run staff:create -- admin you@aucegypt.edu "Your Name"; unset STAFF_PASSWORD
  */
 import { createInterface } from 'node:readline';
 import * as bcrypt from 'bcrypt';
@@ -61,14 +67,23 @@ async function main(): Promise<void> {
       console.log(`${email} is now ${role}. Their password is unchanged.`);
       return;
     }
-    const password = await askHidden('Password for the new staff account: ');
+    const fromEnv = process.env.STAFF_PASSWORD;
+    if (!fromEnv && !process.stdin.isTTY) {
+      console.error(
+        'This window cannot ask for a password (Git Bash). Run the command in PowerShell, or set\n' +
+          'STAFF_PASSWORD first:  read -rs -p "Password: " STAFF_PASSWORD; echo; export STAFF_PASSWORD',
+      );
+      process.exitCode = 1;
+      return;
+    }
+    const password = fromEnv ?? (await askHidden('Password for the new staff account: '));
     const problem = staffPasswordProblem(password);
     if (problem) {
       console.error(problem);
       process.exitCode = 1;
       return;
     }
-    if ((await askHidden('Type it again: ')) !== password) {
+    if (!fromEnv && (await askHidden('Type it again: ')) !== password) {
       console.error('The passwords do not match.');
       process.exitCode = 1;
       return;
@@ -88,9 +103,33 @@ async function main(): Promise<void> {
   }
 }
 
+/** A readable reason. Node on Windows reports a refused connection as an AggregateError with no message. */
+export function describeError(err: unknown): string {
+  const inner = err instanceof AggregateError ? err.errors : [err];
+  const parts = inner.map((e) => {
+    const x = e as { code?: string; message?: string; address?: string; port?: number };
+    return x.code === 'ECONNREFUSED'
+      ? `connection refused at ${x.address ?? 'the database host'}:${x.port ?? ''}`
+      : x.message || x.code || String(e);
+  });
+  const text = [...new Set(parts)].join('; ') || 'unknown error';
+  const host = (() => {
+    try {
+      return new URL(process.env.DATABASE_URL ?? '').host || 'not set';
+    } catch {
+      return 'not a valid URL';
+    }
+  })();
+  return (
+    `Could not create the staff account: ${text}.\n` +
+    `DATABASE_URL in backend/.env points to ${host}. For Supabase use the Session pooler URI ` +
+    `and DATABASE_SSL=true; for the local database, start Docker first (npm run db:up).`
+  );
+}
+
 if (require.main === module) {
   main().catch((err) => {
-    console.error(err instanceof Error ? err.message : err);
+    console.error(describeError(err));
     process.exit(1);
   });
 }
