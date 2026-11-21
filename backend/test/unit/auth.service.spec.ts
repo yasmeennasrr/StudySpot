@@ -292,19 +292,18 @@ describe('Edit account (PB-05, UC-02, FR-005)', () => {
     const { user } = await auth.register(NEW_USER);
     const hashBefore = users[0].passwordHash;
 
-    const missing = auth.updateProfile(user.id, { newPassword: 'newsecret456' });
-    const wrong = auth.updateProfile(user.id, {
-      currentPassword: 'wrong1234',
-      newPassword: 'newsecret456',
-    });
-    const same = auth.updateProfile(user.id, {
-      currentPassword: 'secret123',
-      newPassword: 'secret123',
-    });
+    // Awaited one at a time: a promise created early could reject before it is awaited.
+    const missing = await codeOf(auth.updateProfile(user.id, { newPassword: 'newsecret456' }));
+    const wrong = await codeOf(
+      auth.updateProfile(user.id, { currentPassword: 'wrong1234', newPassword: 'newsecret456' }),
+    );
+    const same = await codeOf(
+      auth.updateProfile(user.id, { currentPassword: 'secret123', newPassword: 'secret123' }),
+    );
     // Wrong current password is INVALID_INPUT, not UNAUTHENTICATED, so the app keeps the user signed in.
-    expect(await codeOf(missing)).toBe(ErrorCode.INVALID_INPUT);
-    expect(await codeOf(wrong)).toBe(ErrorCode.INVALID_INPUT);
-    expect(await codeOf(same)).toBe(ErrorCode.INVALID_INPUT);
+    expect(missing).toBe(ErrorCode.INVALID_INPUT);
+    expect(wrong).toBe(ErrorCode.INVALID_INPUT);
+    expect(same).toBe(ErrorCode.INVALID_INPUT);
     // A refused change changes nothing, not even a display name sent with it.
     expect(
       await codeOf(
@@ -335,8 +334,8 @@ describe('Edit account (PB-05, UC-02, FR-005)', () => {
     expect(await codeOf(auth.refresh(second.refreshToken))).toBe(ErrorCode.UNAUTHENTICATED);
     expect(await codeOf(auth.refresh(result.tokens!.refreshToken))).toBe('OK');
     expect(await codeOf(auth.login(NEW_USER, {}))).toBe(ErrorCode.UNAUTHENTICATED);
-    expect(
-      await codeOf(auth.login({ email: NEW_USER.email, password: 'newsecret456' }, {})),
-    ).toBe('OK');
+    expect(await codeOf(auth.login({ email: NEW_USER.email, password: 'newsecret456' }, {}))).toBe(
+      'OK',
+    );
   });
 });
