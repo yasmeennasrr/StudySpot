@@ -9,6 +9,7 @@ import { Test } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
+import { CONDITIONS, type IConditions } from '../../src/contracts';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
 import { TEST_DATABASE_URL } from './test-database';
 
@@ -271,6 +272,8 @@ describe('Reviews and moderation on a real database (integration)', () => {
       answers: { noise: 'noisy', crowd: null, wifi: null },
       author: { displayName: 'Carol' },
     });
+    // Inserted directly, so no SurveyStored event: drop the cached conditions as that event would.
+    app.get<IConditions>(CONDITIONS).invalidate(CAFE);
     const before = await api().get(`/api/v1/venues/${CAFE}`).expect(200);
     expect(before.body.dynamic.noise.status).toBe('current');
 
