@@ -21,6 +21,11 @@ export function configureApp(app: INestApplication): void {
   const origins = String(config.get('CORS_ORIGINS', '*'));
   app.enableCors({ origin: origins === '*' ? true : origins.split(',').map((o) => o.trim()) });
   app.setGlobalPrefix(API_PREFIX, { exclude: ['/'] });
+  // Staff Console (PB-32): static page at /console, calling the Staff API at /api/v1/staff.
+  (app as NestExpressApplication).useStaticAssets(join(__dirname, '..', 'console'), {
+    prefix: '/console',
+    index: 'index.html',
+  });
   app.enableShutdownHooks();
 }
 

@@ -71,7 +71,7 @@ export class AuditService implements IAudit {
         actorType: 'anonymous',
         action: DomainEvent.SignInFailed,
         target: event.email.toLowerCase(),
-        details: { reason: event.reason },
+        details: { reason: event.reason, channel: event.channel ?? 'app' },
         ip: event.ip ?? null,
       }),
     );

@@ -80,6 +80,29 @@ export const DEV_USER = {
   passwordHash: '$2a$10$HFErJJquFuYG2FgFKY4wjue68rP.20m4cEu81pjwtR0xxRgT99c72',
 } as const;
 
+/**
+ * Local staff accounts for the Staff Console (PB-32). Only created when the database
+ * is local (DATABASE_SSL not true), never on Supabase: there, create staff with
+ * `npm run staff:create`, which asks for a password.
+ *   admin@studyspot.test / adminpass123 (admin), mod@studyspot.test / modpass123 (moderator)
+ */
+export const DEV_STAFF = [
+  {
+    id: '00000000-0000-4000-8000-0000000000a1',
+    email: 'admin@studyspot.test',
+    displayName: 'Dev Admin',
+    role: 'admin' as const,
+    passwordHash: '$2b$10$7AgoTnb9VwvwjfZikbh2.esSqxBO4WKJOkbEeHOYmjNLP82SMdeYK',
+  },
+  {
+    id: '00000000-0000-4000-8000-0000000000a2',
+    email: 'mod@studyspot.test',
+    displayName: 'Dev Moderator',
+    role: 'moderator' as const,
+    passwordHash: '$2b$10$yuEltm5bkBYPXIzoYINEHOyiA.NP1S16jpZdkSSppWNCoSW/l4XA.',
+  },
+];
+
 function readJson<T>(name: string): T | null {
   const file = join(SEED_DIR, name);
   return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as T) : null;
@@ -116,6 +139,15 @@ async function main(): Promise<void> {
           .createQueryBuilder()
           .insert()
           .values({ ...DEV_USER, termsAcceptedAt: new Date(), role: 'user' })
+          .orIgnore()
+          .execute();
+      }
+      if (process.env.SEED_DEV_USER !== 'false' && process.env.DATABASE_SSL !== 'true') {
+        await tx
+          .getRepository(UserEntity)
+          .createQueryBuilder()
+          .insert()
+          .values(DEV_STAFF.map((s) => ({ ...s, termsAcceptedAt: new Date() })))
           .orIgnore()
           .execute();
       }

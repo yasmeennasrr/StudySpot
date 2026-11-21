@@ -43,3 +43,31 @@ export interface IAuth {
   verifyAccessToken(accessToken: string): Promise<AuthUser>;
   getProfile(userId: string): Promise<Profile>;
 }
+
+// ---------------------------------------------------------------- IStaffAuth (PB-32, M1)
+export const STAFF_AUTH = Symbol('IStaffAuth');
+
+/**
+ * A staff session (FR-035, UC-17). Opened only with a fresh e-mail and password,
+ * never from an app session or refresh token, and it cannot be refreshed: when it
+ * ends, the staff member re-enters the password.
+ */
+export interface StaffSession {
+  staffToken: string;
+  /** Seconds until the staff token expires (STAFF_SESSION_TTL_SECONDS, default 900). */
+  expiresIn: number;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+export interface IStaffAuth {
+  /**
+   * Checks the password again and the staff role. Refusals are logged (SEC-010):
+   * wrong credentials give 401, a non-staff account gives 403.
+   */
+  signIn(input: LoginInput, context: { ip?: string }): Promise<StaffSession>;
+  /** Used by StaffGuard on every staff route. Re-reads the user, so a suspension or role change applies at once. */
+  verifyStaffToken(staffToken: string): Promise<AuthUser & { sessionExpiresAt: string }>;
+  /** Records the sign-out in the security log; the console forgets the token. */
+  signOut(user: AuthUser): Promise<void>;
+}

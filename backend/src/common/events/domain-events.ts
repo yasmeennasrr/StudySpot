@@ -38,8 +38,10 @@ export interface NoiseRecordedEvent {
 
 export interface SignInFailedEvent {
   email: string;
-  reason: 'unknown_email' | 'wrong_password' | 'suspended';
+  reason: 'unknown_email' | 'wrong_password' | 'suspended' | 'not_staff';
   ip?: string;
+  /** Where the sign-in happened: the app (default) or the Staff Console (PB-32). */
+  channel?: 'app' | 'staff';
   at: Date;
 }
 
