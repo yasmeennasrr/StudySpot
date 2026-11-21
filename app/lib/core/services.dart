@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'api/api_client.dart';
+import 'audio/noise_recorder.dart';
 import 'auth/session.dart';
 import 'auth/token_store.dart';
 import 'location/location_service.dart';
@@ -14,12 +15,17 @@ class AppServices {
     required this.tokens,
     required this.flags,
     required this.location,
-  }) : session = Session(api: api, tokens: tokens);
+    NoiseRecorder? noise,
+  })  : noise = noise ?? RecordNoiseRecorder(),
+        session = Session(api: api, tokens: tokens);
 
   final ApiClient api;
   final TokenStore tokens;
   final LocalFlags flags;
   final LocationService location;
+
+  /// Microphone for noise samples (PB-19). Tests pass a FakeNoiseRecorder.
+  final NoiseRecorder noise;
   final Session session;
 }
 

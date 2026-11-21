@@ -496,6 +496,75 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
 
+  /venues/{venueId}/noise-samples/eligibility:
+    get:
+      tags: [venues]
+      summary: May the signed-in student share a noise sample here now? (PB-19, SEN-009)
+      description: |
+        Yes when Presence places the student at the venue, or the position given is within the
+        venue radius (presence.venueRadiusMeters, 50 m by default). The app offers the recording only then.
+      operationId: noiseSampleEligibility
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+        - { name: lat, in: query, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: lng, in: query, schema: { type: number, minimum: -180, maximum: 180 } }
+      responses:
+        '200':
+          description: Eligibility
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eligible: { type: boolean }
+                  reason: { type: string, enum: [not_present], nullable: true }
+                  radiusMeters: { type: integer }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /venues/{venueId}/noise-samples:
+    post:
+      tags: [venues]
+      summary: Send a 7-second noise snippet; only its level is kept (PB-19, UC-11, AI-023, PRIV-001)
+      description: |
+        multipart/form-data with "audio" (WAV 16-bit PCM preferred; WebM, OGG, MP4, AAC accepted; at most 1 MB)
+        and the student's "lat" and "lng". The snippet is analysed in memory and discarded; a level becomes
+        one noise record (venue, level, time). When the analysis is unavailable or inconclusive the answer is
+        200 with status "unavailable" and nothing is saved (AI-026). 6 uploads per minute per client.
+      operationId: sendNoiseSample
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio: { type: string, format: binary }
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        '200':
+          description: Recorded, or unavailable (nothing saved)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, level, message]
+                properties:
+                  status: { type: string, enum: [recorded, unavailable] }
+                  level: { type: string, enum: [quiet, moderate, noisy], nullable: true }
+                  message: { type: string }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '413': { description: The file is larger than 1 MB }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
 security:
   - bearerAuth: []
 

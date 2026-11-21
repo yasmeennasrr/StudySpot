@@ -29,7 +29,8 @@ const DUMMY_HASH = bcrypt.hashSync(randomBytes(16).toString('hex'), BCRYPT_ROUND
 const EMAIL_TAKEN = 'An account with this e-mail already exists. Try signing in instead.';
 const BAD_CREDENTIALS = 'The e-mail or password is not correct.';
 const SESSION_ENDED = 'Your session has ended. Please sign in again.';
-const SUSPENDED ='This account has been suspended. Contact support if you think this is a mistake.';
+const SUSPENDED =
+  'This account has been suspended. Contact support if you think this is a mistake.';
 
 /** What the access token carries. `sub` is the user id. */
 interface AccessTokenPayload {
@@ -222,9 +223,10 @@ export class AuthService implements IAuth {
       name: user.displayName,
       role: user.role,
     };
-    const accessToken = await this.jwt.signAsync(payload,
-      { secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'), expiresIn },
-    );
+    const accessToken = await this.jwt.signAsync(payload, {
+      secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      expiresIn,
+    });
     return { accessToken, expiresIn, refreshToken, user: publicUser };
   }
 }

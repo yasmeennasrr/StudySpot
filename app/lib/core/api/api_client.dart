@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import '../models/auth.dart';
+import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/venue.dart';
 
@@ -61,4 +64,18 @@ abstract class ApiClient {
 
   /// VenueDetails as raw JSON; M6 models it for the details screen.
   Future<Map<String, dynamic>> getVenue(String venueId);
+
+  // Noise sampling (M1: PB-19, UC-11)
+  /// True when the signed-in student is at this venue now, so the app may offer
+  /// a noise sample (SEN-009).
+  Future<bool> noiseSampleEligible(String venueId, {required double lat, required double lng});
+
+  /// Sends a 7-second WAV snippet held in memory. The backend keeps only the
+  /// noise level (PRIV-001, SEN-007).
+  Future<NoiseSampleResult> sendNoiseSample(
+    String venueId,
+    Uint8List wav, {
+    required double lat,
+    required double lng,
+  });
 }

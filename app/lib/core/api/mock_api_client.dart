@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import '../models/auth.dart';
+import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
@@ -40,6 +43,13 @@ class MockApiClient extends ApiClient {
     ),
   ];
   final Set<String> favoriteIds = {};
+
+  /// PB-19: whether the student counts as being at the venue, and what the
+  /// noise analysis answers. [noiseSamples] keeps the size of each upload.
+  bool noiseEligible = true;
+  NoiseSampleResult noiseResult = const NoiseSampleResult(
+      recorded: true, level: 'quiet', message: 'Thanks! The noise level was saved.');
+  final List<int> noiseSamples = [];
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -296,5 +306,30 @@ class MockApiClient extends ApiClient {
       ],
       'isFavorite': favoriteIds.contains(v.id),
     };
+  }
+
+  @override
+  Future<bool> noiseSampleEligible(String venueId,
+      {required double lat, required double lng}) async {
+    await _step();
+    return noiseEligible;
+  }
+
+  @override
+  Future<NoiseSampleResult> sendNoiseSample(
+    String venueId,
+    Uint8List wav, {
+    required double lat,
+    required double lng,
+  }) async {
+    await _step();
+    if (!noiseEligible) {
+      throw const ApiError(
+          code: 'NOT_ALLOWED',
+          statusCode: 403,
+          message: 'You can share a noise sample only while you are at this place.');
+    }
+    noiseSamples.add(wav.length);
+    return noiseResult;
   }
 }
