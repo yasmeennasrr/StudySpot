@@ -43,6 +43,7 @@ input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible
   border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; font-weight: 600; }
 .btn:disabled { opacity: .55; cursor: default; }
 .btn.secondary { background: #fff; color: var(--text); border-color: var(--border); }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
 .btn.block { width: 100%; }
 .error { background: var(--danger-soft); color: var(--danger); border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; font-size: 14px; }
 .notice { background: var(--accent-soft); border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; font-size: 14px; }

@@ -5,6 +5,7 @@ import { FAVORITES, PREFERENCES, VENUE_QUERY } from '../../contracts';
 import {
   FavoriteEntity,
   ReviewEntity,
+  ReviewReportEntity,
   UserPreferencesEntity,
   VenueEntity,
 } from '../../db/entities';
@@ -14,6 +15,8 @@ import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
 import { VenueDetailsService } from './details/venue-details.service';
 import { FavoritesService, PreferencesService } from './preferences-favorites.service';
+import { ReviewsController } from './reviews/reviews.controller';
+import { ReviewsService } from './reviews/reviews.service';
 import { VenueSearchService } from './search/venue-search.service';
 import { VenueQueryFacade } from './venue-query.service';
 import { MyVenuesController, VenuesController } from './venues.controller';
@@ -25,17 +28,24 @@ import { MyVenuesController, VenuesController } from './venues.controller';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([VenueEntity, ReviewEntity, UserPreferencesEntity, FavoriteEntity]),
+    TypeOrmModule.forFeature([
+      VenueEntity,
+      ReviewEntity,
+      ReviewReportEntity,
+      UserPreferencesEntity,
+      FavoriteEntity,
+    ]),
     ConditionsModule,
     MapsAdapterModule,
     ConfigurationModule,
     AccountsModule,
     ClockModule,
   ],
-  controllers: [VenuesController, MyVenuesController],
+  controllers: [VenuesController, MyVenuesController, ReviewsController],
   providers: [
     VenueSearchService,
     VenueDetailsService,
+    ReviewsService,
     { provide: VENUE_QUERY, useClass: VenueQueryFacade },
     { provide: PREFERENCES, useClass: PreferencesService },
     { provide: FAVORITES, useClass: FavoritesService },

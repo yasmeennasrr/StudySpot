@@ -80,5 +80,43 @@ export interface IAdmin {
   reactivateUser(staffUserId: string, userId: string): Promise<void>;
   registerVenueKey(staffUserId: string, venueId: string): Promise<{ apiKey: string }>;
   revokeVenueKey(staffUserId: string, venueId: string): Promise<void>;
+  /** Hides a review or survey from every view and count (FR-029). */
   removeReportedContent(staffUserId: string, kind: 'review' | 'survey', id: string): Promise<void>;
+  /** The moderation queue: visible reviews with at least one report, most reported first (PB-37). */
+  listReportedReviews(limit?: number): Promise<ReportedReviewView[]>;
+  /** The moderator keeps the review: its reports are cleared and it leaves the queue. */
+  dismissReports(staffUserId: string, reviewId: string): Promise<void>;
+  /** Surveys are not reported by users; moderators look through the newest ones (UC-21). */
+  listRecentSurveys(filter: { venueId?: string; limit?: number }): Promise<RecentSurveyView[]>;
+}
+
+/** Who wrote a piece of content, as staff see it (never shown in the app, PRIV-014). */
+export interface ContentAuthorView {
+  id: string;
+  displayName: string;
+  email: string;
+  suspended: boolean;
+}
+
+export interface ReportedReviewView {
+  reviewId: string;
+  venue: { id: string; name: string };
+  rating: number;
+  text: string | null;
+  author: ContentAuthorView;
+  writtenAt: string;
+  reportCount: number;
+  firstReportedAt: string;
+  lastReportedAt: string;
+}
+
+export interface RecentSurveyView {
+  surveyId: string;
+  venue: { id: string; name: string };
+  source: 'qr' | 'in_app';
+  answers: { crowd: string | null; noise: string | null; wifi: string | null };
+  /** Null when the account was deleted (anonymised record, PRIV-012). */
+  author: ContentAuthorView | null;
+  submittedAt: string;
+  pointsAwarded: number;
 }
