@@ -32,6 +32,17 @@ abstract class ApiClient {
   Future<AuthTokens> refresh(String refreshToken);
   Future<void> logout(String refreshToken);
 
+  // Account (PB-05, FR-005)
+  /// GET /me: the signed-in user's account.
+  Future<AuthUser> getMe();
+
+  /// PATCH /me: send only what changes. A new password needs the current one.
+  Future<AccountUpdate> updateMe({
+    String? displayName,
+    String? currentPassword,
+    String? newPassword,
+  });
+
   // Preferences (PB-13)
   Future<Preferences> getPreferences();
   Future<Preferences> savePreferences(Preferences preferences);

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/session.dart';
 import '../../core/services.dart';
 import '../../core/widgets/back_or_home_button.dart';
 
-/// The signed-in user's hub: preferences, favorites, sign out (FR-004).
+/// The signed-in user's hub: edit account (FR-005), preferences, favorites,
+/// sign out (FR-004).
 class AccountView extends StatefulWidget {
   const AccountView({super.key});
 
@@ -14,6 +16,28 @@ class AccountView extends StatefulWidget {
 
 class _AccountViewState extends State<AccountView> {
   bool _signingOut = false;
+  Session? _session;
+
+  // Rebuild when the session changes, e.g. a new name from Edit account (PB-05).
+  void _sessionChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final session = AppScope.of(context).session;
+    if (!identical(session, _session)) {
+      _session?.removeListener(_sessionChanged);
+      _session = session..addListener(_sessionChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    _session?.removeListener(_sessionChanged);
+    super.dispose();
+  }
 
   Future<void> _signOut() async {
     setState(() => _signingOut = true);
@@ -38,6 +62,13 @@ class _AccountViewState extends State<AccountView> {
             leading: const CircleAvatar(child: Icon(Icons.person)),
             title: Text(user?.displayName ?? 'Signed in'),
             subtitle: user == null ? null : Text(user.email),
+          ),
+          ListTile(
+            key: const Key('account_edit'),
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text('Edit account'),
+            subtitle: const Text('Display name and password'),
+            onTap: () => context.push('/account/edit'),
           ),
           const Divider(),
           ListTile(
