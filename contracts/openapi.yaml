@@ -29,6 +29,12 @@ tags:
     description: Owners M3 (search, nearby), M4 (details), M6 (screens). PB-07 to PB-11.
   - name: me
     description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
+  - name: staff
+    description: |
+      Staff API, used by the Staff Console at /console (owner M1; pages by their story owners).
+      Every route except POST /staff/session needs "Authorization: Bearer <staffToken>". A staff
+      token comes only from POST /staff/session with the password (re-authentication, FR-035),
+      lasts 15 minutes and cannot be refreshed. App access tokens are refused here.
 
 paths:
   /health:
@@ -329,6 +335,57 @@ paths:
         '204': { description: Removed }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /staff/session:
+    post:
+      tags: [staff]
+      summary: Staff sign-in with the password (PB-32, FR-035, UC-17). 5 tries per minute per client
+      description: |
+        Refusals are written to the security log (SEC-010) with channel "staff". A student account
+        gets 403. Local dev staff: admin@studyspot.test / adminpass123, mod@studyspot.test / modpass123.
+      operationId: staffSignIn
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Staff session opened
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StaffSession' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    get:
+      tags: [staff]
+      summary: The staff member of this session and when it ends
+      operationId: staffCurrentSession
+      security: [{ staffToken: [] }]
+      responses:
+        '200':
+          description: Current staff session
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/AuthUser' }
+                  - type: object
+                    properties:
+                      sessionExpiresAt: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    delete:
+      tags: [staff]
+      summary: Staff sign-out, recorded in the security log (FR-044)
+      operationId: staffSignOut
+      security: [{ staffToken: [] }]
+      responses:
+        '204': { description: Signed out }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
 security:
   - bearerAuth: []
 
@@ -337,6 +394,10 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+    staffToken:
+      type: http
+      scheme: bearer
+      description: Staff token from POST /staff/session (not an app access token)
 
   parameters:
     VenueId:
@@ -411,6 +472,11 @@ components:
             requestId: 5f0c1f7e-7a39-4a8e-9c3a-0e2f2b1c9d10
     Unauthenticated:
       description: Missing, invalid or expired token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    Forbidden:
+      description: Signed in, but this account or role may not do this
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorBody' }
@@ -619,3 +685,12 @@ components:
         openNow: { type: boolean }
         maxDistance: { type: integer, minimum: 1, maximum: 5000 }
         studyType: { type: string, enum: [individual, group] }
+
+    StaffSession:
+      type: object
+      required: [staffToken, expiresIn, expiresAt, user]
+      properties:
+        staffToken: { type: string }
+        expiresIn: { type: integer, description: 'Seconds (900 by default)' }
+        expiresAt: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/AuthUser' }

@@ -223,7 +223,7 @@ describe('StudySpot backend on a real database (integration)', () => {
       {
         action: 'auth.sign_in_failed',
         target: 'nobody@example.com',
-        details: { reason: 'unknown_email' },
+        details: { reason: 'unknown_email', channel: 'app' },
       },
     ]);
   });

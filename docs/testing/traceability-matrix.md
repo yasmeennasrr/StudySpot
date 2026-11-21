@@ -4,11 +4,11 @@
 
 ## Summary
 
-**154** test cases: **154** pass, **0** fail, **0** not run yet. They cover **84** requirement IDs.
+**165** test cases: **165** pass, **0** fail, **0** not run yet. They cover **86** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 58 | 58 | 0 | 0 | 58 |
+| M1 | 69 | 69 | 0 | 0 | 69 |
 | M2 | 14 | 14 | 0 | 0 | 14 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 15 | 15 | 0 | 0 | 15 |
@@ -18,8 +18,8 @@
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 59 |
-| Unit | 83 |
+| Integration | 62 |
+| Unit | 91 |
 | Widget | 2 |
 
 ## Requirement → test cases
@@ -66,8 +66,10 @@
 | FR-026 | TC-M1-45, TC-M1-50, TC-M1-52, TC-M5-14, TC-M6-11 | Unit, Integration | ✅ all pass |
 | FR-027 | TC-M1-46, TC-M1-47, TC-M1-50, TC-M1-51, TC-M5-14 | Unit, Integration | ✅ all pass |
 | FR-029 | TC-M4-14, TC-M4-15 | Integration | ✅ all pass |
-| FR-038 | TC-M2-08, TC-M2-09 | Unit | ✅ all pass |
+| FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66 | Unit, Integration | ✅ all pass |
+| FR-038 | TC-M2-08, TC-M2-09, TC-M1-62, TC-M1-65 | Unit | ✅ all pass |
 | FR-039 | TC-M1-19, TC-M1-21 | Unit | ✅ all pass |
+| FR-044 | TC-M1-59, TC-M1-66 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
@@ -96,13 +98,13 @@
 | RWD-016 | TC-M1-18 | Unit | ✅ all pass |
 | RWD-018 | TC-M1-23 | Unit | ✅ all pass |
 | SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14 | Integration, Unit | ✅ all pass |
-| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05 | Unit, Integration | ✅ all pass |
+| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M1-69 | Unit, Integration | ✅ all pass |
 | SEC-003 | TC-M1-06, TC-M1-16 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53 | Unit, Integration | ✅ all pass |
-| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05 | Unit, API layer, Integration | ✅ all pass |
+| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68 | Unit, API layer, Integration | ✅ all pass |
 | SEC-009 | TC-M2-10, TC-M2-11, TC-M5-10 | Unit | ✅ all pass |
-| SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07 | API layer, Integration | ✅ all pass |
-| SEC-013 | TC-M1-04, TC-M1-17 | Unit, API layer | ✅ all pass |
+| SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67 | API layer, Integration, Unit | ✅ all pass |
+| SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
@@ -272,6 +274,17 @@
 | TC-M6-10 | FR-016, FR-017, FR-018, FR-019, FR-020, FR-021 | Equivalence partitioning | Unit | pass | `app/test/features/venue_details/details_view_model_test.dart` |
 | TC-M6-11 | FR-015, FR-026, USE-008 | Error guessing | Unit | pass | `app/test/features/venue_details/details_view_model_test.dart` |
 | TC-M6-12 | FR-014, FR-015, FR-019, FR-020 | Use-case based (UC-03 then UC-04) | Widget | pass | `app/test/features/search/search_view_test.dart` |
+| TC-M1-59 | FR-035, FR-044 | Use-case based (UC-17 main flow) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-60 | SEC-010 | Equivalence partitioning (wrong password vs unknown e-mail) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-61 | FR-035, SEC-010 | Use-case based (UC-17 alternative: not a staff account) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-62 | FR-038 | Equivalence partitioning (suspended account) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-63 | FR-035 | Boundary value analysis (fake clock) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-64 | FR-035 | Error guessing (reuse an app token) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-65 | FR-035, FR-038 | State-based (role removed or suspended mid-session) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
+| TC-M1-66 | FR-035, FR-044 | Use-case based (UC-17 over HTTP) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-67 | SEC-010, SEC-013 (rate limit) | Boundary value analysis (5 vs 6 tries per minute) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-68 | SEC-007 (CSP) | Inspection (served page) | Integration | pass | `backend/test/int/staff-console.int-spec.ts` |
+| TC-M1-69 | SEC-002 | Boundary value analysis (staff password length) | Unit | pass | `backend/test/unit/staff-auth.service.spec.ts` |
 
 ## Sheet problems
 

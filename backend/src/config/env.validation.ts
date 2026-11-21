@@ -23,6 +23,10 @@ export const envValidationSchema = Joi.object({
   JWT_ACCESS_SECRET: Joi.string().min(16).default('dev-only-access-secret-change-me'),
   JWT_ACCESS_TTL_SECONDS: Joi.number().default(900),
   SESSION_INACTIVITY_DAYS: Joi.number().default(14),
+  // Staff Console (PB-32, FR-035): staff sessions last this long, then the password is asked again.
+  STAFF_SESSION_TTL_SECONDS: Joi.number().integer().min(60).max(3600).default(900),
+  // Staff sign-in attempts per client per minute.
+  STAFF_SIGNIN_LIMIT: Joi.number().integer().min(1).default(5),
 
   // API layer.
   CORS_ORIGINS: Joi.string().default('*'),
