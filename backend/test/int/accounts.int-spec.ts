@@ -1,6 +1,6 @@
 /**
- * Integration tests for Accounts on a real PostgreSQL database (PB-03, PB-04).
- * TC-M2-05 and TC-M2-07; the other M2 cases are unit tests in test/unit/auth.service.spec.ts.
+ * Integration tests for Accounts on a real PostgreSQL database (PB-03, PB-04, PB-05).
+ * TC-M2-05, TC-M2-07 and TC-M2-20; the other M2 cases are unit tests in test/unit/auth.service.spec.ts.
  */
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -81,5 +81,59 @@ describe('Accounts on a real database (integration)', () => {
       if (rows.length === 0) await new Promise((r) => setTimeout(r, 50));
     }
     expect(rows.map((r) => r.details.reason)).toEqual(['wrong_password']);
+  });
+
+  it('TC-M2-20 PATCH /me over HTTP: sign-in needed, e-mail cannot be changed, name and password saved', async () => {
+    const reg = await api().post('/api/v1/auth/register').send({
+      email: 'edit.me@studyspot.test',
+      password: 'secret123',
+      displayName: 'Edit Me',
+      termsAccepted: true,
+    });
+    expect(reg.status).toBe(201);
+    const bearer = { Authorization: `Bearer ${reg.body.accessToken}` };
+
+    expect((await api().patch('/api/v1/me').send({ displayName: 'Nope' })).status).toBe(401);
+    expect((await api().patch('/api/v1/me').set(bearer).send({})).status).toBe(400);
+    const email = await api().patch('/api/v1/me').set(bearer).send({ email: 'other@x.test' });
+    expect(email.status).toBe(400);
+    expect(email.body.code).toBe('INVALID_INPUT');
+
+    const renamed = await api().patch('/api/v1/me').set(bearer).send({ displayName: ' Karma ' });
+    expect(renamed.status).toBe(200);
+    expect(renamed.body.displayName).toBe('Karma');
+    expect(renamed.body.tokens).toBeUndefined();
+    expect((await api().get('/api/v1/me').set(bearer)).body.displayName).toBe('Karma');
+
+    const wrong = await api()
+      .patch('/api/v1/me')
+      .set(bearer)
+      .send({ currentPassword: 'wrong1234', newPassword: 'newsecret456' });
+    expect(wrong.status).toBe(400);
+
+    const changed = await api()
+      .patch('/api/v1/me')
+      .set(bearer)
+      .send({ currentPassword: 'secret123', newPassword: 'newsecret456' });
+    expect(changed.status).toBe(200);
+    expect(changed.body.tokens.refreshToken).toEqual(expect.any(String));
+
+    const [user] = await db.query(`SELECT password_hash FROM users WHERE id = $1`, [
+      reg.body.user.id,
+    ]);
+    expect(user.password_hash).toMatch(/^\$2b\$12\$/);
+    expect(await bcrypt.compare('newsecret456', user.password_hash)).toBe(true);
+
+    const sessions: { revoked_at: Date | null }[] = await db.query(
+      `SELECT revoked_at FROM sessions WHERE user_id = $1`,
+      [reg.body.user.id],
+    );
+    // The sign-up session is revoked; only the session from the password change is open.
+    expect(sessions).toHaveLength(2);
+    expect(sessions.filter((r) => r.revoked_at === null)).toHaveLength(1);
+    const oldRefresh = await api()
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: reg.body.refreshToken });
+    expect(oldRefresh.status).toBe(401);
   });
 });

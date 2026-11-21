@@ -10,11 +10,11 @@ import { ErrorCode } from '../../src/common/errors/error-codes';
 import { DomainEvent, type SignInFailedEvent } from '../../src/common/events/domain-events';
 import type { SessionEntity, UserEntity } from '../../src/db/entities';
 import { AuthService, hashRefreshToken } from '../../src/modules/accounts/auth.service';
-import { RegisterDto } from '../../src/modules/accounts/dto/auth.dto';
+import { RegisterDto, UpdateProfileDto } from '../../src/modules/accounts/dto/auth.dto';
 import { FakeClock } from '../../src/modules/clock/fake-clock';
 
 /**
- * TC-M2-01..TC-M2-14 (except 05): accounts rules without a database (PB-03, PB-04, PB-40).
+ * TC-M2-01..TC-M2-19 (except 05): accounts rules without a database (PB-03, PB-04, PB-05, PB-40).
  * The users and sessions tables are in-memory fakes; time comes from FakeClock.
  * TC-M2-05 and TC-M2-07 are also checked on a real database in test/int/accounts.int-spec.ts.
  */
@@ -93,6 +93,11 @@ const NEW_USER = {
 
 async function dtoErrors(body: object): Promise<string[]> {
   const errors = await validate(plainToInstance(RegisterDto, body));
+  return errors.map((e) => e.property);
+}
+
+async function updateDtoErrors(body: object): Promise<string[]> {
+  const errors = await validate(plainToInstance(UpdateProfileDto, body));
   return errors.map((e) => e.property);
 }
 
@@ -242,5 +247,96 @@ describe('Tokens and sessions (PB-04, SEC-001, SEC-009)', () => {
       { secret: 'someone-elses-secret', expiresIn: 900 },
     );
     expect(await codeOf(auth.verifyAccessToken(forged))).toBe(ErrorCode.UNAUTHENTICATED);
+  });
+});
+
+describe('Edit account (PB-05, UC-02, FR-005)', () => {
+  it('TC-M2-15 displayName length boundary: 1 and 31 refused, 2 and 30 accepted, spaces trimmed', async () => {
+    expect(await updateDtoErrors({ displayName: 'K' })).toEqual(['displayName']);
+    expect(await updateDtoErrors({ displayName: 'Ka' })).toEqual([]);
+    expect(await updateDtoErrors({ displayName: 'x'.repeat(30) })).toEqual([]);
+    expect(await updateDtoErrors({ displayName: 'x'.repeat(31) })).toEqual(['displayName']);
+    // " K " trims to one character, so it is refused like "K".
+    expect(await updateDtoErrors({ displayName: ' K ' })).toEqual(['displayName']);
+    const dto = plainToInstance(UpdateProfileDto, { displayName: '  Karma  ' });
+    expect(dto.displayName).toBe('Karma');
+  });
+
+  it('TC-M2-16 newPassword follows the sign-up rules: 7 characters, letters only, digits only refused', async () => {
+    const cur = { currentPassword: 'secret123' };
+    expect(await updateDtoErrors({ ...cur, newPassword: 'abcd123' })).toEqual(['newPassword']);
+    expect(await updateDtoErrors({ ...cur, newPassword: 'abcde123' })).toEqual([]);
+    expect(await updateDtoErrors({ ...cur, newPassword: 'abcdefgh' })).toEqual(['newPassword']);
+    expect(await updateDtoErrors({ ...cur, newPassword: '12345678' })).toEqual(['newPassword']);
+  });
+
+  it('TC-M2-17 changing only the display name keeps the password and the sessions', async () => {
+    const { auth, users, sessions } = setup();
+    const { user } = await auth.register(NEW_USER);
+    const hashBefore = users[0].passwordHash;
+
+    const result = await auth.updateProfile(user.id, { displayName: 'Karma' });
+
+    expect(result.displayName).toBe('Karma');
+    expect(result.email).toBe('student@example.com');
+    expect(result.tokens).toBeUndefined();
+    expect((await auth.getProfile(user.id)).displayName).toBe('Karma');
+    expect(users[0].passwordHash).toBe(hashBefore);
+    expect(sessions.every((s) => s.revokedAt === null)).toBe(true);
+    // Nothing to change at all is refused.
+    expect(await codeOf(auth.updateProfile(user.id, {}))).toBe(ErrorCode.INVALID_INPUT);
+  });
+
+  it('TC-M2-18 a new password needs the right current password, and must differ from it', async () => {
+    const { auth, users } = setup();
+    const { user } = await auth.register(NEW_USER);
+    const hashBefore = users[0].passwordHash;
+
+    const missing = auth.updateProfile(user.id, { newPassword: 'newsecret456' });
+    const wrong = auth.updateProfile(user.id, {
+      currentPassword: 'wrong1234',
+      newPassword: 'newsecret456',
+    });
+    const same = auth.updateProfile(user.id, {
+      currentPassword: 'secret123',
+      newPassword: 'secret123',
+    });
+    // Wrong current password is INVALID_INPUT, not UNAUTHENTICATED, so the app keeps the user signed in.
+    expect(await codeOf(missing)).toBe(ErrorCode.INVALID_INPUT);
+    expect(await codeOf(wrong)).toBe(ErrorCode.INVALID_INPUT);
+    expect(await codeOf(same)).toBe(ErrorCode.INVALID_INPUT);
+    // A refused change changes nothing, not even a display name sent with it.
+    expect(
+      await codeOf(
+        auth.updateProfile(user.id, {
+          displayName: 'Karma',
+          currentPassword: 'wrong1234',
+          newPassword: 'newsecret456',
+        }),
+      ),
+    ).toBe(ErrorCode.INVALID_INPUT);
+    expect(users[0].passwordHash).toBe(hashBefore);
+    expect(users[0].displayName).toBe('Student');
+  });
+
+  it('TC-M2-19 after a password change old sessions end, the new session works, only the new password signs in', async () => {
+    const { auth, clock } = setup();
+    const first = await auth.register(NEW_USER);
+    const second = await auth.login(NEW_USER, {});
+
+    clock.advance({ minutes: 5 });
+    const result = await auth.updateProfile(first.user.id, {
+      currentPassword: 'secret123',
+      newPassword: 'newsecret456',
+    });
+
+    expect(result.tokens).toBeDefined();
+    expect(await codeOf(auth.refresh(first.refreshToken))).toBe(ErrorCode.UNAUTHENTICATED);
+    expect(await codeOf(auth.refresh(second.refreshToken))).toBe(ErrorCode.UNAUTHENTICATED);
+    expect(await codeOf(auth.refresh(result.tokens!.refreshToken))).toBe('OK');
+    expect(await codeOf(auth.login(NEW_USER, {}))).toBe(ErrorCode.UNAUTHENTICATED);
+    expect(
+      await codeOf(auth.login({ email: NEW_USER.email, password: 'newsecret456' }, {})),
+    ).toBe('OK');
   });
 });

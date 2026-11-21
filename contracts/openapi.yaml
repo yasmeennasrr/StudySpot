@@ -147,6 +147,29 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Profile' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
+    patch:
+      tags: [auth]
+      summary: Edit the display name and/or change the password (FR-005, PB-05)
+      description: |
+        Send at least one of `displayName` or `newPassword`. A new password needs `currentPassword`
+        and follows the registration rules (SEC-002). A wrong current password is 400 INVALID_INPUT
+        (not 401), so the app keeps the user signed in. After a password change every session of the
+        user is signed out and the response carries `tokens` for one new session: store them in place
+        of the old ones.
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200':
+          description: Updated profile; `tokens` only after a password change
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UpdateProfileResult' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
 
   /venues:
     get:
@@ -749,6 +772,24 @@ components:
             termsAcceptedAt: { type: string, format: date-time }
             createdAt: { type: string, format: date-time }
             pointsBalance: { type: integer, minimum: 0 }
+    UpdateProfileRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName: { type: string, minLength: 2, maxLength: 30 }
+        currentPassword: { type: string, minLength: 1, maxLength: 128, description: Needed with newPassword }
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: At least one letter and one digit
+      example: { displayName: Karma, currentPassword: secret123, newPassword: newsecret456 }
+    UpdateProfileResult:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+        - type: object
+          properties:
+            tokens: { $ref: '#/components/schemas/AuthTokens' }
 
     NoiseWord: { type: string, enum: [quiet, moderate, noisy] }
     WifiWord: { type: string, enum: [poor, average, good] }
