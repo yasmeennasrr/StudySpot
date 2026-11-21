@@ -85,6 +85,17 @@ describe('Staff Console and staff sign-in on a real database (integration)', () 
   });
 
   afterAll(async () => {
+    // Sign-ins and setting changes write to the audit log in the background (Observer).
+    // Let those writes finish before the database connection closes.
+    if (db) {
+      let last = -1;
+      for (let i = 0; i < 40; i++) {
+        const [{ n }] = await db.query(`SELECT count(*)::int AS n FROM audit_log`);
+        if (n === last) break;
+        last = n;
+        await new Promise((r) => setTimeout(r, 100));
+      }
+    }
     await app?.close();
   });
 
