@@ -1,6 +1,6 @@
 /**
  * Integration tests for the Staff Console and Staff API on a real PostgreSQL
- * database, through HTTP (PB-32 staff sign-in). TC-M1-66..TC-M1-68.
+ * database, through HTTP: PB-32 staff sign-in (TC-M1-66..68), PB-34 settings (TC-M1-72, 73).
  * Uses the studyspot_test database (see ./test-database.ts); its schema is wiped.
  */
 import { INestApplication } from '@nestjs/common';
@@ -48,6 +48,16 @@ describe('Staff Console and staff sign-in on a real database (integration)', () 
   let app: INestApplication;
   let db: DataSource;
   const api = () => request(app.getHttpServer());
+  let clientNo = 0;
+  /** Staff header for a fresh sign-in, from its own client address (sign-in is rate limited). */
+  const staffAuth = async (email: string) => {
+    const res = await api()
+      .post('/api/v1/staff/session')
+      .set('X-Forwarded-For', `198.51.100.${++clientNo}`)
+      .send({ email, password: STAFF_PASSWORD });
+    expect(res.status).toBe(200);
+    return `Bearer ${res.body.staffToken}`;
+  };
 
   beforeAll(async () => {
     const admin = new DataSource(buildDataSourceOptions());
@@ -163,5 +173,85 @@ describe('Staff Console and staff sign-in on a real database (integration)', () 
     const script = await api().get('/console/console.js');
     expect(script.status).toBe(200);
     expect(script.text).toContain('registerPage');
+  });
+
+  it('TC-M1-72 an administrator changes a setting: saved, in the history with their e-mail, logged (FR-039, DATA-012, FR-044)', async () => {
+    const admin = await staffAuth(ADMIN.email);
+    const list = await api().get('/api/v1/staff/settings').set('Authorization', admin);
+    expect(list.status).toBe(200);
+    expect(list.body.map((s: { key: string }) => s.key)).toEqual([
+      'points.crowd',
+      'points.noise',
+      'points.wifi',
+      'points.dailyCap',
+      'freshness.crowdMinutes',
+      'freshness.noiseMinutes',
+      'freshness.wifiMinutes',
+      'presence.venueRadiusMeters',
+    ]);
+    expect(list.body[3]).toMatchObject({ value: 100, defaultValue: 100, min: 0, max: 1000 });
+
+    const put = await api()
+      .put('/api/v1/staff/settings/presence.venueRadiusMeters')
+      .set('Authorization', admin)
+      .send({ value: 75 });
+    expect(put.status).toBe(200);
+    expect(put.body).toMatchObject({
+      key: 'presence.venueRadiusMeters',
+      value: 75,
+      defaultValue: 50,
+    });
+
+    const [stored] = await db.query(
+      `SELECT value, updated_by FROM config_values WHERE key = 'presence.venueRadiusMeters'`,
+    );
+    expect(stored).toEqual({ value: 75, updated_by: ADMIN.id });
+
+    const history = await api().get('/api/v1/staff/settings/history').set('Authorization', admin);
+    expect(history.body[0]).toMatchObject({
+      key: 'presence.venueRadiusMeters',
+      label: 'Venue radius',
+      oldValue: 50,
+      newValue: 75,
+      changedBy: { id: ADMIN.id, email: ADMIN.email },
+    });
+    const [log] = await auditRows(db, `action = 'config.changed'`);
+    expect(log).toMatchObject({
+      actor_type: 'staff',
+      actor_id: ADMIN.id,
+      target: 'presence.venueRadiusMeters',
+      details: { oldValue: 50, newValue: 75 },
+    });
+  });
+
+  it('TC-M1-73 settings refuse a moderator, an app token, unknown keys and bad values (UC-19 alternative)', async () => {
+    const moderator = await staffAuth(MOD.email);
+    expect((await api().get('/api/v1/staff/settings').set('Authorization', moderator)).status).toBe(
+      403,
+    );
+
+    const app = await api()
+      .post('/api/v1/auth/login')
+      .send({ email: ADMIN.email, password: STAFF_PASSWORD });
+    expect(
+      (
+        await api()
+          .get('/api/v1/staff/settings')
+          .set('Authorization', `Bearer ${app.body.accessToken}`)
+      ).status,
+    ).toBe(401);
+
+    const admin = await staffAuth(ADMIN.email);
+    const put = (key: string, value: unknown) =>
+      api().put(`/api/v1/staff/settings/${key}`).set('Authorization', admin).send({ value });
+    expect((await put('search.maxResults', 10)).status).toBe(404);
+    expect((await put('points.crowd', 'ten')).status).toBe(400);
+    const tooBig = await put('presence.venueRadiusMeters', 501);
+    expect(tooBig.status).toBe(400);
+    expect(tooBig.body.message).toBe('Venue radius must be a whole number from 10 to 500 meters.');
+    const underCap = await put('points.dailyCap', 5);
+    expect(underCap.status).toBe(400);
+    const [{ n }] = await db.query(`SELECT count(*)::int AS n FROM config_history`);
+    expect(n).toBe(1); // only the change from TC-M1-72
   });
 });
