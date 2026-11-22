@@ -2,7 +2,7 @@
  * Rewards & Coupons, StudyMatch, Notifications, Administration (SDS 6.3).
  * Built in Sprints 2 and 3; stubs exist now so the wiring is real from Day 1.
  */
-import type { GeoPoint, VenueSummary } from './domain.types';
+import type { GeoPoint, UserRole, VenueSummary } from './domain.types';
 import type { StoredSurvey } from './contribution.contracts';
 
 // ---------------------------------------------------------------- IRewards
@@ -76,9 +76,76 @@ export const ADMIN = Symbol('IAdmin');
  * StaffSecurityController (PB-36); settings by StaffSettingsController (PB-34).
  */
 export interface IAdmin {
-  suspendUser(staffUserId: string, userId: string): Promise<void>;
-  reactivateUser(staffUserId: string, userId: string): Promise<void>;
+  /** Staff and user accounts (PB-33, FR-036, FR-037). */
+  listAccounts(filter: AccountFilter): Promise<AccountView[]>;
+  createAccount(staffUserId: string, input: CreateAccountInput): Promise<AccountView>;
+  /** Refuses sign-in from now on and ends the account's sessions (FR-038). Safe to repeat. */
+  suspendUser(staffUserId: string, userId: string): Promise<AccountView>;
+  reactivateUser(staffUserId: string, userId: string): Promise<AccountView>;
   registerVenueKey(staffUserId: string, venueId: string): Promise<{ apiKey: string }>;
   revokeVenueKey(staffUserId: string, venueId: string): Promise<void>;
+  /** Hides a review or survey from every view and count (FR-029). */
   removeReportedContent(staffUserId: string, kind: 'review' | 'survey', id: string): Promise<void>;
+  /** The moderation queue: visible reviews with at least one report, most reported first (PB-37). */
+  listReportedReviews(limit?: number): Promise<ReportedReviewView[]>;
+  /** The moderator keeps the review: its reports are cleared and it leaves the queue. */
+  dismissReports(staffUserId: string, reviewId: string): Promise<void>;
+  /** Surveys are not reported by users; moderators look through the newest ones (UC-21). */
+  listRecentSurveys(filter: { venueId?: string; limit?: number }): Promise<RecentSurveyView[]>;
+}
+
+export interface AccountView {
+  id: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  suspended: boolean;
+  createdAt: string;
+}
+
+export interface AccountFilter {
+  /** Part of the e-mail address or display name, not case-sensitive. */
+  q?: string;
+  role?: UserRole;
+  suspended?: boolean;
+  limit?: number;
+}
+
+export interface CreateAccountInput {
+  email: string;
+  displayName: string;
+  role: UserRole;
+  /** Students: 8+ characters; staff: 10+; both with a letter and a digit. */
+  password: string;
+}
+
+/** Who wrote a piece of content, as staff see it (never shown in the app, PRIV-014). */
+export interface ContentAuthorView {
+  id: string;
+  displayName: string;
+  email: string;
+  suspended: boolean;
+}
+
+export interface ReportedReviewView {
+  reviewId: string;
+  venue: { id: string; name: string };
+  rating: number;
+  text: string | null;
+  author: ContentAuthorView;
+  writtenAt: string;
+  reportCount: number;
+  firstReportedAt: string;
+  lastReportedAt: string;
+}
+
+export interface RecentSurveyView {
+  surveyId: string;
+  venue: { id: string; name: string };
+  source: 'qr' | 'in_app';
+  answers: { crowd: string | null; noise: string | null; wifi: string | null };
+  /** Null when the account was deleted (anonymised record, PRIV-012). */
+  author: ContentAuthorView | null;
+  submittedAt: string;
+  pointsAwarded: number;
 }

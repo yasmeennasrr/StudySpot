@@ -10,7 +10,14 @@
     ['staff.sign_in', 'Staff sign-ins'],
     ['staff.sign_out', 'Staff sign-outs'],
     ['config.changed', 'Setting changes'],
+    ['moderation.review_removed', 'Reviews removed'],
+    ['moderation.reports_dismissed', 'Reports dismissed'],
+    ['moderation.survey_removed', 'Surveys removed'],
+    ['account.created', 'Accounts created'],
+    ['account.suspended', 'Accounts suspended'],
+    ['account.reactivated', 'Accounts reactivated'],
   ];
+  const ROLE_NAMES = { user: 'student', moderator: 'moderator', admin: 'administrator' };
   const REASONS = {
     wrong_password: 'Wrong password',
     unknown_email: 'Unknown e-mail',
@@ -29,6 +36,18 @@
         return 'Staff sign-out';
       case 'config.changed':
         return `Setting changed from ${d.oldValue} to ${d.newValue}`;
+      case 'moderation.review_removed':
+        return `Review removed (${d.reports || 0} report${d.reports === 1 ? '' : 's'})`;
+      case 'moderation.reports_dismissed':
+        return `Review kept, ${d.reports || 0} report${d.reports === 1 ? '' : 's'} dismissed`;
+      case 'moderation.survey_removed':
+        return 'Survey removed';
+      case 'account.created':
+        return `Account created as ${ROLE_NAMES[d.role] || d.role}`;
+      case 'account.suspended':
+        return `Account suspended (${d.sessionsEnded || 0} session${d.sessionsEnded === 1 ? '' : 's'} ended)`;
+      case 'account.reactivated':
+        return 'Account reactivated';
       default:
         return entry.action;
     }

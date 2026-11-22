@@ -4,24 +4,24 @@
 
 ## Summary
 
-**198** test cases: **196** pass, **1** fail, **1** not run yet. They cover **106** requirement IDs.
+**216** test cases: **214** pass, **1** fail, **1** not run yet. They cover **118** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
 | M2 | 23 | 23 | 0 | 0 | 23 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
-| M4 | 15 | 15 | 0 | 0 | 15 |
+| M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
 | M6 | 12 | 12 | 0 | 0 | 12 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 70 |
+| Integration | 76 |
 | Performance | 3 |
-| Unit | 107 |
-| Unit (app) | 6 |
+| Unit | 117 |
+| Unit (app) | 8 |
 | Widget | 2 |
 
 ## Requirement → test cases
@@ -29,6 +29,14 @@
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
 | AI-001 | TC-M2-26, TC-M2-27 | Unit | ✅ all pass |
+| AI-009 | TC-M4-32 | Unit | ✅ all pass |
+| AI-011 | TC-M4-33 | Integration | ✅ all pass |
+| AI-012 | TC-M4-27, TC-M4-28, TC-M4-29, TC-M4-30, TC-M4-32, TC-M4-33 | Unit, Integration | ✅ all pass |
+| AI-013 | TC-M4-27, TC-M4-33 | Unit, Integration | ✅ all pass |
+| AI-014 | TC-M4-30, TC-M4-31, TC-M4-33 | Unit, Integration | ✅ all pass |
+| AI-015 | TC-M4-31 | Unit | ✅ all pass |
+| AI-016 | TC-M4-29 | Unit | ✅ all pass |
+| AI-017 | TC-M4-31 | Unit | ✅ all pass |
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
 | AI-028 | TC-M2-33 | Unit | ✅ all pass |
@@ -39,7 +47,7 @@
 | DATA-004 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-005 | TC-M1-32, TC-M1-79 | Integration, Unit | ✅ all pass |
 | DATA-006 | TC-M1-32 | Integration | ✅ all pass |
-| DATA-007 | TC-M1-32 | Integration | ✅ all pass |
+| DATA-007 | TC-M1-32, TC-M4-16, TC-M4-18 | Integration, Unit | ✅ all pass |
 | DATA-008 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-009 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-010 | TC-M1-32 | Integration | ✅ all pass |
@@ -54,7 +62,7 @@
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
 | FR-004 | TC-M5-09, TC-M5-10 | Unit | ✅ all pass |
 | FR-006 | TC-M1-56, TC-M5-15, TC-M6-06 | Integration, Unit | ✅ all pass |
-| FR-007 | TC-M5-15 | Unit | ✅ all pass |
+| FR-007 | TC-M4-23, TC-M5-15 | Unit (app), Unit | ✅ all pass |
 | FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36, TC-M5-12, TC-M6-06 | Integration, Unit | ✅ all pass |
@@ -68,19 +76,23 @@
 | FR-019 | TC-M4-14, TC-M6-10, TC-M6-12 | Integration, Unit, Widget | ✅ all pass |
 | FR-020 | TC-M6-01, TC-M6-02, TC-M6-10, TC-M6-12 | Unit, Widget | ✅ all pass |
 | FR-021 | TC-M4-04, TC-M6-01, TC-M6-10 | Unit | ✅ all pass |
-| FR-022 | TC-M1-43, TC-M1-48, TC-M5-13 | Unit, Integration | ✅ all pass |
+| FR-022 | TC-M1-43, TC-M1-48, TC-M4-28, TC-M4-33, TC-M5-13 | Unit, Integration | ✅ all pass |
 | FR-023 | TC-M1-48, TC-M5-13 | Integration, Unit | ✅ all pass |
 | FR-024 | TC-M1-48, TC-M5-13 | Integration, Unit | ✅ all pass |
+| FR-025 | TC-M4-16, TC-M4-17, TC-M4-18, TC-M4-22 | Unit, Integration, Unit (app) | ✅ all pass |
 | FR-026 | TC-M1-45, TC-M1-50, TC-M1-52, TC-M5-14, TC-M6-11 | Unit, Integration | ✅ all pass |
 | FR-027 | TC-M1-46, TC-M1-47, TC-M1-50, TC-M1-51, TC-M5-14 | Unit, Integration | ✅ all pass |
-| FR-029 | TC-M4-14, TC-M4-15 | Integration | ✅ all pass |
+| FR-029 | TC-M4-14, TC-M4-15, TC-M4-20, TC-M4-21 | Integration | ✅ all pass |
+| FR-034 | TC-M4-17, TC-M4-19, TC-M4-23 | Unit, Integration, Unit (app) | ✅ all pass |
 | FR-035 | TC-M1-59, TC-M1-61, TC-M1-63, TC-M1-64, TC-M1-65, TC-M1-66, TC-M1-73, TC-M1-75 | Unit, Integration | ✅ all pass |
-| FR-038 | TC-M2-08, TC-M2-09, TC-M1-62, TC-M1-65 | Unit | ✅ all pass |
+| FR-036 | TC-M4-24, TC-M4-26 | Unit, Integration | ✅ all pass |
+| FR-037 | TC-M4-24, TC-M4-26 | Unit, Integration | ✅ all pass |
+| FR-038 | TC-M2-08, TC-M2-09, TC-M4-25, TC-M4-26, TC-M1-62, TC-M1-65 | Unit, Integration | ✅ all pass |
 | FR-039 | TC-M1-19, TC-M1-21, TC-M1-70, TC-M1-71, TC-M1-72, TC-M1-73 | Unit, Integration | ✅ all pass |
 | FR-040 | TC-M1-70, TC-M1-72, TC-M1-80 | Unit, Integration | ✅ all pass |
 | FR-041 | TC-M1-75 | Integration | ✅ all pass |
 | FR-042 | TC-M1-74 | Integration | ✅ all pass |
-| FR-044 | TC-M1-59, TC-M1-66, TC-M1-72 | Unit, Integration | ✅ all pass |
+| FR-044 | TC-M4-20, TC-M4-24, TC-M4-25, TC-M4-26, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ✅ all pass |
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
 | PERF-005 | TC-M4-12 | Unit | ✅ all pass |
@@ -90,14 +102,14 @@
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03, TC-M5-01, TC-M5-15 | Unit, Widget | ✅ all pass |
 | PRIV-013 | TC-M1-24, TC-M4-13 | Unit | ✅ all pass |
-| PRIV-014 | TC-M4-14 | Integration | ✅ all pass |
+| PRIV-014 | TC-M4-14, TC-M4-20 | Integration | ✅ all pass |
 | PRIV-016 | TC-M1-23 | Unit | ✅ all pass |
 | QR-007 | TC-M1-23 | Unit | ✅ all pass |
 | QR-009 | TC-M1-23 | Unit | ✅ all pass |
 | RT-001 | TC-M1-18, TC-M4-01, TC-M4-03, TC-M4-15 | Unit, Integration | ✅ all pass |
-| RT-004 | TC-M1-31 | Integration | ✅ all pass |
+| RT-004 | TC-M1-31, TC-M4-27 | Integration, Unit | ✅ all pass |
 | RT-005 | TC-M6-02 | Unit | ✅ all pass |
-| RT-006 | TC-M1-20, TC-M4-12 | Unit | ✅ all pass |
+| RT-006 | TC-M1-20, TC-M4-12, TC-M4-21 | Unit, Integration | ✅ all pass |
 | RT-008 | TC-M1-18 | Unit | ✅ all pass |
 | RT-009 | TC-M4-07, TC-M4-08 | Unit | ✅ all pass |
 | RT-012 | TC-M4-08, TC-M6-03 | Unit | ✅ all pass |
@@ -113,12 +125,12 @@
 | RWD-016 | TC-M1-18, TC-M1-71 | Unit | ✅ all pass |
 | RWD-018 | TC-M1-23 | Unit | ✅ all pass |
 | SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14 | Integration, Unit | ✅ all pass |
-| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M1-69 | Unit, Integration | ✅ all pass |
+| SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M4-24, TC-M1-69 | Unit, Integration | ✅ all pass |
 | SEC-003 | TC-M1-06, TC-M1-16, TC-M2-26, TC-M2-34 | Unit, API layer | ✅ all pass |
-| SEC-004 | TC-M1-46, TC-M1-53 | Unit, Integration | ✅ all pass |
+| SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18 | Unit, Integration | ✅ all pass |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
-| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
-| SEC-009 | TC-M2-10, TC-M2-11, TC-M5-10 | Unit | ✅ all pass |
+| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M4-16, TC-M4-32, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
+| SEC-009 | TC-M2-10, TC-M2-11, TC-M4-26, TC-M5-10 | Unit, Integration | ✅ all pass |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
@@ -130,10 +142,10 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
-| USE-003 | TC-M6-01 | Unit | ✅ all pass |
+| USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
-| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer | ✅ all pass |
+| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
@@ -275,6 +287,24 @@
 | TC-M4-13 | PRIV-013 | Boundary value analysis (90 days) | Unit | pass | `backend/test/unit/conditions.service.spec.ts` |
 | TC-M4-14 | FR-016, FR-017, FR-018, FR-019, FR-029, PRIV-014 | Equivalence partitioning (visible / removed / inactive) | Integration | pass | `backend/test/int/venue-details.int-spec.ts` |
 | TC-M4-15 | RT-001, RT-016, RT-017, RT-018, FR-029 | Equivalence partitioning (one class per status) | Integration | pass | `backend/test/int/venue-details.int-spec.ts` |
+| TC-M4-16 | FR-025, DATA-007, SEC-007 | Boundary value analysis (0/1/5/6 stars; 1000/1001 characters) | Unit | pass | `backend/test/unit/reviews.spec.ts` |
+| TC-M4-17 | FR-025, FR-034 | Decision table (venue active; own review; review removed) | Unit | pass | `backend/test/unit/reviews.spec.ts` |
+| TC-M4-18 | FR-025, DATA-007, SEC-004 | Use-case based (UC-08 write then rewrite) | Integration | pass | `backend/test/int/reviews-moderation.int-spec.ts` |
+| TC-M4-19 | FR-034 | Equivalence partitioning (other / own / unknown review; signed in or not) | Integration | pass | `backend/test/int/reviews-moderation.int-spec.ts` |
+| TC-M4-20 | FR-029, FR-044, PRIV-014 | Use-case based (UC-21 remove a reported review) | Integration | pass | `backend/test/int/reviews-moderation.int-spec.ts` |
+| TC-M4-21 | FR-029, RT-006 | State transition (reported -> kept; survey counted -> removed) | Integration | pass | `backend/test/int/reviews-moderation.int-spec.ts` |
+| TC-M4-22 | FR-025, USE-008 | Boundary value analysis (0 stars; 1000/1001 characters) and use-case based (write then edit) | Unit (app) | pass | `app/test/features/reviews/reviews_view_model_test.dart` |
+| TC-M4-23 | FR-034, FR-007 | Equivalence partitioning (other / own review; signed in or not) | Unit (app) | pass | `app/test/features/reviews/reviews_view_model_test.dart` |
+| TC-M4-24 | FR-036, FR-037, FR-044, SEC-002 | Boundary value analysis (7/8 and 9/10 characters per role) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
+| TC-M4-25 | FR-038, FR-044 | State transition (active -> suspended -> active) | Unit | pass | `backend/test/unit/admin-accounts.spec.ts` |
+| TC-M4-26 | FR-036, FR-037, FR-038, FR-044, SEC-009 | Use-case based (UC-18 create and suspend) | Integration | pass | `backend/test/int/staff-accounts.int-spec.ts` |
+| TC-M4-27 | AI-012, AI-013, RT-004 | Decision table (SDS 6.6.4 match-score table) and boundary value analysis | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-28 | AI-012, FR-022 | Equivalence partitioning (request / preference / covered preference) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-29 | AI-012, AI-016 | Decision table (some / none meet the requirement) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-30 | AI-012, AI-014 | Equivalence partitioning (ties on score / rating / distance) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-31 | AI-014, AI-015, AI-017, USE-003 | Equivalence partitioning (one class per status and per static criterion) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-32 | AI-009, SEC-007, AI-012 | Equivalence partitioning (valid / invalid input) | Unit | pass | `backend/test/unit/recommendations.spec.ts` |
+| TC-M4-33 | AI-011, AI-012, AI-013, AI-014, FR-022 | Use-case based (UC-05 quiet place near me) | Integration | pass | `backend/test/int/recommendations.int-spec.ts` |
 | TC-M1-56 | FR-009, FR-006 | Use-case based (browse without searching) | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-57 | FR-013 | Equivalence partitioning | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |
 | TC-M1-58 | SEC-007 | Boundary value analysis | Integration | pass | `backend/test/int/venues-browse.int-spec.ts` |

@@ -16,20 +16,14 @@
  */
 import { createInterface } from 'node:readline';
 import * as bcrypt from 'bcrypt';
+import { staffPasswordProblem } from '../common/password-rules';
 import dataSource from './data-source';
 import { UserEntity } from './entities';
 
+export { staffPasswordProblem };
+
 const ROLES = ['admin', 'moderator'] as const;
 type StaffRole = (typeof ROLES)[number];
-
-/** Staff passwords: at least 10 characters with a letter and a digit. */
-export function staffPasswordProblem(password: string): string | null {
-  if (password.length < 10) return 'Use at least 10 characters.';
-  if (password.length > 128) return 'Use at most 128 characters.';
-  if (!/[A-Za-z]/.test(password)) return 'Include at least one letter.';
-  if (!/\d/.test(password)) return 'Include at least one digit.';
-  return null;
-}
 
 function askHidden(question: string): Promise<string> {
   return new Promise((resolve) => {

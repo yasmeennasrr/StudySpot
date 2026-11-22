@@ -183,15 +183,19 @@ class Review {
     required this.rating,
     required this.authorDisplayName,
     required this.createdAt,
+    this.id = '',
     this.text,
   });
 
+  /// Used to report the review (PB-16).
+  final String id;
   final int rating;
   final String? text;
   final String authorDisplayName;
   final DateTime createdAt;
 
   factory Review.fromJson(Map<String, dynamic> json) => Review(
+        id: (json['id'] as String?) ?? '',
         rating: _i(json['rating']) ?? 0,
         text: json['text'] as String?,
         authorDisplayName: (json['authorDisplayName'] as String?) ?? 'Student',
