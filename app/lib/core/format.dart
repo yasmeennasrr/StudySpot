@@ -38,10 +38,13 @@ String distanceText(int? meters) {
   return '${(meters / 1000).toStringAsFixed(1)} km';
 }
 
-/// FR-016: price level 1..4 as E£ signs.
+/// FR-016: price level 1..4 in words. The earlier "E£E£" signs were hard to
+/// read and to name in a task, so words are used everywhere (PB-43).
+const priceLabels = {1: 'Budget', 2: 'Moderate', 3: 'Pricey', 4: 'Luxury'};
+
 String priceText(int? level) {
   if (level == null || level < 1) return 'Price unknown';
-  return 'E£' * (level > 4 ? 4 : level);
+  return priceLabels[level > 4 ? 4 : level]!;
 }
 
 String yesNo(bool? v) => v == null ? 'Unknown' : (v ? 'Yes' : 'No');

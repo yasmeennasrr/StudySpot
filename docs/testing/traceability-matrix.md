@@ -4,12 +4,12 @@
 
 ## Summary
 
-**254** test cases: **251** pass, **1** fail, **2** not run yet. They cover **133** requirement IDs.
+**255** test cases: **252** pass, **1** fail, **2** not run yet. They cover **133** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 61 | 60 | 0 | 1 | 60 |
+| M2 | 62 | 61 | 0 | 1 | 61 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -23,7 +23,7 @@
 | System (manual) | 1 |
 | Unit | 148 |
 | Unit (app) | 8 |
-| Widget | 5 |
+| Widget | 6 |
 
 ## Requirement → test cases
 
@@ -81,7 +81,7 @@
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-014 | TC-M6-12 | Widget | ✅ all pass |
 | FR-015 | TC-M6-11, TC-M6-12 | Unit, Widget | ✅ all pass |
-| FR-016 | TC-M4-14, TC-M6-05, TC-M6-10 | Integration, Unit | ✅ all pass |
+| FR-016 | TC-M2-62, TC-M4-14, TC-M6-05, TC-M6-10 | Widget, Integration, Unit | ✅ all pass |
 | FR-017 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-018 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-019 | TC-M4-14, TC-M6-10, TC-M6-12 | Integration, Unit, Widget | ✅ all pass |
@@ -161,7 +161,7 @@
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
-| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ✅ all pass |
+| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M2-62, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Widget, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
@@ -327,6 +327,7 @@
 | TC-M2-59 | AI-019, AI-029, FR-007 | Use-case based | Widget | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-60 | USE-001 | Boundary value analysis (2 interactions) | Widget | pass | `app/test/usability/use001_test.dart` |
 | TC-M2-61 | USE-002, USE-001, USE-003 to USE-007 | Usability test (moderated, think-aloud, SUS) | System (manual) | not run | manual |
+| TC-M2-62 | FR-016, USE-008 | Equivalence partitioning | Widget | pass | `app/test/usability/price_labels_test.dart` |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
