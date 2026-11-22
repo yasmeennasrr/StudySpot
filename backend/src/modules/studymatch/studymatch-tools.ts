@@ -31,8 +31,16 @@ import {
 
 export type ToolErrorCode = 'INVALID_INPUT' | 'NOT_FOUND' | 'NOT_ALLOWED' | 'UNAVAILABLE';
 
+/** A ranked venue as the backend has it: recommendation cards are built from these, never from LLM text (AI-014). */
+export interface RecommendedVenue {
+  venue: VenueSummary;
+  reasons: string[];
+}
+
 export type ToolOutcome =
-  { ok: true; result: unknown } | { ok: false; error: { code: ToolErrorCode; message: string } };
+  /** `result` goes to the AI; `recommended` (recommend_venues only) stays in the backend. */
+  | { ok: true; result: unknown; recommended?: RecommendedVenue[] }
+  | { ok: false; error: { code: ToolErrorCode; message: string } };
 
 /** Who is asking and from where: set by the orchestrator from the session, never by the AI. */
 export interface ToolContext {
@@ -353,7 +361,12 @@ export class StudyMatchTools {
       const input = (args ?? {}) as Args;
       if (typeof input !== 'object' || Array.isArray(input))
         throw bad('arguments must be an object');
-      outcome = { ok: true, result: await this.dispatch(name as ToolName, input, ctx) };
+      if (name === 'recommend_venues') {
+        const { result, recommended } = await this.recommend(input, ctx);
+        outcome = { ok: true, result, recommended };
+      } else {
+        outcome = { ok: true, result: await this.dispatch(name as ToolName, input, ctx) };
+      }
     } catch (err) {
       outcome = { ok: false, error: toToolError(err) };
       if (!(err instanceof AppError) && !(err instanceof AdapterUnavailableError)) {
@@ -385,7 +398,7 @@ export class StudyMatchTools {
         onlyKeys(args, []);
         return this.preferences.get(ctx.userId).then(preferencesOut);
       case 'recommend_venues':
-        return this.recommend(args, ctx);
+        return this.recommend(args, ctx).then((r) => r.result);
     }
   }
 
@@ -444,14 +457,17 @@ export class StudyMatchTools {
       includePreferences,
     });
     return {
-      allRequirementsMet: r.allRequirementsMet,
-      degraded: r.degraded,
-      venues: r.items.map((item) => ({
-        ...venueOut(item.venue),
-        conditions: conditionsOut(item.venue.conditions),
-        unmetRequired: item.unmetRequired,
-        reasons: item.reasons,
-      })),
+      result: {
+        allRequirementsMet: r.allRequirementsMet,
+        degraded: r.degraded,
+        venues: r.items.map((item) => ({
+          ...venueOut(item.venue),
+          conditions: conditionsOut(item.venue.conditions),
+          unmetRequired: item.unmetRequired,
+          reasons: item.reasons,
+        })),
+      },
+      recommended: r.items.map((item) => ({ venue: item.venue, reasons: item.reasons })),
     };
   }
 }
