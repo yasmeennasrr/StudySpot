@@ -16,6 +16,7 @@ import {
 } from '../../contracts';
 import { ConditionsModule } from '../conditions/conditions.module';
 import { VenuesModule } from '../venues/venues.module';
+import { StudyMatchTools } from './studymatch-tools';
 
 /**
  * STUB. Spike in Sprint 2, full feature in Sprint 3 (PB-29, PB-30, PB-46).
@@ -41,7 +42,7 @@ export class StubStudyMatchService implements IStudyMatch {
 /** StudyMatch Orchestrator. Provides IStudyMatch. Uses ILLM, IVenueQuery, IConditions, IPreferences. */
 @Module({
   imports: [LlmAdapterModule, VenuesModule, ConditionsModule],
-  providers: [{ provide: STUDY_MATCH, useClass: StubStudyMatchService }],
+  providers: [StudyMatchTools, { provide: STUDY_MATCH, useClass: StubStudyMatchService }],
   exports: [STUDY_MATCH],
 })
 export class StudyMatchModule {}
