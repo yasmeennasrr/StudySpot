@@ -7,6 +7,7 @@ import '../config.dart';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -256,6 +257,25 @@ class DioApiClient extends ApiClient {
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     final r = await _send(() => _dio.get<dynamic>('/venues/$venueId'));
     return _json(r);
+  }
+
+  @override
+  Future<MyReview?> getMyReview(String venueId) async {
+    final r = await _send(() => _dio.get<dynamic>('/me/reviews/$venueId'));
+    final review = _json(r)['review'];
+    return review is Map ? MyReview.fromJson(review.cast<String, dynamic>()) : null;
+  }
+
+  @override
+  Future<MyReview> writeReview(String venueId, {required int rating, String? text}) async {
+    final r = await _send(() => _dio.put<dynamic>('/venues/$venueId/review',
+        data: {'rating': rating, 'text': text}));
+    return MyReview.fromJson(_json(r));
+  }
+
+  @override
+  Future<void> reportReview(String reviewId) async {
+    await _send(() => _dio.post<dynamic>('/reviews/$reviewId/reports'));
   }
 
   @override

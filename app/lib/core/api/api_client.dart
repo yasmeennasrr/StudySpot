@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/review.dart';
 import '../models/venue.dart';
 
 /// Everything the app asks the backend (contracts/openapi.yaml).
@@ -75,6 +76,16 @@ abstract class ApiClient {
 
   /// VenueDetails as raw JSON; M6 models it for the details screen.
   Future<Map<String, dynamic>> getVenue(String venueId);
+
+  // Reviews (M4: PB-15, PB-16)
+  /// The signed-in student's review of a venue, or null if they have none.
+  Future<MyReview?> getMyReview(String venueId);
+
+  /// Writes or replaces the signed-in student's review (one per venue).
+  Future<MyReview> writeReview(String venueId, {required int rating, String? text});
+
+  /// Reports someone else's review to the moderators. Safe to repeat.
+  Future<void> reportReview(String reviewId);
 
   // Noise sampling (M1: PB-19, UC-11)
   /// True when the signed-in student is at this venue now, so the app may offer
