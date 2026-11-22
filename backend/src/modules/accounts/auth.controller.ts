@@ -1,7 +1,14 @@
-import { Body, Controller, Get, HttpCode, Inject, Ip, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Ip, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard, CurrentUser } from '../../common/http/auth.guard';
-import { AUTH, type AuthTokens, type AuthUser, type IAuth, type Profile } from '../../contracts';
-import { LoginDto, RefreshDto, RegisterDto } from './dto/auth.dto';
+import {
+  AUTH,
+  type AuthTokens,
+  type AuthUser,
+  type IAuth,
+  type Profile,
+  type UpdateProfileResult,
+} from '../../contracts';
+import { LoginDto, RefreshDto, RegisterDto, UpdateProfileDto } from './dto/auth.dto';
 
 /** User API, accounts routes (contracts/openapi.yaml, tag "auth"). Owner: M2. */
 @Controller()
@@ -35,5 +42,15 @@ export class AuthController {
   @UseGuards(AuthGuard)
   me(@CurrentUser() user: AuthUser): Promise<Profile> {
     return this.auth.getProfile(user.id);
+  }
+
+  /** PB-05, FR-005: edit the display name and/or change the password. */
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  updateMe(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<UpdateProfileResult> {
+    return this.auth.updateProfile(user.id, dto);
   }
 }
