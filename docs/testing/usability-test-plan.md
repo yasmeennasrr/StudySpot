@@ -25,8 +25,8 @@ Owner: M2 (karma). Requirements: **USE-002** (main), USE-001, USE-003, USE-004, 
 - **Morning pre-check (before the first student, at the session spot):** open the app with location allowed and check that **Nadi El-Kitab** is in the "Near me" list with a **Quiet** noise label and a **Moderate** or **Budget** price, and that Qahwet El-Balad is **not** quiet. If the labels changed, pick the place that now matches T1, write it on the moderator copy, and note it in the results. If nothing nearby is quiet, change T1 to "…in New Cairo" for every participant and report that.
 - **Location for T5:** after T4, the moderator sets **Safari Websites** location to **Never** and reopens the app, so the participant meets the "location not shared" path.
 - **Moderator:** reads the script, gives the task cards, stays quiet, takes notes. **Observer (optional):** times each task and fills the results sheet.
-- **Results sheet:** [`usability-results.csv`](usability-results.csv), one row per participant and task.
-- **Questionnaire:** the Google Form (SUS plus 3 short questions, see the end of this file), filled in on the participant's own phone after the tasks.
+- **Results:** the moderator fills in the Google Form **"StudySpot session recording (moderator)"** (karma's Google Drive) on the phone, once per participant per task. Its export (Responses → Download responses, .csv) is saved as [`usability-results.csv`](usability-results.csv); `npm run usability` reads it as is. Typing rows into that CSV by hand works too.
+- **Questionnaire:** the Google Form **"StudySpot usability questionnaire"** (karma's Google Drive; SUS plus 3 short questions, listed at the end of this file), filled in on the participant's own phone after the tasks. It does not collect names or e-mail addresses.
 
 ## Moderator script
 
@@ -65,7 +65,7 @@ For each task, write in the sheet: `unaided` (yes / no), `assisted` (yes if you 
 
 ## Google Form (questionnaire)
 
-Title: **StudySpot usability questionnaire**. Description: *Anonymous. Thank you for testing StudySpot.* Do not collect e-mail addresses.
+Created on 2026-11-22 in karma's Google Drive. Title: **StudySpot usability questionnaire**. Description: *Anonymous. Thank you for testing StudySpot.* Do not collect e-mail addresses.
 
 1. **Participant number** (short answer, 1–6; the moderator tells them).
 2. The ten **SUS** statements, each a linear scale **1 = Strongly disagree … 5 = Strongly agree**, in this order:

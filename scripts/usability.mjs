@@ -50,6 +50,17 @@ export function parseCsv(text) {
   return body.map((r) => Object.fromEntries(header.map((h, j) => [h.trim(), (r[j] ?? '').trim()])));
 }
 
+/**
+ * The moderator Google Form ("StudySpot session recording") names each question
+ * "column: explanation", e.g. "unaided: finished correctly within 3 minutes, on
+ * their own?". Keep the part before the colon so its export reads like the CSV.
+ */
+export function normalizeKeys(rows) {
+  return rows.map((r) =>
+    Object.fromEntries(Object.entries(r).map(([k, v]) => [k.split(':')[0].trim(), v])),
+  );
+}
+
 const yes = (v) => /^(y|yes|true|1)$/i.test(String(v ?? '').trim());
 
 function median(values) {
@@ -113,7 +124,7 @@ export function susScores(rows) {
 function main() {
   const resultsFile = join(ROOT, 'docs/testing/usability-results.csv');
   const susFile = join(ROOT, 'docs/testing/usability-sus.csv');
-  const tasks = summarizeTasks(parseCsv(readFileSync(resultsFile, 'utf8')));
+  const tasks = summarizeTasks(normalizeKeys(parseCsv(readFileSync(resultsFile, 'utf8'))));
   if (!tasks.length) {
     console.log('No results yet: fill in docs/testing/usability-results.csv (see the test plan).');
     return;
