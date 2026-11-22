@@ -1,9 +1,14 @@
 import { AdapterUnavailableError } from '../../src/common/errors/app-error';
-import { GeminiLlmAdapter, LlmBadRequestError } from '../../src/adapters/llm/gemini-llm.adapter';
+import {
+  fromGeminiResponse,
+  GeminiLlmAdapter,
+  LlmBadRequestError,
+  toGeminiContents,
+} from '../../src/adapters/llm/gemini-llm.adapter';
 import type { LlmTurn } from '../../src/contracts';
 
 /**
- * TC-M2-26..TC-M2-28: the Gemini LLM adapter (PB-29, PB-46, SDS 5.1, 6.6.8).
+ * TC-M2-26..TC-M2-28 and TC-M2-54: the Gemini LLM adapter (PB-29, PB-46, SDS 5.1, 6.6.8).
  * fetch is faked, so no test ever calls Google.
  */
 const KEY = 'test-key-not-real';
@@ -139,5 +144,37 @@ describe('GeminiLlmAdapter (PB-29)', () => {
       'unavailable: invalid JSON',
     );
     expect(await failureOf(async () => reply(400, {}))).toBe('bad request');
+  });
+
+  it('TC-M2-54 Gemini 3 thought signatures come back unchanged with the tool call (else Gemini answers 400)', () => {
+    const turn = fromGeminiResponse({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                functionCall: { name: 'get_my_preferences', args: {} },
+                thoughtSignature: 'sig-abc',
+              },
+            ],
+          },
+        },
+      ],
+    });
+    expect(turn.toolCalls).toEqual([
+      { name: 'get_my_preferences', arguments: {}, signature: 'sig-abc' },
+    ]);
+    expect(toGeminiContents([turn])).toEqual([
+      {
+        role: 'model',
+        parts: [
+          { functionCall: { name: 'get_my_preferences', args: {} }, thoughtSignature: 'sig-abc' },
+        ],
+      },
+    ]);
+    // A call without a signature (older models) is sent without one.
+    expect(
+      toGeminiContents([{ role: 'model', toolCalls: [{ name: 'x', arguments: {} }] }])[0].parts,
+    ).toEqual([{ functionCall: { name: 'x', args: {} } }]);
   });
 });

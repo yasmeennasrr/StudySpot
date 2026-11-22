@@ -29,6 +29,8 @@ tags:
     description: Owners M3 (search, nearby), M4 (details), M6 (screens). PB-07 to PB-11.
   - name: me
     description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
+  - name: studymatch
+    description: Owner M2 (backend and chat screen). PB-29, PB-46. UC-05.
   - name: staff
     description: |
       Staff API, used by the Staff Console at /console (owner M1; pages by their story owners).
@@ -794,6 +796,34 @@ paths:
         '413': { description: The file is larger than 1 MB }
         '429': { $ref: '#/components/responses/RateLimited' }
 
+  /studymatch:
+    post:
+      tags: [studymatch]
+      summary: Ask StudyMatch in your own words (PB-29, UC-05, AI-001)
+      description: |
+        English, Arabic or a mix in; English out (AI-024). Send lat and lng only when the student granted
+        location (AI-003); without them StudyMatch uses an area from the text or asks for one (NEEDS_INFO).
+        Recommendations are ranked by the backend from real data, with reasons (AI-012 to AI-014).
+        When the AI is unavailable (error, open circuit, or the 9 s deadline) the answer is still 200, with
+        degraded true, reasonCode AI_UNAVAILABLE and standard results: nearby places matching the saved
+        preferences, or none with a prompt to use Search (AI-019, AI-029). Answers within 10 s (PERF-003).
+        10 questions per minute per client (STUDYMATCH_LIMIT).
+      operationId: askStudyMatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StudyMatchRequest' }
+      responses:
+        '200':
+          description: The reply, with recommendations or standard results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StudyMatchAnswer' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
 security:
   - bearerAuth: []
 
@@ -1066,6 +1096,31 @@ components:
             conditions:
               nullable: true
               allOf: [{ $ref: '#/components/schemas/VenueConditions' }]
+    StudyMatchRequest:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 500, example: 'quiet place with good wifi near me' }
+        lat: { type: number, minimum: -90, maximum: 90, description: 'Send with lng, or neither' }
+        lng: { type: number, minimum: -180, maximum: 180 }
+    StudyMatchAnswer:
+      type: object
+      required: [reply, recommendations, degraded, reasonCode]
+      properties:
+        reply: { type: string, description: Text to show in the chat (English) }
+        recommendations:
+          type: array
+          maxItems: 5
+          description: Ranked places with reasons; standard results when degraded is true
+          items:
+            type: object
+            required: [venue, reasons]
+            properties:
+              venue: { $ref: '#/components/schemas/VenueSummary' }
+              reasons: { type: array, items: { type: string } }
+        degraded: { type: boolean, description: True when the AI was unavailable and these are standard results (AI-029) }
+        reasonCode: { type: string, enum: [OK, AI_UNAVAILABLE, NEEDS_INFO, OFF_TOPIC] }
     SearchResult:
       type: object
       required: [origin, items, degraded]

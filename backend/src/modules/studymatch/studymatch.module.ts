@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { LlmAdapterModule } from '../../adapters/llm/llm-adapter.module';
 import { STUDY_MATCH } from '../../contracts';
+import { AccountsModule } from '../accounts/accounts.module';
 import { ClockModule } from '../clock/clock.module';
 import { ConditionsModule } from '../conditions/conditions.module';
 import { VenuesModule } from '../venues/venues.module';
 import { StudyMatchTools } from './studymatch-tools';
+import { StudyMatchController } from './studymatch.controller';
 import { StudyMatchService } from './studymatch.service';
 
 /**
@@ -12,7 +14,8 @@ import { StudyMatchService } from './studymatch.service';
  * Uses ILLM (behind ResilientLlm), IVenueQuery, IConditions, IPreferences, IClock.
  */
 @Module({
-  imports: [LlmAdapterModule, VenuesModule, ConditionsModule, ClockModule],
+  imports: [LlmAdapterModule, VenuesModule, ConditionsModule, ClockModule, AccountsModule],
+  controllers: [StudyMatchController],
   providers: [
     StudyMatchTools,
     StudyMatchService,

@@ -28,6 +28,8 @@ export class LlmBadRequestError extends Error {
 interface GeminiPart {
   text?: string;
   functionCall?: { name: string; args?: Record<string, unknown> };
+  /** Gemini 3: comes with a functionCall part and must be returned with it. */
+  thoughtSignature?: string;
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
 interface GeminiContent {
@@ -55,7 +57,10 @@ export function toGeminiContents(turns: LlmTurn[]): GeminiContent[] {
     const parts: GeminiPart[] = [];
     if (turn.text) parts.push({ text: turn.text });
     for (const call of turn.toolCalls ?? []) {
-      parts.push({ functionCall: { name: call.name, args: call.arguments } });
+      parts.push({
+        functionCall: { name: call.name, args: call.arguments },
+        ...(call.signature ? { thoughtSignature: call.signature } : {}),
+      });
     }
     return { role: turn.role, parts };
   });
@@ -70,7 +75,11 @@ export function fromGeminiResponse(body: GeminiResponse): LlmTurn {
     .trim();
   const toolCalls: LlmToolCall[] = parts
     .filter((p) => p.functionCall?.name)
-    .map((p) => ({ name: p.functionCall!.name, arguments: p.functionCall!.args ?? {} }));
+    .map((p) => ({
+      name: p.functionCall!.name,
+      arguments: p.functionCall!.args ?? {},
+      ...(p.thoughtSignature ? { signature: p.thoughtSignature } : {}),
+    }));
   if (!text && toolCalls.length === 0) {
     const reason =
       body.promptFeedback?.blockReason ?? body.candidates?.[0]?.finishReason ?? 'empty answer';
