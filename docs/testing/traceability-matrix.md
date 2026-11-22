@@ -4,12 +4,12 @@
 
 ## Summary
 
-**252** test cases: **250** pass, **1** fail, **1** not run yet. They cover **131** requirement IDs.
+**254** test cases: **251** pass, **1** fail, **2** not run yet. They cover **133** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 59 | 59 | 0 | 0 | 59 |
+| M2 | 61 | 60 | 0 | 1 | 60 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -20,9 +20,10 @@
 | API layer | 10 |
 | Integration | 79 |
 | Performance | 3 |
+| System (manual) | 1 |
 | Unit | 148 |
 | Unit (app) | 8 |
-| Widget | 4 |
+| Widget | 5 |
 
 ## Requirement → test cases
 
@@ -155,6 +156,8 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
+| USE-001 | TC-M2-60, TC-M2-61 | Widget, System (manual) | ⏳ 1 not run |
+| USE-002 | TC-M2-61 | System (manual) | ⏳ 1 not run |
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
@@ -162,6 +165,7 @@
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
+| USE-003 to USE-007 | TC-M2-61 | System (manual) | ⏳ 1 not run |
 
 ## Test case → requirement
 
@@ -321,6 +325,8 @@
 | TC-M2-57 | AI-001, SEC-007 | Boundary value analysis | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-58 | USE-008 | Error guessing | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-59 | AI-019, AI-029, FR-007 | Use-case based | Widget | pass | `app/test/features/studymatch/studymatch_test.dart` |
+| TC-M2-60 | USE-001 | Boundary value analysis (2 interactions) | Widget | pass | `app/test/usability/use001_test.dart` |
+| TC-M2-61 | USE-002, USE-001, USE-003 to USE-007 | Usability test (moderated, think-aloud, SUS) | System (manual) | not run | manual |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
