@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
@@ -56,6 +57,10 @@ class MockApiClient extends ApiClient {
   /// reviews they reported.
   final Map<String, MyReview> myReviews = {};
   final Set<String> reportedReviewIds = {};
+
+  /// PB-29: what StudyMatch answers next, and every question it was asked.
+  StudyMatchAnswer? studyMatchAnswer;
+  final List<({String text, double? lat, double? lng})> studyMatchQuestions = [];
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -138,6 +143,22 @@ class MockApiClient extends ApiClient {
   Future<void> logout(String refreshToken) async {
     await _step();
     logoutCalls++;
+  }
+
+  @override
+  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
+    await _step();
+    studyMatchQuestions.add((text: text, lat: lat, lng: lng));
+    return studyMatchAnswer ??
+        StudyMatchAnswer(
+          reply: 'Here are quiet places near you.',
+          recommendations: [
+            StudyMatchRecommendation(
+              venue: venues.first,
+              reasons: const ['Noise: Quiet (current)', 'Wi-Fi: Good (current)'],
+            ),
+          ],
+        );
   }
 
   @override

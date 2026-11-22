@@ -68,6 +68,13 @@ class _SearchViewState extends State<SearchView> {
         appBar: AppBar(
           title: const Text('StudySpot'),
           actions: [
+            // PB-29: StudyMatch (M2). Signed-out students are sent to sign-in first.
+            TextButton.icon(
+              key: const Key('home_studymatch'),
+              onPressed: () => context.push('/studymatch'),
+              icon: const Icon(Icons.auto_awesome, size: 18),
+              label: const Text('Ask StudyMatch'),
+            ),
             IconButton(
               key: const Key('home_account'),
               tooltip: signedIn ? 'My account' : 'Sign in',

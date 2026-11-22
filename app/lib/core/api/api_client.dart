@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/venue.dart';
 
@@ -75,6 +76,10 @@ abstract class ApiClient {
 
   /// Reports someone else's review to the moderators. Safe to repeat.
   Future<void> reportReview(String reviewId);
+
+  // StudyMatch (M2: PB-29, UC-05)
+  /// POST /studymatch. Send [lat]/[lng] only when location is granted (AI-003).
+  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng});
 
   // Noise sampling (M1: PB-19, UC-11)
   /// True when the signed-in student is at this venue now, so the app may offer

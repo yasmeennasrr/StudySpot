@@ -7,6 +7,7 @@ import '../config.dart';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
@@ -159,6 +160,17 @@ class DioApiClient extends ApiClient {
           data: {'refreshToken': refreshToken}),
       isAuthCall: true,
     );
+  }
+
+  @override
+  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
+    final r = await _send(() => _dio.post<dynamic>(
+          '/studymatch',
+          data: {'text': text, 'lat': ?lat, 'lng': ?lng},
+          // StudyMatch answers within 10 s (PERF-003); allow a little more.
+          options: Options(receiveTimeout: const Duration(seconds: 15)),
+        ));
+    return StudyMatchAnswer.fromJson(_json(r));
   }
 
   @override
