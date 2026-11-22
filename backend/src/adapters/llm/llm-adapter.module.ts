@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AdapterUnavailableError } from '../../common/errors/app-error';
 import { LLM, type IClock, type ILLM, type LlmTurn } from '../../contracts';
 import { CircuitBreaker } from '../resilience/circuit-breaker';
-import { GeminiLlmAdapter } from './gemini-llm.adapter';
+import { DEFAULT_LLM_THINKING, GeminiLlmAdapter } from './gemini-llm.adapter';
 
 /**
  * Fault-injecting fake LLM (SDS 9, testability). Script the next answers with
@@ -102,6 +102,9 @@ const SYSTEM_CLOCK: IClock = { now: () => new Date() };
           provider === 'gemini'
             ? new GeminiLlmAdapter(String(config.get('GEMINI_API_KEY')), {
                 model: String(config.get('GEMINI_LLM_MODEL', '') ?? ''),
+                thinkingLevel: String(
+                  config.get('GEMINI_LLM_THINKING', DEFAULT_LLM_THINKING) ?? '',
+                ),
               })
             : fake;
         new Logger('LlmAdapter').log(`StudyMatch LLM: ${provider}`);

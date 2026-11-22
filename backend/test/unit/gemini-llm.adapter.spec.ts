@@ -33,7 +33,10 @@ function adapterWith(answer: () => Promise<Response>) {
     calls.push({ url, init });
     return answer();
   }) as unknown as typeof fetch;
-  return { adapter: new GeminiLlmAdapter(KEY, { model: 'test-model', fetchFn }), calls };
+  return {
+    adapter: new GeminiLlmAdapter(KEY, { model: 'test-model', thinkingLevel: 'minimal', fetchFn }),
+    calls,
+  };
 }
 
 const input = (turns: LlmTurn[], timeoutMs = 5000) => ({
@@ -44,7 +47,7 @@ const input = (turns: LlmTurn[], timeoutMs = 5000) => ({
 });
 
 describe('GeminiLlmAdapter (PB-29)', () => {
-  it('TC-M2-26 sends system prompt, turns, tool results and tools in Gemini format; key only in a header', async () => {
+  it('TC-M2-26 sends system prompt, turns, tool results, tools and thinking level in Gemini format; key only in a header', async () => {
     const { adapter, calls } = adapterWith(async () =>
       reply(200, { candidates: [{ content: { parts: [{ text: 'Try Quiet Corner.' }] } }] }),
     );
@@ -64,6 +67,7 @@ describe('GeminiLlmAdapter (PB-29)', () => {
     const body = JSON.parse(String(init.body));
     expect(body.systemInstruction).toEqual({ parts: [{ text: 'You are StudyMatch.' }] });
     expect(body.tools).toEqual([{ functionDeclarations: TOOLS }]);
+    expect(body.generationConfig.thinkingConfig).toEqual({ thinkingLevel: 'minimal' });
     expect(body.contents).toEqual([
       { role: 'user', parts: [{ text: 'quiet place in Zamalek' }] },
       {

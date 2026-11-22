@@ -5,12 +5,19 @@ import type { ILLM, LlmToolCall, LlmTurn } from '../../contracts';
 export interface GeminiLlmOptions {
   /** Model name; models change, so it is a setting (GEMINI_LLM_MODEL). */
   model?: string;
+  /**
+   * Gemini 3 thinking level (GEMINI_LLM_THINKING). 'minimal' answers in about a
+   * second, which keeps StudyMatch well inside PERF-003; empty = the model's default.
+   */
+  thinkingLevel?: string;
   /** Injected in tests; defaults to Node's global fetch. */
   fetchFn?: typeof fetch;
 }
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
-export const DEFAULT_LLM_MODEL = 'gemini-3.8-flash';
+/** Chosen 2026-11-22 after a live test: 3.8-flash was overloaded and has no 'minimal' thinking. */
+export const DEFAULT_LLM_MODEL = 'gemini-3.5-flash';
+export const DEFAULT_LLM_THINKING = 'minimal';
 
 /**
  * Gemini rejected our request as malformed (HTTP 400). Our bug, not an outage:
@@ -107,6 +114,7 @@ export function fromGeminiResponse(body: GeminiResponse): LlmTurn {
 export class GeminiLlmAdapter implements ILLM {
   private readonly logger = new Logger('LlmAdapter');
   private readonly model: string;
+  private readonly thinkingLevel: string;
   private readonly fetchFn: typeof fetch;
 
   constructor(
@@ -114,6 +122,7 @@ export class GeminiLlmAdapter implements ILLM {
     options: GeminiLlmOptions = {},
   ) {
     this.model = options.model || DEFAULT_LLM_MODEL;
+    this.thinkingLevel = options.thinkingLevel ?? '';
     this.fetchFn = options.fetchFn ?? ((...args) => fetch(...args));
   }
 
@@ -135,7 +144,13 @@ export class GeminiLlmAdapter implements ILLM {
           systemInstruction: { parts: [{ text: input.system }] },
           contents: toGeminiContents(input.turns),
           ...(input.tools.length ? { tools: [{ functionDeclarations: input.tools }] } : {}),
-          generationConfig: { temperature: 0.2, maxOutputTokens: 1024 },
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 1024,
+            ...(this.thinkingLevel
+              ? { thinkingConfig: { thinkingLevel: this.thinkingLevel } }
+              : {}),
+          },
         }),
       });
     } catch {
