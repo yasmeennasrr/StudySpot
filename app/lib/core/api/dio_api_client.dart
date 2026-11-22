@@ -163,6 +163,26 @@ class DioApiClient extends ApiClient {
   }
 
   @override
+  Future<AuthUser> getMe() async {
+    final r = await _send(() => _dio.get<dynamic>('/me'));
+    return AuthUser.fromJson(_json(r));
+  }
+
+  @override
+  Future<AccountUpdate> updateMe({
+    String? displayName,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    final r = await _send(() => _dio.patch<dynamic>('/me', data: {
+          'displayName': ?displayName,
+          'currentPassword': ?currentPassword,
+          'newPassword': ?newPassword,
+        }));
+    return AccountUpdate.fromJson(_json(r));
+  }
+
+  @override
   Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
     final r = await _send(() => _dio.post<dynamic>(
           '/studymatch',

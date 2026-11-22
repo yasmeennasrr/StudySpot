@@ -67,6 +67,12 @@ class MockApiClient extends ApiClient {
 
   int logoutCalls = 0;
 
+  /// Who the last sign-in or registration was for (the mock has no real tokens).
+  String? signedInEmail;
+
+  /// Every PATCH /me body, so tests can check what the app sent.
+  final List<Map<String, String>> accountUpdates = [];
+
   Future<void> _step() async {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     final error = failNext;
@@ -112,6 +118,7 @@ class MockApiClient extends ApiClient {
     }
     accounts[key] = password;
     displayNames[key] = displayName;
+    signedInEmail = key;
     return _tokensFor(key);
   }
 
@@ -126,6 +133,7 @@ class MockApiClient extends ApiClient {
         message: 'E-mail or password is wrong. Please try again.',
       );
     }
+    signedInEmail = key;
     return _tokensFor(key);
   }
 
@@ -143,6 +151,63 @@ class MockApiClient extends ApiClient {
   Future<void> logout(String refreshToken) async {
     await _step();
     logoutCalls++;
+  }
+
+  String _currentEmail() {
+    final email = signedInEmail;
+    if (email == null) {
+      onUnauthorized?.call();
+      throw const ApiError(
+          code: 'UNAUTHENTICATED', statusCode: 401, message: 'Please sign in to continue.');
+    }
+    return email;
+  }
+
+  @override
+  Future<AuthUser> getMe() async {
+    await _step();
+    return _tokensFor(_currentEmail()).user;
+  }
+
+  /// Same rules as the backend (PB-05): wrong current password is 400, not 401.
+  @override
+  Future<AccountUpdate> updateMe({
+    String? displayName,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    await _step();
+    final email = _currentEmail();
+    accountUpdates.add({
+      'displayName': ?displayName,
+      'currentPassword': ?currentPassword,
+      'newPassword': ?newPassword,
+    });
+    if (newPassword != null && accounts[email] != currentPassword) {
+      throw const ApiError(
+        code: 'INVALID_INPUT',
+        statusCode: 400,
+        message: 'Your current password is not correct. Nothing was changed.',
+        fieldErrors: {
+          'currentPassword': 'Your current password is not correct. Nothing was changed.'
+        },
+      );
+    }
+    if (displayName != null) displayNames[email] = displayName.trim();
+    if (newPassword != null) accounts[email] = newPassword;
+    final user = _tokensFor(email).user;
+    if (newPassword == null) return AccountUpdate(user: user);
+    // A new session, so the tokens differ from the ones stored at sign-in.
+    final n = accountUpdates.length;
+    return AccountUpdate(
+      user: user,
+      tokens: AuthTokens(
+        accessToken: 'mock-access-$email-$n',
+        expiresIn: 900,
+        refreshToken: 'mock-refresh-$email-$n',
+        user: user,
+      ),
+    );
   }
 
   @override

@@ -37,6 +37,18 @@ class Session extends ViewModel {
     notify();
   }
 
+  /// PB-05: the account was edited. After a password change the backend signed
+  /// out every session and sent new tokens, which replace the stored ones.
+  Future<void> accountUpdated(AccountUpdate update) async {
+    final fresh = update.tokens;
+    if (fresh != null) {
+      await tokens.save(
+          accessToken: fresh.accessToken, refreshToken: fresh.refreshToken);
+    }
+    user = update.user;
+    notify();
+  }
+
   /// FR-004: tell the backend, then forget the tokens on this phone. The local
   /// sign-out happens even if the backend can't be reached.
   Future<void> signOut() async {
