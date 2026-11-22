@@ -10,12 +10,13 @@ import '../../features/favorites/view.dart';
 import '../../features/permissions/location_view.dart';
 import '../../features/preferences/view.dart';
 import '../../features/search/search_view.dart';
+import '../../features/studymatch/studymatch_view.dart';
 import '../../features/venue_details/details_view.dart';
 import '../services.dart';
 
 /// Screens that need a signed-in user (FR-007). Visitors can still search and
 /// view places (FR-006). M6: add protected routes here if you create any.
-const protectedRoutes = {'/account', '/account/edit', '/preferences', '/favorites'};
+const protectedRoutes = {'/account', '/account/edit', '/preferences', '/favorites', '/studymatch'};
 
 /// Screen flow:
 ///   first launch: /terms -> /location -> /home
@@ -48,6 +49,7 @@ GoRouter buildRouter(AppServices services) {
       GoRoute(path: '/account/edit', builder: (context, state) => const EditAccountView()),
       GoRoute(path: '/preferences', builder: (context, state) => const PreferencesView()),
       GoRoute(path: '/favorites', builder: (context, state) => const FavoritesView()),
+      GoRoute(path: '/studymatch', builder: (context, state) => const StudyMatchView()),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>

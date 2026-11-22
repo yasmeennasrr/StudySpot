@@ -1,0 +1,66 @@
+@startuml studymatch-sequence
+' SDS v0.3 Section 14 (M2): "ask StudyMatch" sequence diagram (UC-05, PB-29, PB-46, SDS 7.2).
+' Code: studymatch.controller.ts -> studymatch.service.ts -> llm-adapter.module.ts (ResilientLlm)
+'       -> gemini-llm.adapter.ts; studymatch-tools.ts -> venue-query.service.ts (recommend, PB-30).
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign left
+skinparam ParticipantBackgroundColor white
+skinparam ParticipantBorderColor #555555
+skinparam ArrowColor #555555
+autonumber
+
+title Ask StudyMatch (UC-05)
+
+actor Student
+participant "App\n(StudyMatchView)" as App
+participant "StudyMatchController\n(API Layer)" as API
+participant "StudyMatchService\n«IStudyMatch»" as SM
+participant "ResilientLlm\n+ CircuitBreaker" as RL
+participant "GeminiLlmAdapter" as Gemini
+participant "StudyMatchTools" as Tools
+participant "VenueQueryFacade\n«IVenueQuery»" as Venues
+participant "IPreferences" as Prefs
+
+Student -> App : types a request (English or Arabic)
+App -> App : show question + "Finding places…" (PERF-007)
+App -> API : POST /api/v1/studymatch {text, lat?, lng?}\n(lat/lng only if location granted, AI-003)
+API -> API : AuthGuard (user from token, AI-009)\nvalidate text 1-500, lat+lng together
+alt invalid input or not signed in
+  API --> App : 400 INVALID_INPUT / 401
+end
+API -> SM : ask({userId, text, location})
+SM -> SM : deadline = now + 9 s (AI-028)
+
+loop up to 4 rounds, while time is left
+  SM -> RL : generate(system prompt, turns, 5 tools,\ntimeoutMs = min(5 s, time left))
+  alt breaker open
+    RL --> SM : AdapterUnavailableError (at once)
+  else breaker closed / trial call
+    RL -> Gemini : generate (HTTPS, key in header)
+    Gemini --> RL : model turn (text or functionCalls)
+    RL --> SM : LlmTurn
+  end
+  opt the AI asks for tools
+    SM -> Tools : run(name, args, ctx{userId, location})
+    Tools -> Tools : allow-list (AI-007), validate (SEC-007)
+    Tools -> Venues : recommend / search / getDetails
+    Venues --> Tools : ranked venues with reasons (PB-30)
+    Tools --> SM : result for the AI (+ cards kept in the backend)
+    SM -> SM : add tool result to turns
+  end
+end
+
+alt the AI wrote the reply
+  SM -> SM : read tags [NEEDS_INFO] / [OFF_TOPIC]
+  SM --> API : {reply, recommendations from tool data, degraded: false, reasonCode}
+else AI unavailable (error, open breaker, deadline, too many rounds)
+  SM -> Prefs : get(userId)
+  SM -> Venues : search(near location, saved preferences, limit 5)
+  Venues --> SM : nearby venues
+  SM --> API : {"Smart matching is unavailable…", standard results,\ndegraded: true, AI_UNAVAILABLE} (AI-019, AI-029)
+end
+API --> App : 200 StudyMatchAnswer (within 10 s, PERF-003)
+App -> Student : reply bubble + place cards\n("Standard results" + Open Search when degraded)
+@enduml

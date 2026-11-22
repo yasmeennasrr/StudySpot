@@ -43,6 +43,12 @@ export const LLM = Symbol('ILLM');
 export interface LlmToolCall {
   name: string;
   arguments: Record<string, unknown>;
+  /**
+   * Opaque provider data that must be sent back unchanged with the next turn
+   * (Gemini 3 "thought signature"; without it Gemini refuses the tool result).
+   * Callers never read or build it; they only keep the model turn as it came.
+   */
+  signature?: string;
 }
 export interface LlmTurn {
   role: 'user' | 'model' | 'tool';

@@ -1,0 +1,131 @@
+@startuml studymatch-class
+' SDS v0.3 Section 14 (M2): StudyMatch class diagram (PB-29, PB-46, UC-05).
+' Patterns: Adapter (GeminiLlmAdapter), Decorator (ResilientLlm), Circuit Breaker,
+' Facade (IVenueQuery), allow-list of read-only tools (SDS 6.6.8).
+' Code: backend/src/modules/studymatch/, backend/src/adapters/llm/, backend/src/adapters/resilience/.
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 13
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor white
+  BorderColor #555555
+}
+skinparam package {
+  BorderColor #AAAAAA
+  FontColor #444444
+}
+skinparam ArrowColor #555555
+hide empty members
+
+title StudyMatch (PB-29) and the AI safety net (PB-46): class diagram
+top to bottom direction
+skinparam nodesep 40
+skinparam ranksep 60
+
+package "modules/studymatch (M2)" as SMPKG {
+  class StudyMatchController <<API Layer>> {
+    +ask(dto, user: AuthUser): Promise<StudyMatchAnswer>
+    --
+    POST /api/v1/studymatch
+    AuthGuard, 1-500 chars, rate limit
+  }
+  class StudyMatchService <<orchestrator>> {
+    -deadlineMs = 9000
+    -maxRounds = 4
+    +ask(input): Promise<StudyMatchAnswer>
+    +converse(ctx, text): Promise<StudyMatchAnswer>
+    +standardResults(ctx, reason): Promise<StudyMatchAnswer>
+  }
+  class StudyMatchTools <<allow-list>> {
+    +definitions: ToolDefinition[5]
+    +run(name, args, ctx: ToolContext): Promise<ToolOutcome>
+    --
+    find_venues, get_venue_details,
+    get_conditions, get_my_preferences,
+    recommend_venues
+  }
+}
+
+package "contracts" as CPKG {
+  interface IStudyMatch <<interface>> {
+    +ask(input: {userId, text, location?}): Promise<StudyMatchAnswer>
+  }
+  interface ILLM <<interface>> {
+    +generate(input: {system, turns, tools, timeoutMs}): Promise<LlmTurn>
+  }
+  interface IVenueQuery <<interface>> {
+    +search(params): Promise<SearchResult>
+    +getDetails(venueId): Promise<VenueDetails>
+    +exists(venueId): Promise<boolean>
+    +recommend(params): Promise<RecommendResult>
+  }
+  interface IConditions <<interface>> {
+    +getConditions(venueId): Promise<VenueConditions>
+  }
+  interface IPreferences <<interface>> {
+    +get(userId): Promise<FilterCriteria>
+  }
+  class StudyMatchAnswer <<value>> {
+    +reply: string
+    +recommendations: {venue, reasons}[]
+    +degraded: boolean
+    +reasonCode: OK | AI_UNAVAILABLE | NEEDS_INFO | OFF_TOPIC
+  }
+}
+
+package "adapters: LLM and resilience" as APKG {
+  class ResilientLlm <<Decorator>> {
+    -maxCallMs = 5000
+    +generate(input): Promise<LlmTurn>
+  }
+  class CircuitBreaker <<shared, M1>> {
+    -failureThreshold = 5
+    -openMs = 30000
+    +currentState: closed | open | half_open
+    +execute(call): Promise<T>
+  }
+  class GeminiLlmAdapter <<Adapter>> {
+    -model = gemini-3.5-flash
+    -thinkingLevel = minimal
+    +generate(input): Promise<LlmTurn>
+  }
+  class FakeLlmAdapter <<test double>> {
+    +queue(turns)
+    +failNext(n)
+    +generate(input): Promise<LlmTurn>
+  }
+}
+
+StudyMatchController -down-> IStudyMatch : uses
+IStudyMatch <|.down. StudyMatchService
+StudyMatchService -right-> StudyMatchTools : run()
+StudyMatchService -down-> ILLM : generate()
+StudyMatchService ..> StudyMatchAnswer : returns
+StudyMatchService -down-> IPreferences : get() (fallback)
+StudyMatchService -down-> IVenueQuery : search() (fallback)
+StudyMatchTools -down-> IVenueQuery : search, getDetails,\nexists, recommend (PB-30)
+StudyMatchTools -down-> IConditions : getConditions
+StudyMatchTools -down-> IPreferences : get(session user, AI-009)
+
+ILLM <|.down. ResilientLlm
+ILLM <|.down. GeminiLlmAdapter
+ILLM <|.down. FakeLlmAdapter
+ResilientLlm o-up-> ILLM : decorates 1 inner
+ResilientLlm -down-> CircuitBreaker : execute()
+
+note right of CircuitBreaker
+  Every LLM call: at most 5 s; 5 failures
+  in a row open the breaker for 30 s, then
+  one trial call (EIR-015). While open,
+  calls fail at once, and StudyMatch
+  returns standard results (AI-019, AI-029).
+end note
+
+note right of StudyMatchTools
+  Read-only (AI-008); any other name
+  is refused NOT_ALLOWED (AI-007);
+  every input checked (SEC-007);
+  every call logged.
+end note
+@enduml
