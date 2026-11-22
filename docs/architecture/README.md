@@ -15,6 +15,8 @@ Everything here answers the Milestone 1 feedback: the big picture first, every b
 | [`uml/er-diagram.png`](uml/er-diagram.png) | Database schema, 19 tables | New section 6.7 "Database schema" |
 | [`uml/conditions-class.png`](uml/conditions-class.png) | Conditions class diagram: `ConditionsService`, the Chain of Responsibility (`ConditionResolver` and its four handlers), the combining rules, and `VenueDetailsService` (M4) | Section 14 (Sprint 1 detailed design) |
 | [`uml/view-details-sequence.png`](uml/view-details-sequence.png) | "View details" sequence (UC-04): API → facade → details → conditions cache → records → chain, with the 400/404 branches (M4) | Section 14 (Sprint 1 detailed design) |
+| [`uml/studymatch-class.png`](uml/studymatch-class.png) | StudyMatch class diagram: controller, orchestrator, the 5-tool allow-list, and the LLM chain `ResilientLlm` (Decorator) → `CircuitBreaker` → `GeminiLlmAdapter` (Adapter) (M2, PB-29, PB-46) | Section 14 (Sprint 2+3 detailed design) |
+| [`uml/studymatch-sequence.png`](uml/studymatch-sequence.png) | "Ask StudyMatch" sequence (UC-05): app → API → orchestrator → LLM ↔ tools → ranking, with the 5 s / 9 s limits and the "AI unavailable" branch (M2) | Section 14 (Sprint 2+3 detailed design) |
 
 Sources are PlantUML (`uml/*.puml`); re-render with `plantuml -tpng -tsvg docs/architecture/uml/*.puml`. The generated files come from `cd backend && npm run deps:graph`.
 
