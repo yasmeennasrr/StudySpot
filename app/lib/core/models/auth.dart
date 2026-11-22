@@ -31,6 +31,22 @@ class AuthUser {
       };
 }
 
+/// PATCH /me answer (UpdateProfileResult): the updated user, and new tokens
+/// only after a password change (every other session was signed out).
+class AccountUpdate {
+  const AccountUpdate({required this.user, this.tokens});
+
+  final AuthUser user;
+  final AuthTokens? tokens;
+
+  factory AccountUpdate.fromJson(Map<String, dynamic> json) => AccountUpdate(
+        user: AuthUser.fromJson(json),
+        tokens: json['tokens'] is Map
+            ? AuthTokens.fromJson((json['tokens'] as Map).cast<String, dynamic>())
+            : null,
+      );
+}
+
 class AuthTokens {
   const AuthTokens({
     required this.accessToken,

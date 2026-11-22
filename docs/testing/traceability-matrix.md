@@ -4,12 +4,12 @@
 
 ## Summary
 
-**213** test cases: **211** pass, **1** fail, **1** not run yet. They cover **116** requirement IDs.
+**218** test cases: **216** pass, **1** fail, **1** not run yet. They cover **116** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 20 | 20 | 0 | 0 | 20 |
+| M2 | 25 | 25 | 0 | 0 | 25 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -20,9 +20,9 @@
 | API layer | 10 |
 | Integration | 77 |
 | Performance | 3 |
-| Unit | 113 |
+| Unit | 117 |
 | Unit (app) | 8 |
-| Widget | 2 |
+| Widget | 3 |
 
 ## Requirement → test cases
 
@@ -58,7 +58,7 @@
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
 | FR-004 | TC-M5-09, TC-M5-10 | Unit | ✅ all pass |
-| FR-005 | TC-M2-15, TC-M2-16, TC-M2-17, TC-M2-18, TC-M2-19, TC-M2-20 | Unit, Integration | ✅ all pass |
+| FR-005 | TC-M2-15, TC-M2-16, TC-M2-17, TC-M2-18, TC-M2-19, TC-M2-20, TC-M2-21, TC-M2-22, TC-M2-23, TC-M2-24, TC-M2-25 | Unit, Integration, Widget | ✅ all pass |
 | FR-006 | TC-M1-56, TC-M5-15, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-007 | TC-M4-23, TC-M5-15 | Unit (app), Unit | ✅ all pass |
 | FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
@@ -127,8 +127,8 @@
 | SEC-003 | TC-M1-06, TC-M1-16 | Unit, API layer | ✅ all pass |
 | SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18 | Unit, Integration | ✅ all pass |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
-| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M4-16, TC-M4-32, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
-| SEC-009 | TC-M2-10, TC-M2-11, TC-M2-19, TC-M4-26, TC-M5-10 | Unit, Integration | ✅ all pass |
+| SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M2-22, TC-M4-16, TC-M4-32, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
+| SEC-009 | TC-M2-10, TC-M2-11, TC-M2-19, TC-M2-24, TC-M4-26, TC-M5-10 | Unit, Integration | ✅ all pass |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
@@ -143,7 +143,7 @@
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
-| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ✅ all pass |
+| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
@@ -267,6 +267,11 @@
 | TC-M2-18 | FR-005, SEC-002 | Equivalence partitioning | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-19 | FR-005, SEC-009 | Use-case based | Unit | pass | `backend/test/unit/auth.service.spec.ts` |
 | TC-M2-20 | FR-005, SEC-001, SEC-002 | Use-case based | Integration | pass | `backend/test/int/accounts.int-spec.ts` |
+| TC-M2-21 | FR-005 | Use-case based | Unit | pass | `app/test/features/auth/edit_account_test.dart` |
+| TC-M2-22 | FR-005, SEC-007 | Equivalence partitioning, boundary value analysis | Unit | pass | `app/test/features/auth/edit_account_test.dart` |
+| TC-M2-23 | FR-005, USE-008 | Error guessing | Unit | pass | `app/test/features/auth/edit_account_test.dart` |
+| TC-M2-24 | FR-005, SEC-009 | Use-case based | Unit | pass | `app/test/features/auth/edit_account_test.dart` |
+| TC-M2-25 | FR-005 | Use-case based | Widget | pass | `app/test/features/auth/edit_account_test.dart` |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
