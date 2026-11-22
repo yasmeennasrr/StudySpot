@@ -3,12 +3,18 @@ import { AdapterUnavailableError, AppError } from '../../common/errors/app-error
 import {
   CLOCK,
   LLM,
+  PREFERENCES,
+  VENUE_QUERY,
+  type FilterCriteria,
   type GeoPoint,
   type IClock,
   type ILLM,
+  type IPreferences,
   type IStudyMatch,
+  type IVenueQuery,
   type LlmTurn,
   type StudyMatchAnswer,
+  type VenueSummary,
 } from '../../contracts';
 import { StudyMatchTools, type RecommendedVenue, type ToolContext } from './studymatch-tools';
 
@@ -24,7 +30,18 @@ const MIN_CALL_MS = 500;
 const NEEDS_INFO_TAG = '[NEEDS_INFO]';
 const OFF_TOPIC_TAG = '[OFF_TOPIC]';
 
-/** Thrown when StudyMatch cannot get an answer from the LLM in time; step 6 turns it into standard results. */
+/** AI-019 / AI-029 wording. The app shows these as standard results, not recommendations. */
+export const FALLBACK_NOTICE = 'Smart matching is unavailable right now.';
+export const FALLBACK_WITH_PREFERENCES =
+  'Here are nearby study places that match your saved preferences (standard results, not personal recommendations).';
+export const FALLBACK_NEAREST =
+  'None of the nearby places match all your saved preferences, so here are the nearest ones (standard results).';
+export const FALLBACK_NEAREST_NO_PREFERENCES =
+  'Here are the nearest study places (standard results).';
+export const FALLBACK_USE_SEARCH = 'Use Search to find study places by name or area.';
+const STANDARD_RESULTS = 5;
+
+/** Thrown when StudyMatch cannot get an answer from the LLM in time; ask() turns it into standard results (AI-029). */
 export class StudyMatchUnavailable extends Error {
   constructor(public readonly reason: string) {
     super(`StudyMatch AI unavailable: ${reason}`);
@@ -101,6 +118,8 @@ export class StudyMatchService implements IStudyMatch {
     @Inject(LLM) private readonly llm: ILLM,
     private readonly tools: StudyMatchTools,
     @Inject(CLOCK) private readonly clock: IClock,
+    @Inject(VENUE_QUERY) private readonly venues: IVenueQuery,
+    @Inject(PREFERENCES) private readonly preferences: IPreferences,
   ) {}
 
   async ask(input: {
@@ -110,7 +129,52 @@ export class StudyMatchService implements IStudyMatch {
   }): Promise<StudyMatchAnswer> {
     const text = input.text.trim();
     if (!text) throw AppError.invalidInput('Type what kind of study place you are looking for.');
-    return this.converse({ userId: input.userId, location: input.location }, text);
+    const ctx: ToolContext = { userId: input.userId, location: input.location };
+    try {
+      return await this.converse(ctx, text);
+    } catch (err) {
+      if (!(err instanceof StudyMatchUnavailable)) throw err;
+      return this.standardResults(ctx, err.reason);
+    }
+  }
+
+  /**
+   * AI-019, AI-029: the LLM failed, its circuit is open or time ran out. Nearby
+   * places that match the stored preferences (FR-022), flagged degraded; with no
+   * location, a prompt to use Search. Never throws: the student always gets an answer.
+   */
+  async standardResults(ctx: ToolContext, reason: string): Promise<StudyMatchAnswer> {
+    this.logger.warn({ userId: ctx.userId, reason }, 'StudyMatch fell back to standard results');
+    const answer = (extra: string, venues: VenueSummary[] = []): StudyMatchAnswer => ({
+      reply: `${FALLBACK_NOTICE} ${extra}`,
+      recommendations: venues.map((venue) => ({ venue, reasons: distanceReason(venue) })),
+      degraded: true,
+      reasonCode: 'AI_UNAVAILABLE',
+    });
+    if (!ctx.location) return answer(FALLBACK_USE_SEARCH);
+
+    try {
+      const prefs = await this.preferences.get(ctx.userId).catch((): FilterCriteria => ({}));
+      const hasPrefs = Object.values(prefs).some((v) => v !== undefined && v !== null);
+      const near = ctx.location;
+      if (hasPrefs) {
+        const matching = await this.venues.search({
+          near,
+          filters: prefs,
+          limit: STANDARD_RESULTS,
+        });
+        if (matching.items.length) return answer(FALLBACK_WITH_PREFERENCES, matching.items);
+      }
+      const nearest = await this.venues.search({ near, limit: STANDARD_RESULTS });
+      if (!nearest.items.length) return answer(FALLBACK_USE_SEARCH);
+      return answer(hasPrefs ? FALLBACK_NEAREST : FALLBACK_NEAREST_NO_PREFERENCES, nearest.items);
+    } catch (err) {
+      this.logger.warn(
+        { userId: ctx.userId, err: String(err) },
+        'StudyMatch standard results failed too',
+      );
+      return answer(FALLBACK_USE_SEARCH);
+    }
   }
 
   /** The tool loop. Throws StudyMatchUnavailable when the LLM fails or time runs out. */
@@ -179,4 +243,11 @@ export class StudyMatchService implements IStudyMatch {
     }
     throw new StudyMatchUnavailable('too many tool rounds');
   }
+}
+
+/** Standard results carry only a fact from the data, never a claimed match (AI-014). */
+function distanceReason(venue: VenueSummary): string[] {
+  if (venue.distanceMeters === null) return [];
+  const m = Math.round(venue.distanceMeters);
+  return [m < 1000 ? `${m} m away.` : `${(m / 1000).toFixed(1)} km away.`];
 }

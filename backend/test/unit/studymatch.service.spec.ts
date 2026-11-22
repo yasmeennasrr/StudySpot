@@ -1,5 +1,5 @@
 import { AdapterUnavailableError } from '../../src/common/errors/app-error';
-import type { ILLM, LlmTurn, VenueSummary } from '../../src/contracts';
+import type { ILLM, IPreferences, IVenueQuery, LlmTurn, VenueSummary } from '../../src/contracts';
 import { FakeClock } from '../../src/modules/clock/fake-clock';
 import type { StudyMatchTools, ToolOutcome } from '../../src/modules/studymatch/studymatch-tools';
 import { TOOL_DEFINITIONS } from '../../src/modules/studymatch/studymatch-tools';
@@ -53,7 +53,11 @@ function setup(
       return { ok: true, result: { venues: [] } };
     },
   } as unknown as StudyMatchTools;
-  const service = new StudyMatchService(llm, tools, clock);
+  const venues = {
+    search: async () => ({ origin: null, items: [], degraded: false }),
+  } as unknown as IVenueQuery;
+  const preferences = { get: async () => ({}) } as unknown as IPreferences;
+  const service = new StudyMatchService(llm, tools, clock, venues, preferences);
   return { service, clock, llmCalls, toolCalls };
 }
 
@@ -153,7 +157,7 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
 
   it('TC-M2-46 limits: at most 4 tool rounds; 9 s deadline; each call gets what is left (at most 5 s)', async () => {
     const loop = setup(Array.from({ length: 10 }, () => call('find_venues')));
-    await expect(loop.service.ask({ ...ME, text: 'loop forever' })).rejects.toBeInstanceOf(
+    await expect(loop.service.converse(ME, 'loop forever')).rejects.toBeInstanceOf(
       StudyMatchUnavailable,
     );
     expect(loop.llmCalls).toHaveLength(MAX_ROUNDS);
@@ -181,7 +185,7 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
       ],
       lateClock,
     );
-    await expect(late.service.ask({ ...ME, text: 'quiet' })).rejects.toMatchObject({
+    await expect(late.service.converse(ME, 'quiet')).rejects.toMatchObject({
       reason: 'deadline',
     });
     expect(late.llmCalls).toHaveLength(1);
