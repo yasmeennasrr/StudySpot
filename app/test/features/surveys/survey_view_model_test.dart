@@ -61,6 +61,8 @@ void main() {
     await tester.tap(find.byKey(const Key('crowd-very_crowded')));
     await tester.ensureVisible(find.byKey(const Key('wifi-good')));
     await tester.tap(find.byKey(const Key('wifi-good')));
+    await tester.ensureVisible(find.byKey(const Key('submit-survey')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('submit-survey')));
     await tester.pumpAndSettle();
 
