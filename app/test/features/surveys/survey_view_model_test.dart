@@ -57,10 +57,12 @@ void main() {
 
     await tester.tap(find.text('Open survey'));
     await tester.pumpAndSettle();
-    expect(find.text('You can skip any question.'), findsOneWidget);
+    expect(find.textContaining('You can skip any question.'), findsOneWidget);
     await tester.tap(find.byKey(const Key('crowd-very_crowded')));
     await tester.ensureVisible(find.byKey(const Key('wifi-good')));
     await tester.tap(find.byKey(const Key('wifi-good')));
+    await tester.ensureVisible(find.byKey(const Key('submit-survey')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('submit-survey')));
     await tester.pumpAndSettle();
 

@@ -9,9 +9,9 @@ class SurveyAnswers {
   bool get hasAnswer => crowd != null || noise != null || wifi != null;
 
   Map<String, Object> toJson() => {
-        if (crowd != null) 'crowd': crowd!,
-        if (noise != null) 'noise': noise!,
-        if (wifi != null) 'wifi': wifi!,
+        'crowd': ?crowd,
+        'noise': ?noise,
+        'wifi': ?wifi,
       };
 }
 
