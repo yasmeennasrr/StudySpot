@@ -75,6 +75,21 @@ abstract class ApiClient {
     Map<String, Object> filters = const {},
   });
 
+  /// POST /me/presence/location: transient sample from an opted-in user.
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  });
+
+  Future<bool> respondToPresencePrompt({
+    required String venueId,
+    required bool confirmed,
+  });
+
+  Future<void> registerPushInstallation(String installationId);
+
+  Future<void> setPresencePromptsEnabled(bool enabled);
+
   /// VenueDetails as raw JSON; M6 models it for the details screen.
   Future<Map<String, dynamic>> getVenue(String venueId);
 

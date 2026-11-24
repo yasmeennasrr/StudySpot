@@ -74,7 +74,7 @@ export const NOTIFY = Symbol('INotify');
 
 /** Presence prompts (SEN-013..SEN-016). Listens to DomainEvent.PresenceDwell. */
 export interface INotify {
-  registerDevice(userId: string, deviceToken: string): Promise<void>;
+  registerDevice(userId: string, installationId: string): Promise<void>;
   setPresencePromptsEnabled(userId: string, enabled: boolean): Promise<void>;
   sendPresencePrompt(userId: string, venueId: string): Promise<void>;
 }

@@ -16,13 +16,16 @@ import 'api_error.dart';
 /// Talks to the real backend over HTTPS (EIR-008, SEC-003).
 class DioApiClient extends ApiClient {
   DioApiClient({required this.tokens, String? baseUrl, Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               baseUrl: baseUrl ?? AppConfig.baseUrl,
               connectTimeout: AppConfig.requestTimeout,
               receiveTimeout: AppConfig.requestTimeout,
               contentType: 'application/json',
-            )) {
+            ),
+          ) {
     _dio.interceptors.add(InterceptorsWrapper(onRequest: _addAuthHeader));
   }
 
@@ -31,7 +34,9 @@ class DioApiClient extends ApiClient {
 
   /// AuthInterceptor: adds `Authorization: Bearer <token>` to every call.
   Future<void> _addAuthHeader(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final token = await tokens.readAccessToken();
     if (token != null) options.headers['Authorization'] = 'Bearer $token';
     handler.next(options);
@@ -79,7 +84,9 @@ class DioApiClient extends ApiClient {
     try {
       final fresh = await refresh(refreshToken);
       await tokens.save(
-          accessToken: fresh.accessToken, refreshToken: fresh.refreshToken);
+        accessToken: fresh.accessToken,
+        refreshToken: fresh.refreshToken,
+      );
       return true;
     } on ApiError {
       return false;
@@ -122,22 +129,30 @@ class DioApiClient extends ApiClient {
     required String displayName,
   }) async {
     final r = await _send(
-      () => _dio.post<dynamic>('/auth/register', data: {
-        'email': email,
-        'password': password,
-        'displayName': displayName,
-        'termsAccepted': true,
-      }),
+      () => _dio.post<dynamic>(
+        '/auth/register',
+        data: {
+          'email': email,
+          'password': password,
+          'displayName': displayName,
+          'termsAccepted': true,
+        },
+      ),
       isAuthCall: true,
     );
     return AuthTokens.fromJson(_json(r));
   }
 
   @override
-  Future<AuthTokens> login({required String email, required String password}) async {
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async {
     final r = await _send(
-      () => _dio.post<dynamic>('/auth/login',
-          data: {'email': email, 'password': password}),
+      () => _dio.post<dynamic>(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      ),
       isAuthCall: true,
     );
     return AuthTokens.fromJson(_json(r));
@@ -146,8 +161,10 @@ class DioApiClient extends ApiClient {
   @override
   Future<AuthTokens> refresh(String refreshToken) async {
     final r = await _send(
-      () => _dio.post<dynamic>('/auth/refresh',
-          data: {'refreshToken': refreshToken}),
+      () => _dio.post<dynamic>(
+        '/auth/refresh',
+        data: {'refreshToken': refreshToken},
+      ),
       isAuthCall: true,
     );
     return AuthTokens.fromJson(_json(r));
@@ -156,8 +173,10 @@ class DioApiClient extends ApiClient {
   @override
   Future<void> logout(String refreshToken) async {
     await _send(
-      () => _dio.post<dynamic>('/auth/logout',
-          data: {'refreshToken': refreshToken}),
+      () => _dio.post<dynamic>(
+        '/auth/logout',
+        data: {'refreshToken': refreshToken},
+      ),
       isAuthCall: true,
     );
   }
@@ -212,7 +231,8 @@ class DioApiClient extends ApiClient {
   @override
   Future<Preferences> savePreferences(Preferences preferences) async {
     final r = await _send(
-        () => _dio.put<dynamic>('/me/preferences', data: preferences.toJson()));
+      () => _dio.put<dynamic>('/me/preferences', data: preferences.toJson()),
+    );
     return Preferences.fromJson(_json(r));
   }
 
@@ -240,9 +260,13 @@ class DioApiClient extends ApiClient {
   }
 
   @override
-  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}}) async {
+  Future<SearchResult> browseVenues({
+    Map<String, Object> filters = const {},
+  }) async {
     final query = Map<String, Object>.of(filters)..remove('maxDistance');
-    final r = await _send(() => _dio.get<dynamic>('/venues', queryParameters: query));
+    final r = await _send(
+      () => _dio.get<dynamic>('/venues', queryParameters: query),
+    );
     return SearchResult.fromJson(_json(r));
   }
 
@@ -254,13 +278,18 @@ class DioApiClient extends ApiClient {
     double? lng,
     Map<String, Object> filters = const {},
   }) async {
-    final r = await _send(() => _dio.get<dynamic>('/venues/search', queryParameters: {
+    final r = await _send(
+      () => _dio.get<dynamic>(
+        '/venues/search',
+        queryParameters: {
           if (q != null && q.isNotEmpty) 'q': q,
           if (area != null && area.isNotEmpty) 'area': area,
           'lat': ?lat,
           'lng': ?lng,
           ...filters,
-        }));
+        },
+      ),
+    );
     return SearchResult.fromJson(_json(r));
   }
 
@@ -270,9 +299,58 @@ class DioApiClient extends ApiClient {
     required double lng,
     Map<String, Object> filters = const {},
   }) async {
-    final r = await _send(() => _dio.get<dynamic>('/venues/nearby',
-        queryParameters: {'lat': lat, 'lng': lng, ...filters}));
+    final r = await _send(
+      () => _dio.get<dynamic>(
+        '/venues/nearby',
+        queryParameters: {'lat': lat, 'lng': lng, ...filters},
+      ),
+    );
     return SearchResult.fromJson(_json(r));
+  }
+
+  @override
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  }) async {
+    await _send(
+      () => _dio.post<dynamic>(
+        '/me/presence/location',
+        data: {'lat': lat, 'lng': lng},
+      ),
+    );
+  }
+
+  @override
+  Future<bool> respondToPresencePrompt({
+    required String venueId,
+    required bool confirmed,
+  }) async {
+    final response = await _send(
+      () => _dio.post<dynamic>(
+        '/me/presence/respond',
+        data: {'venueId': venueId, 'confirmed': confirmed},
+      ),
+    );
+    return _json(response)['accepted'] as bool? ?? false;
+  }
+
+  @override
+  Future<void> registerPushInstallation(String installationId) async {
+    await _send(
+      () => _dio.put<dynamic>(
+        '/me/push-token',
+        data: {'installationId': installationId},
+      ),
+    );
+  }
+
+  @override
+  Future<void> setPresencePromptsEnabled(bool enabled) async {
+    await _send(
+      () =>
+          _dio.put<dynamic>('/me/presence-prompts', data: {'enabled': enabled}),
+    );
   }
 
   @override

@@ -103,4 +103,3 @@ void main() {
     expect(distanceMeters(30.0626, 31.2197, 30.0626, 31.2197), 0);
   });
 }
-

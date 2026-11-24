@@ -1,4 +1,6 @@
 node_modules/
+.dart_pub_cache/
+.dart_cli_config/
 dist/
 coverage/
 .env

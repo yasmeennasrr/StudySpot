@@ -382,6 +382,97 @@ paths:
         '204': { description: Removed }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /me/presence/location:
+    post:
+      tags: [me]
+      summary: Submit an opted-in location sample for a possible presence visit
+      operationId: reportPresenceLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number, minimum: -90, maximum: 90 }
+                lng: { type: number, minimum: -180, maximum: 180 }
+      responses:
+        '200':
+          description: Sample accepted; raw coordinates are not retained
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [venueId]
+                properties:
+                  venueId: { type: string, format: uuid, nullable: true }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence/respond:
+    post:
+      tags: [me]
+      summary: Respond yes or no to an "Are you here?" push prompt
+      operationId: respondToPresencePrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [venueId, confirmed]
+              properties:
+                venueId: { type: string, format: uuid }
+                confirmed: { type: boolean }
+      responses:
+        '200':
+          description: Response accepted unless the prompt was already answered or expired
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted]
+                properties: { accepted: { type: boolean } }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/push-token:
+    put:
+      tags: [me]
+      summary: Register this app installation's Firebase installation ID
+      operationId: registerPushInstallation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [installationId]
+              properties: { installationId: { type: string, minLength: 1, maxLength: 512 } }
+      responses:
+        '204': { description: Token registered }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence-prompts:
+    put:
+      tags: [me]
+      summary: Enable or disable presence prompts for this account
+      operationId: setPresencePromptsEnabled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties: { enabled: { type: boolean } }
+      responses:
+        '204': { description: Preference updated }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
   /me/favorites:
     get:
       tags: [me]

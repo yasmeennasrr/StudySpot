@@ -4,6 +4,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase project-specific configuration is added by FlutterFire when the
+// team runs `flutterfire configure`. Keep preview builds working before then.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "edu.aucegypt.studyspot"
     compileSdk = flutter.compileSdkVersion

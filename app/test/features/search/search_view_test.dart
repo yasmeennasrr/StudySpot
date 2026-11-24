@@ -35,4 +35,3 @@ void main() {
     expect(find.textContaining('km away'), findsWidgets);
   });
 }
-

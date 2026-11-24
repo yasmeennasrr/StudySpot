@@ -25,7 +25,9 @@ class LocationView extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             child: switch (vm.step) {
               LocationStep.explain || LocationStep.asking => _Explain(vm: vm),
-              LocationStep.granted => _Granted(onContinue: () => context.go('/home')),
+              LocationStep.granted => _Granted(
+                onContinue: () => context.go('/presence'),
+              ),
               LocationStep.manualArea => _ManualArea(vm: vm),
             },
           ),
@@ -47,7 +49,11 @@ class _Explain extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(),
-        Icon(Icons.near_me, size: 72, color: Theme.of(context).colorScheme.primary),
+        Icon(
+          Icons.near_me,
+          size: 72,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 24),
         Text(
           'Find study places near you',
@@ -117,7 +123,10 @@ class _ManualArea extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Choose an area', style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          'Choose an area',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
         Text(vm.refusalHelp, key: const Key('location_refusal_help')),
         const SizedBox(height: 20),
@@ -136,13 +145,13 @@ class _ManualArea extends StatelessWidget {
           key: const Key('location_area_save'),
           onPressed: () async {
             final ok = await vm.saveArea();
-            if (ok && context.mounted) context.go('/home');
+            if (ok && context.mounted) context.go('/presence');
           },
           child: const Text('Continue'),
         ),
         TextButton(
           key: const Key('location_skip'),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.go('/presence'),
           child: const Text('Skip, I will search by name'),
         ),
       ],

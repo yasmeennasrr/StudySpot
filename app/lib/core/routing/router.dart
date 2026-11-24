@@ -8,6 +8,8 @@ import '../../features/auth/sign_in_view.dart';
 import '../../features/auth/terms_view.dart';
 import '../../features/favorites/view.dart';
 import '../../features/permissions/location_view.dart';
+import '../../features/permissions/presence_prompt_view.dart';
+import '../../features/permissions/presence_response_view.dart';
 import '../../features/preferences/view.dart';
 import '../../features/search/search_view.dart';
 import '../../features/studymatch/studymatch_view.dart';
@@ -16,10 +18,16 @@ import '../services.dart';
 
 /// Screens that need a signed-in user (FR-007). Visitors can still search and
 /// view places (FR-006). M6: add protected routes here if you create any.
-const protectedRoutes = {'/account', '/account/edit', '/preferences', '/favorites', '/studymatch'};
+const protectedRoutes = {
+  '/account',
+  '/account/edit',
+  '/preferences',
+  '/favorites',
+  '/studymatch',
+};
 
 /// Screen flow:
-///   first launch: /terms -> /location -> /home
+///   first launch: /terms -> /location -> /presence -> /home
 ///   /home (search list + map) -> /venues/:id (details); /signin or /account
 ///   /signin <-> /register; protected screens redirect to /signin?from=...
 GoRouter buildRouter(AppServices services) {
@@ -30,10 +38,35 @@ GoRouter buildRouter(AppServices services) {
       services,
       location: state.matchedLocation,
       from: state.uri.queryParameters['from'],
+      simulatedPresenceResponse: state.uri.queryParameters['demo'] == 'true',
     ),
     routes: [
       GoRoute(path: '/terms', builder: (context, state) => const TermsView()),
-      GoRoute(path: '/location', builder: (context, state) => const LocationView()),
+      GoRoute(
+        path: '/location',
+        builder: (context, state) => const LocationView(),
+      ),
+      GoRoute(
+        path: '/presence',
+        builder: (context, state) => PresencePromptView(
+          onboarding: state.uri.queryParameters['onboarding'] != 'false',
+        ),
+      ),
+      GoRoute(
+        path: '/presence/respond',
+        redirect: (context, state) {
+          if (services.session.isSignedIn ||
+              state.uri.queryParameters['demo'] == 'true') {
+            return null;
+          }
+          return '/signin?from=${Uri.encodeComponent(state.uri.toString())}';
+        },
+        builder: (context, state) => PresenceResponseView(
+          venueId: state.uri.queryParameters['venueId']!,
+          venueName: state.uri.queryParameters['venueName'] ?? 'this venue',
+          simulated: state.uri.queryParameters['demo'] == 'true',
+        ),
+      ),
       GoRoute(path: '/home', builder: (context, state) => const SearchView()),
       GoRoute(
         path: '/signin',
@@ -45,11 +78,26 @@ GoRouter buildRouter(AppServices services) {
         builder: (context, state) =>
             RegisterView(from: state.uri.queryParameters['from']),
       ),
-      GoRoute(path: '/account', builder: (context, state) => const AccountView()),
-      GoRoute(path: '/account/edit', builder: (context, state) => const EditAccountView()),
-      GoRoute(path: '/preferences', builder: (context, state) => const PreferencesView()),
-      GoRoute(path: '/favorites', builder: (context, state) => const FavoritesView()),
-      GoRoute(path: '/studymatch', builder: (context, state) => const StudyMatchView()),
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => const AccountView(),
+      ),
+      GoRoute(
+        path: '/account/edit',
+        builder: (context, state) => const EditAccountView(),
+      ),
+      GoRoute(
+        path: '/preferences',
+        builder: (context, state) => const PreferencesView(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesView(),
+      ),
+      GoRoute(
+        path: '/studymatch',
+        builder: (context, state) => const StudyMatchView(),
+      ),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>
@@ -61,11 +109,24 @@ GoRouter buildRouter(AppServices services) {
 
 /// Where to send the user instead of [location], or null to stay. Kept as a
 /// plain function so the rules can be unit-tested.
-String? appRedirect(AppServices services, {required String location, String? from}) {
+String? appRedirect(
+  AppServices services, {
+  required String location,
+  String? from,
+  bool simulatedPresenceResponse = false,
+}) {
   final flags = services.flags;
   if (!flags.termsAccepted) return location == '/terms' ? null : '/terms';
   if (!flags.locationAsked && location != '/location' && location != '/terms') {
     return '/location';
+  }
+  if (flags.locationAsked &&
+      !flags.presenceIntroSeen &&
+      location != '/presence' &&
+      !(simulatedPresenceResponse && location == '/presence/respond') &&
+      location != '/terms' &&
+      location != '/location') {
+    return '/presence';
   }
   final signedIn = services.session.isSignedIn;
   if (!signedIn && protectedRoutes.contains(location)) {
