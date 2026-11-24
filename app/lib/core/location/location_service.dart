@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 enum LocationAccess {
@@ -31,11 +34,27 @@ abstract class LocationService {
   /// Requests the stronger permission used by the optional presence prompt.
   Future<LocationAccess> requestBackgroundAccess();
 
+  /// Location samples received while optional presence check-ins are enabled.
+  Stream<DevicePosition> get presenceUpdates;
+
+  /// Starts OS location updates after background access has been granted.
+  Future<bool> startPresenceUpdates();
+
+  /// Stops OS location updates when the user turns the feature off.
+  Future<void> stopPresenceUpdates();
+
   /// Null when access is not granted or the position can't be read.
   Future<DevicePosition?> currentPosition();
 }
 
 class GeolocatorLocationService implements LocationService {
+  final StreamController<DevicePosition> _presenceUpdates =
+      StreamController<DevicePosition>.broadcast();
+  StreamSubscription<Position>? _presenceSubscription;
+
+  @override
+  Stream<DevicePosition> get presenceUpdates => _presenceUpdates.stream;
+
   LocationAccess _map(LocationPermission p) {
     switch (p) {
       case LocationPermission.always:
@@ -84,6 +103,61 @@ class GeolocatorLocationService implements LocationService {
   }
 
   @override
+  Future<bool> startPresenceUpdates() async {
+    if (_presenceSubscription != null) return true;
+    if (await currentAccess() != LocationAccess.backgroundGranted) return false;
+
+    _presenceSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: _presenceLocationSettings(),
+        ).listen(
+          (position) => _presenceUpdates.add(
+            DevicePosition(position.latitude, position.longitude),
+          ),
+          onError: (Object error, StackTrace stackTrace) {
+            _presenceUpdates.addError(error, stackTrace);
+            _presenceSubscription = null;
+          },
+          onDone: () => _presenceSubscription = null,
+        );
+    return true;
+  }
+
+  @override
+  Future<void> stopPresenceUpdates() async {
+    await _presenceSubscription?.cancel();
+    _presenceSubscription = null;
+  }
+
+  LocationSettings _presenceLocationSettings() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 50,
+        intervalDuration: const Duration(minutes: 15),
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: 'StudySpot presence check-ins',
+          notificationText: 'Location is used for optional venue check-ins.',
+          enableWakeLock: false,
+        ),
+      );
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.medium,
+        activityType: ActivityType.other,
+        distanceFilter: 50,
+        pauseLocationUpdatesAutomatically: false,
+        showBackgroundLocationIndicator: true,
+      );
+    }
+    return const LocationSettings(
+      accuracy: LocationAccuracy.medium,
+      distanceFilter: 50,
+    );
+  }
+
+  @override
   Future<DevicePosition?> currentPosition() async {
     // SEN-002: never touch the location without permission.
     final access = await currentAccess();
@@ -117,6 +191,12 @@ class FakeLocationService implements LocationService {
   LocationAccess? answerToBackgroundRequest;
   int requests = 0;
   int backgroundRequests = 0;
+  bool presenceUpdatesStarted = false;
+  final StreamController<DevicePosition> _presenceUpdates =
+      StreamController<DevicePosition>.broadcast();
+
+  @override
+  Stream<DevicePosition> get presenceUpdates => _presenceUpdates.stream;
 
   @override
   Future<LocationAccess> currentAccess() async => access;
@@ -133,6 +213,17 @@ class FakeLocationService implements LocationService {
     backgroundRequests++;
     access = answerToBackgroundRequest ?? access;
     return access;
+  }
+
+  @override
+  Future<bool> startPresenceUpdates() async {
+    presenceUpdatesStarted = access == LocationAccess.backgroundGranted;
+    return presenceUpdatesStarted;
+  }
+
+  @override
+  Future<void> stopPresenceUpdates() async {
+    presenceUpdatesStarted = false;
   }
 
   @override
