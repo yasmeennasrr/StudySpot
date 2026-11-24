@@ -33,6 +33,8 @@ class _PresencePromptViewState extends State<PresencePromptView> {
       _message = null;
     });
     LocationAccess result;
+    var pushUnavailable = false;
+    var pushPermissionDenied = false;
     try {
       result = await services.location.requestBackgroundAccess();
     } catch (_) {
@@ -42,23 +44,49 @@ class _PresencePromptViewState extends State<PresencePromptView> {
     var granted = false;
     try {
       granted = result == LocationAccess.backgroundGranted;
+      if (granted && !services.push.isAvailable) {
+        pushUnavailable = true;
+        granted = false;
+      }
+      if (granted) {
+        granted = await services.push.requestPermission();
+        pushPermissionDenied = !granted;
+      }
       if (granted && services.session.isSignedIn) {
+        await services.api.setPresencePromptsEnabled(true);
+        final installationId =
+            await services.push.registerAndGetInstallationId();
+        if (installationId == null) {
+          throw StateError('Firebase installation registration unavailable');
+        }
+        await services.api.registerPushInstallation(installationId);
         granted = await services.location.startPresenceUpdates();
       }
     } catch (_) {
       granted = false;
     }
     await services.flags.setPresencePromptsEnabled(granted);
+    if (!granted && services.session.isSignedIn) {
+      try {
+        await services.api.setPresencePromptsEnabled(false);
+      } catch (_) {}
+    }
     setState(() {
       _busy = false;
       _enabled = granted;
       _message = granted
           ? services.session.isSignedIn
-                ? 'Background location is enabled. StudySpot will ask you to '
-                    'confirm before counting you as present.'
-                : 'Background location is enabled. Check-ins will start after '
-                    'you sign in.'
+                ? 'Background location and notifications are enabled. '
+                    'StudySpot will ask you to confirm before counting you as present.'
+                : 'Background location and notifications are enabled. '
+                    'Check-ins will start after you sign in.'
           : switch (result) {
+              _ when pushUnavailable =>
+                'Push notifications are not configured in this build. '
+                    'You can still use foreground location and receipt check-ins.',
+              _ when pushPermissionDenied =>
+                'Notification permission was not enabled. Presence check-ins '
+                    'need notifications; receipt check-ins still work.',
               LocationAccess.serviceOff =>
                 'Location is turned off on this phone. You can enable it in '
                     'phone settings; receipt check-ins still work.',
@@ -80,6 +108,11 @@ class _PresencePromptViewState extends State<PresencePromptView> {
     await services.location.stopPresenceUpdates();
     final flags = services.flags;
     await flags.setPresencePromptsEnabled(false);
+    if (services.session.isSignedIn) {
+      try {
+        await services.api.setPresencePromptsEnabled(false);
+      } catch (_) {}
+    }
     await flags.markPresenceIntroSeen();
     if (mounted) _leave();
   }
@@ -88,6 +121,11 @@ class _PresencePromptViewState extends State<PresencePromptView> {
     final services = AppScope.of(context);
     await services.location.stopPresenceUpdates();
     await services.flags.setPresencePromptsEnabled(false);
+    if (services.session.isSignedIn) {
+      try {
+        await services.api.setPresencePromptsEnabled(false);
+      } catch (_) {}
+    }
     if (!mounted) return;
     setState(() {
       _enabled = false;
@@ -143,7 +181,8 @@ class _PresencePromptViewState extends State<PresencePromptView> {
               'prompt during that visit. We only count you after you confirm. '
               'While enabled, your phone may provide location updates in the '
               'background. Updates depend on your phone and may not arrive '
-              'at fixed times.',
+              'at fixed times. You need to allow notifications so StudySpot can '
+              'ask you when a visit is detected.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

@@ -4,7 +4,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { DomainEvent, type PresenceDwellEvent } from '../../common/events/domain-events';
 import { CLOCK, CONFIG, type IClock, type IConfig, type IPresence } from '../../contracts';
-import { PresenceRecordEntity, PresenceVisitEntity, VenueEntity } from '../../db/entities';
+import {
+  PresenceRecordEntity,
+  PresenceVisitEntity,
+  UserEntity,
+  VenueEntity,
+} from '../../db/entities';
 
 /**
  * Presence (PB-18). Resolves location samples against the indexed venue points,
@@ -18,6 +23,8 @@ export class PresenceService implements IPresence {
     private readonly records: Repository<PresenceRecordEntity>,
     @InjectRepository(PresenceVisitEntity)
     private readonly visits: Repository<PresenceVisitEntity>,
+    @InjectRepository(UserEntity)
+    private readonly users: Repository<UserEntity>,
     @InjectRepository(VenueEntity)
     private readonly venues: Repository<VenueEntity>,
     @Inject(CONFIG) private readonly config: IConfig,
@@ -29,36 +36,43 @@ export class PresenceService implements IPresence {
     userId: string,
     lat: number,
     lng: number,
-    confirmed: boolean,
   ): Promise<{ venueId: string | null }> {
+    const user = await this.users.findOne({
+      where: { id: userId },
+      select: { id: true, presencePromptsEnabled: true },
+    });
+    if (!user?.presencePromptsEnabled) return { venueId: null };
+
     const venueId = await this.findVenue(lat, lng);
-    if (confirmed) {
-      if (!venueId) return { venueId: null };
-      const recordedAt = this.clock.now();
-      let accepted = false;
-      await this.visits.manager.transaction(async (manager) => {
-        await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [userId]);
-        const visits = manager.getRepository(PresenceVisitEntity);
-        const visit = await visits.findOne({ where: { userId, venueId, active: true } });
-        // A location only counts after the user answers the dwell prompt.
-        if (!visit?.promptedAt) return;
-        visit.confirmedAt = recordedAt;
-        visit.lastSeenAt = recordedAt;
-        await visits.save(visit);
+    const event = await this.updateVisitCandidate(userId, venueId);
+    if (event) this.events.emit(DomainEvent.PresenceDwell, event);
+    return { venueId };
+  }
+
+  async respondToPrompt(userId: string, venueId: string, confirmed: boolean): Promise<boolean> {
+    const now = this.clock.now();
+    let accepted = false;
+    await this.visits.manager.transaction(async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [userId]);
+      const visits = manager.getRepository(PresenceVisitEntity);
+      const visit = await visits.findOne({ where: { userId, venueId, active: true } });
+      if (!visit?.promptedAt || visit.respondedAt) return;
+
+      visit.respondedAt = now;
+      if (confirmed) {
+        visit.confirmedAt = now;
+        visit.lastSeenAt = now;
         await manager.getRepository(PresenceRecordEntity).save({
           userId,
           venueId,
           source: 'location',
-          recordedAt,
+          recordedAt: now,
         });
-        accepted = true;
-      });
-      return { venueId: accepted ? venueId : null };
-    }
-
-    const event = await this.updateVisitCandidate(userId, venueId);
-    if (event) this.events.emit(DomainEvent.PresenceDwell, event);
-    return { venueId };
+      }
+      await visits.save(visit);
+      accepted = true;
+    });
+    return accepted;
   }
 
   async recordReceiptScan(userId: string, venueId: string): Promise<void> {

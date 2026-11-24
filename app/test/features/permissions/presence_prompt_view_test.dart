@@ -19,7 +19,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(w.location.backgroundRequests, 1);
-    expect(w.location.presenceUpdatesStarted, isTrue);
+    expect(w.push.permissionRequests, 1);
+    // Onboarding is shown before sign-in; updates begin after the session starts.
+    expect(w.location.presenceUpdatesStarted, isFalse);
     expect(w.flags.presencePromptsEnabled, isTrue);
     await tester.scrollUntilVisible(
       find.byKey(const Key('presence_continue')),
@@ -35,6 +37,8 @@ void main() {
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
 
+    await tester.drag(find.byType(ListView), const Offset(0, -240));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('presence_not_now')));
     await tester.pumpAndSettle();
 

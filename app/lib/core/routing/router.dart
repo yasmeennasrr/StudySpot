@@ -8,6 +8,7 @@ import '../../features/auth/terms_view.dart';
 import '../../features/favorites/view.dart';
 import '../../features/permissions/location_view.dart';
 import '../../features/permissions/presence_prompt_view.dart';
+import '../../features/permissions/presence_response_view.dart';
 import '../../features/preferences/view.dart';
 import '../../features/search/search_view.dart';
 import '../../features/venue_details/details_view.dart';
@@ -40,6 +41,17 @@ GoRouter buildRouter(AppServices services) {
         path: '/presence',
         builder: (context, state) => PresencePromptView(
           onboarding: state.uri.queryParameters['onboarding'] != 'false',
+        ),
+      ),
+      GoRoute(
+        path: '/presence/respond',
+        redirect: (context, state) {
+          if (services.session.isSignedIn) return null;
+          return '/signin?from=${Uri.encodeComponent(state.uri.toString())}';
+        },
+        builder: (context, state) => PresenceResponseView(
+          venueId: state.uri.queryParameters['venueId']!,
+          venueName: state.uri.queryParameters['venueName'] ?? 'this venue',
         ),
       ),
       GoRoute(path: '/home', builder: (context, state) => const SearchView()),

@@ -198,6 +198,9 @@ export class PresenceVisitEntity {
 
   @Column({ name: 'confirmed_at', type: 'timestamptz', nullable: true })
   confirmedAt: Date | null;
+
+  @Column({ name: 'responded_at', type: 'timestamptz', nullable: true })
+  respondedAt: Date | null;
 }
 
 /** One-time receipt codes (DATA-010, QR-001..QR-013). Token: 128 random bits, base64url (SDS 6.6.7). */

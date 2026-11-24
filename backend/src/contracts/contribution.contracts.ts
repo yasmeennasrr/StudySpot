@@ -18,8 +18,9 @@ export interface IPresence {
     userId: string,
     lat: number,
     lng: number,
-    confirmed: boolean,
   ): Promise<{ venueId: string | null }>;
+  /** Applies the student's explicit response to a previously sent dwell prompt. */
+  respondToPrompt(userId: string, venueId: string, confirmed: boolean): Promise<boolean>;
   recordReceiptScan(userId: string, venueId: string): Promise<void>;
   isPresent(userId: string, venueId: string): Promise<boolean>;
   countPresent(venueId: string): Promise<number>;

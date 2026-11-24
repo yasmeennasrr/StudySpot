@@ -1,7 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PRESENCE } from '../../contracts';
-import { PresenceRecordEntity, PresenceVisitEntity, VenueEntity } from '../../db/entities';
+import {
+  PresenceRecordEntity,
+  PresenceVisitEntity,
+  UserEntity,
+  VenueEntity,
+} from '../../db/entities';
 import { AccountsModule } from '../accounts/accounts.module';
 import { ClockModule } from '../clock/clock.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
@@ -15,8 +20,7 @@ import { PresenceService } from './presence.service';
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PresenceRecordEntity, VenueEntity]),
-    TypeOrmModule.forFeature([PresenceVisitEntity]),
+    TypeOrmModule.forFeature([PresenceRecordEntity, PresenceVisitEntity, UserEntity, VenueEntity]),
     AccountsModule,
     ConfigurationModule,
     ClockModule,

@@ -4,6 +4,7 @@ import 'api/api_client.dart';
 import 'auth/session.dart';
 import 'auth/token_store.dart';
 import 'location/location_service.dart';
+import 'notifications/push_service.dart';
 import 'storage/local_flags.dart';
 
 /// The app's shared objects, created once in main.dart. Tests build their own
@@ -14,12 +15,14 @@ class AppServices {
     required this.tokens,
     required this.flags,
     required this.location,
+    required this.push,
   }) : session = Session(api: api, tokens: tokens);
 
   final ApiClient api;
   final TokenStore tokens;
   final LocalFlags flags;
   final LocationService location;
+  final PushService push;
   final Session session;
 }
 

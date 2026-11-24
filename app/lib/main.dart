@@ -6,6 +6,7 @@ import 'app.dart';
 import 'core/api/dio_api_client.dart';
 import 'core/auth/token_store.dart';
 import 'core/location/location_service.dart';
+import 'core/notifications/push_service.dart';
 import 'core/services.dart';
 import 'core/storage/local_flags.dart';
 
@@ -14,13 +15,16 @@ Future<void> main() async {
 
   final tokens = SecureTokenStore();
   final flags = SharedPrefsFlags();
+  final push = FirebasePushService();
   await flags.load();
+  await push.initialize();
 
   final services = AppServices(
     api: DioApiClient(tokens: tokens),
     tokens: tokens,
     flags: flags,
     location: GeolocatorLocationService(),
+    push: push,
   );
   await services.session.restore();
   _connectPresenceUpdates(services);
@@ -39,13 +43,17 @@ void _connectPresenceUpdates(AppServices services) {
     }
     unawaited(_reportPresenceSample(services, position.lat, position.lng));
   });
+  services.push.registrationChanges.listen((token) {
+    if (services.session.isSignedIn && services.flags.presencePromptsEnabled) {
+      unawaited(_registerPushToken(services, token));
+    }
+  });
   services.session.addListener(() => unawaited(_syncPresenceUpdates(services)));
   unawaited(_syncPresenceUpdates(services));
 }
 
 Future<void> _syncPresenceUpdates(AppServices services) async {
-  if (!services.flags.presencePromptsEnabled ||
-      !services.session.isSignedIn) {
+  if (!services.flags.presencePromptsEnabled || !services.session.isSignedIn) {
     await services.location.stopPresenceUpdates();
     return;
   }
@@ -53,6 +61,32 @@ Future<void> _syncPresenceUpdates(AppServices services) async {
   if (await services.location.currentAccess() !=
       LocationAccess.backgroundGranted) {
     await services.flags.setPresencePromptsEnabled(false);
+    await services.location.stopPresenceUpdates();
+    await _setPresencePreference(services, false);
+    return;
+  }
+
+  if (!services.push.isAvailable) {
+    await services.flags.setPresencePromptsEnabled(false);
+    await services.location.stopPresenceUpdates();
+    await _setPresencePreference(services, false);
+    return;
+  }
+
+  if (!await services.push.notificationsAllowed()) {
+    await services.flags.setPresencePromptsEnabled(false);
+    await services.location.stopPresenceUpdates();
+    await _setPresencePreference(services, false);
+    return;
+  }
+
+  try {
+    await _setPresencePreference(services, true);
+    final token = await services.push.registerAndGetInstallationId();
+    if (token == null) return;
+    await services.api.registerPushInstallation(token);
+  } catch (_) {
+    // Leave location updates off until the backend can register this device.
     await services.location.stopPresenceUpdates();
     return;
   }
@@ -62,6 +96,22 @@ Future<void> _syncPresenceUpdates(AppServices services) async {
     if (position != null) {
       await _reportPresenceSample(services, position.lat, position.lng);
     }
+  }
+}
+
+Future<void> _setPresencePreference(AppServices services, bool enabled) async {
+  try {
+    await services.api.setPresencePromptsEnabled(enabled);
+  } catch (_) {
+    if (enabled) rethrow;
+  }
+}
+
+Future<void> _registerPushToken(AppServices services, String token) async {
+  try {
+    await services.api.registerPushInstallation(token);
+  } catch (_) {
+    // FCM will emit another token refresh if this installation rotates tokens.
   }
 }
 

@@ -57,16 +57,16 @@ class MockApiClient extends ApiClient {
   }
 
   AuthTokens _tokensFor(String email) => AuthTokens(
-        accessToken: 'mock-access-$email',
-        expiresIn: 900,
-        refreshToken: 'mock-refresh-$email',
-        user: AuthUser(
-          id: '00000000-0000-4000-8000-000000000001',
-          email: email,
-          displayName: displayNames[email] ?? email,
-          role: 'user',
-        ),
-      );
+    accessToken: 'mock-access-$email',
+    expiresIn: 900,
+    refreshToken: 'mock-refresh-$email',
+    user: AuthUser(
+      id: '00000000-0000-4000-8000-000000000001',
+      email: email,
+      displayName: displayNames[email] ?? email,
+      role: 'user',
+    ),
+  );
 
   @override
   Future<bool> wakeUp() async {
@@ -95,7 +95,10 @@ class MockApiClient extends ApiClient {
   }
 
   @override
-  Future<AuthTokens> login({required String email, required String password}) async {
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async {
     await _step();
     final key = email.trim().toLowerCase();
     if (accounts[key] != password) {
@@ -113,7 +116,10 @@ class MockApiClient extends ApiClient {
     await _step();
     if (!refreshToken.startsWith('mock-refresh-')) {
       throw const ApiError(
-          code: 'UNAUTHENTICATED', statusCode: 401, message: 'Please sign in again.');
+        code: 'UNAUTHENTICATED',
+        statusCode: 401,
+        message: 'Please sign in again.',
+      );
     }
     return _tokensFor(refreshToken.substring('mock-refresh-'.length));
   }
@@ -164,6 +170,7 @@ class MockApiClient extends ApiClient {
   /// Every venue call, e.g. "search q=quiet", "nearby", "browse": tests check
   /// which endpoint the screen chose (FR-009 to FR-012).
   final List<String> venueCalls = [];
+  final List<({String venueId, bool confirmed})> presencePromptResponses = [];
 
   /// Filters sent with the last venue call.
   Map<String, Object> lastFilters = const {};
@@ -173,10 +180,14 @@ class MockApiClient extends ApiClient {
   bool degradedSearch = false;
 
   SearchResult _result(List<VenueSummary> items) => SearchResult(
-      items: returnNoVenues ? const [] : items, degraded: degradedSearch);
+    items: returnNoVenues ? const [] : items,
+    degraded: degradedSearch,
+  );
 
   @override
-  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}}) async {
+  Future<SearchResult> browseVenues({
+    Map<String, Object> filters = const {},
+  }) async {
     venueCalls.add('browse');
     lastFilters = Map.of(filters)..remove('maxDistance');
     await _step();
@@ -192,20 +203,26 @@ class MockApiClient extends ApiClient {
     double? lng,
     Map<String, Object> filters = const {},
   }) async {
-    venueCalls.add([
-      'search',
-      if (q != null) 'q=$q',
-      if (area != null) 'area=$area',
-      if (lat != null) 'point',
-    ].join(' '));
+    venueCalls.add(
+      [
+        'search',
+        if (q != null) 'q=$q',
+        if (area != null) 'area=$area',
+        if (lat != null) 'point',
+      ].join(' '),
+    );
     lastFilters = filters;
     await _step();
     final text = (q ?? area ?? '').toLowerCase();
-    return _result(venues
-        .where((v) =>
-            v.name.toLowerCase().contains(text) ||
-            (v.area ?? '').toLowerCase().contains(text))
-        .toList());
+    return _result(
+      venues
+          .where(
+            (v) =>
+                v.name.toLowerCase().contains(text) ||
+                (v.area ?? '').toLowerCase().contains(text),
+          )
+          .toList(),
+    );
   }
 
   @override
@@ -229,13 +246,36 @@ class MockApiClient extends ApiClient {
   }
 
   @override
+  Future<bool> respondToPresencePrompt({
+    required String venueId,
+    required bool confirmed,
+  }) async {
+    await _step();
+    presencePromptResponses.add((venueId: venueId, confirmed: confirmed));
+    return true;
+  }
+
+  @override
+  Future<void> registerPushInstallation(String installationId) async {
+    await _step();
+  }
+
+  @override
+  Future<void> setPresencePromptsEnabled(bool enabled) async {
+    await _step();
+  }
+
+  @override
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     venueCalls.add('details');
     await _step();
     final v = venues.firstWhere(
       (v) => v.id == venueId,
       orElse: () => throw const ApiError(
-          code: 'NOT_FOUND', statusCode: 404, message: 'This place was not found.'),
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        message: 'This place was not found.',
+      ),
     );
     return {
       'static': {
@@ -246,10 +286,10 @@ class MockApiClient extends ApiClient {
         'area': v.area,
         'openingHours': {
           '0': [
-            {'open': '08:00', 'close': '23:00'}
+            {'open': '08:00', 'close': '23:00'},
           ],
           '5': [
-            {'open': '12:00', 'close': '02:00'}
+            {'open': '12:00', 'close': '02:00'},
           ],
         },
         'priceLevel': v.priceLevel,

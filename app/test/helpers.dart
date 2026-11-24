@@ -1,6 +1,7 @@
 import 'package:studyspot/core/api/mock_api_client.dart';
 import 'package:studyspot/core/auth/token_store.dart';
 import 'package:studyspot/core/location/location_service.dart';
+import 'package:studyspot/core/notifications/push_service.dart';
 import 'package:studyspot/core/services.dart';
 import 'package:studyspot/core/storage/local_flags.dart';
 
@@ -19,11 +20,13 @@ class TestWorld {
          presenceIntroSeen: presenceIntroSeen,
        ),
        location = FakeLocationService(access: locationAccess) {
+    push = FakePushService();
     services = AppServices(
       api: api,
       tokens: tokens,
       flags: flags,
       location: location,
+      push: push,
     );
   }
 
@@ -31,5 +34,6 @@ class TestWorld {
   final MemoryTokenStore tokens;
   final MemoryFlags flags;
   final FakeLocationService location;
+  late final FakePushService push;
   late final AppServices services;
 }
