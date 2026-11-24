@@ -9,6 +9,7 @@ import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
+import '../models/survey.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -376,6 +377,14 @@ class DioApiClient extends ApiClient {
   @override
   Future<void> reportReview(String reviewId) async {
     await _send(() => _dio.post<dynamic>('/reviews/$reviewId/reports'));
+  }
+
+  @override
+  Future<StoredSurvey> submitSurvey(String venueId, SurveyAnswers answers) async {
+    final response = await _send(
+      () => _dio.post<dynamic>('/venues/$venueId/surveys', data: answers.toJson()),
+    );
+    return StoredSurvey.fromJson(_json(response));
   }
 
   @override

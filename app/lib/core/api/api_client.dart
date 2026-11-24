@@ -5,6 +5,7 @@ import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
+import '../models/survey.dart';
 import '../models/venue.dart';
 
 /// Everything the app asks the backend (contracts/openapi.yaml).
@@ -102,6 +103,10 @@ abstract class ApiClient {
 
   /// Reports someone else's review to the moderators. Safe to repeat.
   Future<void> reportReview(String reviewId);
+
+  // Surveys (PB-17)
+  /// Submit at least one optional crowd, noise, or Wi-Fi answer for a venue.
+  Future<StoredSurvey> submitSurvey(String venueId, SurveyAnswers answers);
 
   // StudyMatch (M2: PB-29, UC-05)
   /// POST /studymatch. Send [lat]/[lng] only when location is granted (AI-003).
