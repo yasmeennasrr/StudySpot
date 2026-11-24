@@ -221,6 +221,14 @@ class MockApiClient extends ApiClient {
   }
 
   @override
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  }) async {
+    await _step();
+  }
+
+  @override
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     venueCalls.add('details');
     await _step();

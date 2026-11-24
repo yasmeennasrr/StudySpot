@@ -9,6 +9,7 @@ import {
 import {
   DynamicRecordEntity,
   PresenceRecordEntity,
+  PresenceVisitEntity,
   ReceiptCodeEntity,
   SurveyEntity,
   VenueApiKeyEntity,
@@ -35,6 +36,7 @@ export const ALL_ENTITIES = [
   SurveyEntity,
   DynamicRecordEntity,
   PresenceRecordEntity,
+  PresenceVisitEntity,
   ReceiptCodeEntity,
   VenueApiKeyEntity,
   CouponOfferEntity,

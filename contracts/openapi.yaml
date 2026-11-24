@@ -289,6 +289,62 @@ paths:
         '204': { description: Removed }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /me/presence/location:
+    post:
+      tags: [me]
+      summary: Submit an opted-in location sample for a possible presence visit
+      operationId: reportPresenceLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number, minimum: -90, maximum: 90 }
+                lng: { type: number, minimum: -180, maximum: 180 }
+      responses:
+        '200':
+          description: Sample accepted; raw coordinates are not retained
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [venueId]
+                properties:
+                  venueId: { type: string, format: uuid, nullable: true }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence/confirm:
+    post:
+      tags: [me]
+      summary: Confirm presence at the venue returned by a fresh location sample
+      operationId: confirmPresence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number, minimum: -90, maximum: 90 }
+                lng: { type: number, minimum: -180, maximum: 180 }
+      responses:
+        '200':
+          description: Confirmed if a venue is within the configured radius
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [venueId]
+                properties:
+                  venueId: { type: string, format: uuid, nullable: true }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
   /me/favorites:
     get:
       tags: [me]

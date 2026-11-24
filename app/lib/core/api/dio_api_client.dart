@@ -230,6 +230,19 @@ class DioApiClient extends ApiClient {
   }
 
   @override
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  }) async {
+    await _send(
+      () => _dio.post<dynamic>(
+        '/me/presence/location',
+        data: {'lat': lat, 'lng': lng},
+      ),
+    );
+  }
+
+  @override
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     final r = await _send(() => _dio.get<dynamic>('/venues/$venueId'));
     return _json(r);

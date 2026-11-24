@@ -41,9 +41,10 @@ class _PresencePromptViewState extends State<PresencePromptView> {
     if (!mounted) return;
     var granted = false;
     try {
-      granted =
-          result == LocationAccess.backgroundGranted &&
-          await services.location.startPresenceUpdates();
+      granted = result == LocationAccess.backgroundGranted;
+      if (granted && services.session.isSignedIn) {
+        granted = await services.location.startPresenceUpdates();
+      }
     } catch (_) {
       granted = false;
     }
@@ -52,8 +53,11 @@ class _PresencePromptViewState extends State<PresencePromptView> {
       _busy = false;
       _enabled = granted;
       _message = granted
-          ? 'Background location is enabled. StudySpot will ask you to confirm '
-                'before counting you as present.'
+          ? services.session.isSignedIn
+                ? 'Background location is enabled. StudySpot will ask you to '
+                    'confirm before counting you as present.'
+                : 'Background location is enabled. Check-ins will start after '
+                    'you sign in.'
           : switch (result) {
               LocationAccess.serviceOff =>
                 'Location is turned off on this phone. You can enable it in '

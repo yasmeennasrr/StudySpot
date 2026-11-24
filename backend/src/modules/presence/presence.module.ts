@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PRESENCE } from '../../contracts';
-import { PresenceRecordEntity, VenueEntity } from '../../db/entities';
+import { PresenceRecordEntity, PresenceVisitEntity, VenueEntity } from '../../db/entities';
+import { AccountsModule } from '../accounts/accounts.module';
 import { ClockModule } from '../clock/clock.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
-import { StubPresenceService } from './presence.service.stub';
+import { PresenceController } from './presence.controller';
+import { PresenceService } from './presence.service';
 
 /**
  * Presence (new in SDS v0.3). Built in Sprint 2. Provides IPresence.
@@ -14,10 +16,13 @@ import { StubPresenceService } from './presence.service.stub';
 @Module({
   imports: [
     TypeOrmModule.forFeature([PresenceRecordEntity, VenueEntity]),
+    TypeOrmModule.forFeature([PresenceVisitEntity]),
+    AccountsModule,
     ConfigurationModule,
     ClockModule,
   ],
-  providers: [{ provide: PRESENCE, useClass: StubPresenceService }],
+  controllers: [PresenceController],
+  providers: [{ provide: PRESENCE, useClass: PresenceService }],
   exports: [PRESENCE],
 })
 export class PresenceModule {}

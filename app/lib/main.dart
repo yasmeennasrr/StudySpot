@@ -23,20 +23,56 @@ Future<void> main() async {
     location: GeolocatorLocationService(),
   );
   await services.session.restore();
-
-  // Resume optional background updates only when the user enabled the feature
-  // and the OS still grants Always/background access.
-  if (flags.presencePromptsEnabled) {
-    if (await services.location.currentAccess() ==
-        LocationAccess.backgroundGranted) {
-      await services.location.startPresenceUpdates();
-    } else {
-      await flags.setPresencePromptsEnabled(false);
-    }
-  }
+  _connectPresenceUpdates(services);
 
   // The free server sleeps when idle; start waking it now, without waiting.
   unawaited(services.api.wakeUp());
 
   runApp(StudySpotApp(services: services));
+}
+
+void _connectPresenceUpdates(AppServices services) {
+  services.location.presenceUpdates.listen((position) {
+    if (!services.session.isSignedIn ||
+        !services.flags.presencePromptsEnabled) {
+      return;
+    }
+    unawaited(_reportPresenceSample(services, position.lat, position.lng));
+  });
+  services.session.addListener(() => unawaited(_syncPresenceUpdates(services)));
+  unawaited(_syncPresenceUpdates(services));
+}
+
+Future<void> _syncPresenceUpdates(AppServices services) async {
+  if (!services.flags.presencePromptsEnabled ||
+      !services.session.isSignedIn) {
+    await services.location.stopPresenceUpdates();
+    return;
+  }
+
+  if (await services.location.currentAccess() !=
+      LocationAccess.backgroundGranted) {
+    await services.flags.setPresencePromptsEnabled(false);
+    await services.location.stopPresenceUpdates();
+    return;
+  }
+
+  if (await services.location.startPresenceUpdates()) {
+    final position = await services.location.currentPosition();
+    if (position != null) {
+      await _reportPresenceSample(services, position.lat, position.lng);
+    }
+  }
+}
+
+Future<void> _reportPresenceSample(
+  AppServices services,
+  double lat,
+  double lng,
+) async {
+  try {
+    await services.api.reportPresenceLocation(lat: lat, lng: lng);
+  } catch (_) {
+    // A missed sample is harmless; the next OS update will retry.
+  }
 }
