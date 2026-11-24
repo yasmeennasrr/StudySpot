@@ -830,6 +830,8 @@ paths:
         When the AI is unavailable (error, open circuit, or the 9 s deadline) the answer is still 200, with
         degraded true, reasonCode AI_UNAVAILABLE and standard results: nearby places matching the saved
         preferences, or none with a prompt to use Search (AI-019, AI-029). Answers within 10 s (PERF-003).
+        For follow-ups ("which of those is cheaper?") send the last exchanges in history. It is context only:
+        facts are looked up again, and nothing is stored. A history that is not whole pairs is a 400.
         10 questions per minute per client (STUDYMATCH_LIMIT).
       operationId: askStudyMatch
       requestBody:
@@ -1145,6 +1147,20 @@ components:
         text: { type: string, minLength: 1, maxLength: 500, example: 'quiet place with good wifi near me' }
         lat: { type: number, minimum: -90, maximum: 90, description: 'Send with lng, or neither' }
         lng: { type: number, minimum: -180, maximum: 180 }
+        history:
+          type: array
+          maxItems: 6
+          description: |
+            Optional. Up to 3 earlier question/answer pairs, oldest first: a user message, then the model
+            reply to it. Text only; the app adds the names of the places shown to the reply text.
+          items: { $ref: '#/components/schemas/StudyMatchMessage' }
+    StudyMatchMessage:
+      type: object
+      additionalProperties: false
+      required: [role, text]
+      properties:
+        role: { type: string, enum: [user, model], description: 'user = the student, model = StudyMatch' }
+        text: { type: string, minLength: 1, maxLength: 1000 }
     StudyMatchAnswer:
       type: object
       required: [reply, recommendations, degraded, reasonCode]

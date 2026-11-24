@@ -183,10 +183,20 @@ class DioApiClient extends ApiClient {
   }
 
   @override
-  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  }) async {
     final r = await _send(() => _dio.post<dynamic>(
           '/studymatch',
-          data: {'text': text, 'lat': ?lat, 'lng': ?lng},
+          data: {
+            'text': text,
+            'lat': ?lat,
+            'lng': ?lng,
+            if (history.isNotEmpty) 'history': [for (final m in history) m.toJson()],
+          },
           // StudyMatch answers within 10 s (PERF-003); allow a little more.
           options: Options(receiveTimeout: const Duration(seconds: 15)),
         ));
