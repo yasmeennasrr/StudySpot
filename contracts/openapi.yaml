@@ -308,6 +308,32 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /venues/{venueId}/surveys:
+    post:
+      tags: [venues]
+      summary: Submit an in-app venue conditions survey (PB-17, CON-001..CON-008)
+      description: |
+        At least one answer is required; each question may otherwise be skipped. The venue and
+        author come from the path and signed-in session. A stored survey updates each answered
+        condition; Wi-Fi "not_used" is saved as an answer but does not contribute a Wi-Fi level.
+      operationId: submitInAppSurvey
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitSurveyRequest' }
+      responses:
+        '201':
+          description: Stored survey and reward result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StoredSurvey' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
   /me/reviews/{venueId}:
     get:
       tags: [me]
@@ -1297,6 +1323,26 @@ components:
       properties:
         rating: { type: integer, minimum: 1, maximum: 5, description: Whole stars }
         text: { type: string, nullable: true, maxLength: 1000, description: Blank text is saved as none }
+    SubmitSurveyRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        crowd: { type: string, enum: [not_crowded, slightly_crowded, moderately_crowded, very_crowded] }
+        noise: { type: string, enum: [quiet, moderate, noisy] }
+        wifi: { type: string, enum: [poor, average, good, not_used] }
+    StoredSurvey:
+      type: object
+      required: [id, venueId, userId, source, answers, submittedAt, pointsAwarded, noPointsReason]
+      properties:
+        id: { type: string, format: uuid }
+        venueId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        source: { type: string, enum: [qr, in_app] }
+        answers: { $ref: '#/components/schemas/SubmitSurveyRequest' }
+        submittedAt: { type: string, format: date-time }
+        pointsAwarded: { type: integer, minimum: 0 }
+        noPointsReason: { type: string, nullable: true }
     MyReview:
       allOf:
         - { $ref: '#/components/schemas/Review' }

@@ -5,6 +5,7 @@ import '../models/noise.dart';
 import '../models/preferences.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
+import '../models/survey.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -57,6 +58,7 @@ class MockApiClient extends ApiClient {
   /// reviews they reported.
   final Map<String, MyReview> myReviews = {};
   final Set<String> reportedReviewIds = {};
+  final List<Map<String, Object?>> surveySubmissions = [];
 
   /// PB-29: what StudyMatch answers next, and every question it was asked.
   StudyMatchAnswer? studyMatchAnswer;
@@ -501,6 +503,19 @@ class MockApiClient extends ApiClient {
           message: 'You cannot report your own review. Edit it instead.');
     }
     reportedReviewIds.add(reviewId);
+  }
+
+  @override
+  Future<StoredSurvey> submitSurvey(String venueId, SurveyAnswers answers) async {
+    await _step();
+    surveySubmissions.add({'venueId': venueId, ...answers.toJson()});
+    return StoredSurvey(
+      id: 'survey-${surveySubmissions.length}',
+      venueId: venueId,
+      submittedAt: DateTime.now().toUtc(),
+      pointsAwarded: 0,
+      noPointsReason: 'Points are not enabled in the demo.',
+    );
   }
 
   @override

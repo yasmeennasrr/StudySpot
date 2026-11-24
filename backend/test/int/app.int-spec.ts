@@ -699,4 +699,52 @@ describe('StudySpot backend on a real database (integration)', () => {
       ),
     ).rejects.toThrow(/chk_venues_price_level/);
   });
+
+  it('TC-M4-40 stores an authenticated in-app survey and refreshes venue conditions', async () => {
+    const body = {
+      crowd: 'very_crowded',
+      noise: 'quiet',
+      wifi: 'good',
+    };
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .send(body)
+      .expect(401);
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({})
+      .expect(400);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(body)
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      venueId: SAMPLE_VENUE,
+      source: 'in_app',
+      answers: body,
+      pointsAwarded: 0,
+      noPointsReason: 'Points start in Sprint 2.',
+    });
+    expect(response.body.userId).toBeDefined();
+    expect(response.body.submittedAt).toBeDefined();
+
+    const records = await db.query(
+      `SELECT condition_type, value, source_type FROM dynamic_records WHERE survey_id = $1 ORDER BY condition_type`,
+      [response.body.id],
+    );
+    expect(records).toEqual([
+      { condition_type: 'crowd', value: 3, source_type: 'in_app_survey' },
+      { condition_type: 'noise', value: 1, source_type: 'in_app_survey' },
+      { condition_type: 'wifi', value: 3, source_type: 'in_app_survey' },
+    ]);
+
+    const details = await request(app.getHttpServer()).get(`/api/v1/venues/${SAMPLE_VENUE}`);
+    expect(details.body.dynamic.crowd).toMatchObject({ status: 'current', label: 'High' });
+    expect(details.body.dynamic.noise).toMatchObject({ status: 'current', label: 'Quiet' });
+    expect(details.body.dynamic.wifi).toMatchObject({ status: 'current', label: 'Good' });
+  });
 });

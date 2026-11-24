@@ -10,6 +10,7 @@ import '../../core/widgets/view_model_builder.dart';
 import '../favorites/favorite_button.dart';
 import '../noise/noise_sample_card.dart';
 import '../reviews/reviews_section.dart';
+import '../surveys/survey_section.dart';
 import 'details_view_model.dart';
 
 /// PB-11: venue details. Dynamic conditions and static information are shown
@@ -73,6 +74,7 @@ class _Body extends StatelessWidget {
         _ConditionRow(kind: 'crowd', name: 'Crowd', value: details.conditions.crowd),
         _ConditionRow(kind: 'noise', name: 'Noise', value: details.conditions.noise),
         _ConditionRow(kind: 'wifi', name: 'Wi-Fi', value: details.conditions.wifi),
+        VenueSurveySection(venueId: v.id, onChanged: onChanged),
         NoiseSampleCard(venueId: v.id),
         const _Heading('About this place'),
         _Fact('Wi-Fi', yesNo(v.wifiAvailable)),
