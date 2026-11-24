@@ -2,7 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
-import { DomainEvent, type PresenceDwellEvent } from '../../common/events/domain-events';
+import {
+  DomainEvent,
+  type PresenceDwellEvent,
+  type PresenceChangedEvent,
+} from '../../common/events/domain-events';
 import { CLOCK, CONFIG, type IClock, type IConfig, type IPresence } from '../../contracts';
 import {
   PresenceRecordEntity,
@@ -44,8 +48,13 @@ export class PresenceService implements IPresence {
     if (!user?.presencePromptsEnabled) return { venueId: null };
 
     const venueId = await this.findVenue(lat, lng);
-    const event = await this.updateVisitCandidate(userId, venueId);
-    if (event) this.events.emit(DomainEvent.PresenceDwell, event);
+    const { dwellEvent, changedVenueIds } = await this.updateVisitCandidate(userId, venueId);
+    for (const changedVenueId of changedVenueIds) {
+      this.events.emit(DomainEvent.PresenceChanged, {
+        venueId: changedVenueId,
+      } satisfies PresenceChangedEvent);
+    }
+    if (dwellEvent) this.events.emit(DomainEvent.PresenceDwell, dwellEvent);
     return { venueId };
   }
 
@@ -72,6 +81,9 @@ export class PresenceService implements IPresence {
       await visits.save(visit);
       accepted = true;
     });
+    if (accepted && confirmed) {
+      this.events.emit(DomainEvent.PresenceChanged, { venueId } satisfies PresenceChangedEvent);
+    }
     return accepted;
   }
 
@@ -82,6 +94,7 @@ export class PresenceService implements IPresence {
       source: 'receipt_scan',
       recordedAt: this.clock.now(),
     });
+    this.events.emit(DomainEvent.PresenceChanged, { venueId } satisfies PresenceChangedEvent);
   }
 
   async isPresent(userId: string, venueId: string): Promise<boolean> {
@@ -174,13 +187,14 @@ export class PresenceService implements IPresence {
   private async updateVisitCandidate(
     userId: string,
     venueId: string | null,
-  ): Promise<PresenceDwellEvent | null> {
+  ): Promise<{ dwellEvent: PresenceDwellEvent | null; changedVenueIds: string[] }> {
     const now = this.clock.now();
     const [dwellMinutes, retentionHours] = await Promise.all([
       this.config.get('presence.dwellMinutesForPrompt'),
       this.config.get('presence.rawRetentionHours'),
     ]);
-    let event: PresenceDwellEvent | null = null;
+    let dwellEvent: PresenceDwellEvent | null = null;
+    const changedVenueIds = new Set<string>();
 
     await this.visits.manager.transaction(async (manager) => {
       // Serialize samples for one user so concurrent mobile updates cannot emit
@@ -189,7 +203,10 @@ export class PresenceService implements IPresence {
       const visits = manager.getRepository(PresenceVisitEntity);
       const active = await visits.findOne({ where: { userId, active: true } });
       if (!venueId) {
-        if (active) await visits.update(active.id, { active: false });
+        if (active) {
+          await visits.update(active.id, { active: false });
+          if (active.confirmedAt) changedVenueIds.add(active.venueId);
+        }
         return;
       }
 
@@ -200,7 +217,10 @@ export class PresenceService implements IPresence {
         visit.venueId !== venueId ||
         now.getTime() - visit.lastSeenAt.getTime() > staleAfterMs
       ) {
-        if (visit) await visits.update(visit.id, { active: false });
+        if (visit) {
+          await visits.update(visit.id, { active: false });
+          if (visit.confirmedAt) changedVenueIds.add(visit.venueId);
+        }
         visit = visits.create({
           userId,
           venueId,
@@ -220,16 +240,17 @@ export class PresenceService implements IPresence {
             source: 'location',
             recordedAt: now,
           });
+          changedVenueIds.add(visit.venueId);
         }
       }
 
       if (!visit.promptedAt && now.getTime() - visit.startedAt.getTime() >= dwellMinutes * 60_000) {
         visit.promptedAt = now;
-        event = { userId, venueId, since: visit.startedAt };
+        dwellEvent = { userId, venueId, since: visit.startedAt };
       }
       await visits.save(visit);
     });
 
-    return event;
+    return { dwellEvent, changedVenueIds: [...changedVenueIds] };
   }
 }

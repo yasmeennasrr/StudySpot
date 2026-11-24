@@ -42,7 +42,7 @@ function setup() {
     recorded_at: new Date(clock.now().getTime() - minutesAgo * 60_000),
     user_id: null,
   });
-  return { service, clock, records, setRows: (r: unknown[]) => (rows = r), noiseRow };
+  return { service, clock, records, presence, setRows: (r: unknown[]) => (rows = r), noiseRow };
 }
 
 describe('ConditionsService', () => {
@@ -82,7 +82,26 @@ describe('ConditionsService', () => {
       Reflect.getMetadata('EVENT_LISTENER_METADATA', ConditionsService.prototype[method]);
     expect(listens('onSurveyStored')[0].event).toBe(DomainEvent.SurveyStored);
     expect(listens('onNoiseRecorded')[0].event).toBe(DomainEvent.NoiseRecorded);
+    expect(listens('onPresenceChanged')[0].event).toBe(DomainEvent.PresenceChanged);
     expect(listens('onConfigChanged')[0].event).toBe(DomainEvent.ConfigChanged);
+  });
+
+  it('TC-M4-34 refreshes a cached crowd estimate when presence changes', async () => {
+    const { service, presence } = setup();
+    expect((await service.getConditions(VENUE)).crowd.status).toBe('unavailable');
+
+    (presence.countPresent as jest.Mock).mockResolvedValue(10);
+    // Without the domain event the cached value remains until its normal TTL.
+    expect((await service.getConditions(VENUE)).crowd.status).toBe('unavailable');
+
+    service.onPresenceChanged({ venueId: VENUE });
+    expect((await service.getConditions(VENUE)).crowd).toMatchObject({
+      status: 'current',
+      level: 3,
+      label: 'High',
+      basedOn: ['present_users'],
+    });
+    expect(presence.countPresent).toHaveBeenCalledTimes(2);
   });
 
   it('TC-M4-13 the daily purge deletes dynamic records older than 90 days (PRIV-013)', async () => {

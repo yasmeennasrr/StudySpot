@@ -9,6 +9,7 @@
  *   SignInFailed        Accounts       -> Audit Log (SEC-010)
  *   StaffAction         Administration -> Audit Log (FR-044)
  *   PresenceDwell       Presence       -> Notifications (SEN-014)
+ *   PresenceChanged     Presence       -> Conditions (refresh crowd estimate)
  *   ConfigChanged       Configuration  -> Conditions, Rewards (re-read limits)
  *   AiBreakerChanged    AI adapters    -> log (SDS 5.1, from Sprint 3)
  */
@@ -18,6 +19,7 @@ export enum DomainEvent {
   SignInFailed = 'auth.sign_in_failed',
   StaffAction = 'staff.action',
   PresenceDwell = 'presence.dwell',
+  PresenceChanged = 'presence.changed',
   ConfigChanged = 'config.changed',
   AiBreakerChanged = 'ai.breaker_changed',
 }
@@ -57,6 +59,10 @@ export interface PresenceDwellEvent {
   userId: string;
   venueId: string;
   since: Date;
+}
+
+export interface PresenceChangedEvent {
+  venueId: string;
 }
 
 export interface ConfigChangedEvent {
