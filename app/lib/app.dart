@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:async';
 
 import 'core/routing/router.dart';
+import 'core/notifications/push_service.dart';
 import 'core/services.dart';
 
 class StudySpotApp extends StatefulWidget {
@@ -25,16 +26,22 @@ class _StudySpotAppState extends State<StudySpotApp> {
   void initState() {
     super.initState();
     _foregroundPushSubscription = widget.services.push.foregroundMessages
-        .listen(
-          (message) => _showPresencePrompt(message.venueId, message.venueName),
-        );
+        .listen(_showPresencePrompt);
     _openedPushSubscription = widget.services.push.openedMessages.listen(
-      (message) => _openPresencePrompt(message.venueId, message.venueName),
+      (message) => _openPresencePrompt(
+        message.venueId,
+        message.venueName,
+        simulated: message.simulated,
+      ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final message = await widget.services.push.initialMessage();
       if (mounted && message != null) {
-        _openPresencePrompt(message.venueId, message.venueName);
+        _openPresencePrompt(
+          message.venueId,
+          message.venueName,
+          simulated: message.simulated,
+        );
       }
     });
   }
@@ -47,24 +54,36 @@ class _StudySpotAppState extends State<StudySpotApp> {
     super.dispose();
   }
 
-  void _showPresencePrompt(String venueId, String venueName) {
+  void _showPresencePrompt(PresencePushMessage pushMessage) {
+    final message = pushMessage.simulated
+        ? 'Demo notification: Are you at ${pushMessage.venueName}?'
+        : 'Are you at ${pushMessage.venueName}?';
     _scaffoldMessengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('Are you at $venueName?'),
+          content: Text(message),
           action: SnackBarAction(
             label: 'Answer',
-            onPressed: () => _openPresencePrompt(venueId, venueName),
+            onPressed: () => _openPresencePrompt(
+              pushMessage.venueId,
+              pushMessage.venueName,
+              simulated: pushMessage.simulated,
+            ),
           ),
         ),
       );
   }
 
-  void _openPresencePrompt(String venueId, String venueName) {
+  void _openPresencePrompt(
+    String venueId,
+    String venueName, {
+    bool simulated = false,
+  }) {
     _router.go(
       '/presence/respond?venueId=${Uri.encodeQueryComponent(venueId)}'
-      '&venueName=${Uri.encodeQueryComponent(venueName)}',
+      '&venueName=${Uri.encodeQueryComponent(venueName)}'
+      '${simulated ? '&demo=true' : ''}',
     );
   }
 

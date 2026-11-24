@@ -4,14 +4,20 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class PresencePushMessage {
-  const PresencePushMessage({required this.venueId, required this.venueName});
+  const PresencePushMessage({
+    required this.venueId,
+    required this.venueName,
+    this.simulated = false,
+  });
 
   final String venueId;
   final String venueName;
+  final bool simulated;
 }
 
 abstract class PushService {
   bool get isAvailable;
+  bool get isSimulationMode => false;
   Future<bool> requestPermission();
   Future<bool> notificationsAllowed();
   Future<String?> registerAndGetInstallationId();
@@ -19,6 +25,11 @@ abstract class PushService {
   Stream<PresencePushMessage> get foregroundMessages;
   Stream<PresencePushMessage> get openedMessages;
   Future<PresencePushMessage?> initialMessage();
+
+  void simulatePresencePrompt({
+    required String venueId,
+    required String venueName,
+  }) {}
 }
 
 /// Firebase-backed push transport. Platform Firebase files are project setup;
@@ -31,6 +42,15 @@ class FirebasePushService implements PushService {
 
   @override
   bool get isAvailable => _activeMessaging != null;
+
+  @override
+  bool get isSimulationMode => false;
+
+  @override
+  void simulatePresencePrompt({
+    required String venueId,
+    required String venueName,
+  }) {}
 
   Future<bool> initialize() async {
     try {
@@ -120,6 +140,55 @@ class FirebasePushService implements PushService {
   }
 }
 
+/// In-app push simulation used when Firebase isn't configured for the demo.
+/// It never registers a device or records presence with the backend.
+class DemoPushService implements PushService {
+  final StreamController<PresencePushMessage> _foreground =
+      StreamController<PresencePushMessage>.broadcast();
+
+  @override
+  bool get isAvailable => false;
+
+  @override
+  bool get isSimulationMode => true;
+
+  @override
+  Future<bool> requestPermission() async => false;
+
+  @override
+  Future<bool> notificationsAllowed() async => false;
+
+  @override
+  Future<String?> registerAndGetInstallationId() async => null;
+
+  @override
+  Stream<String> get registrationChanges => const Stream<String>.empty();
+
+  @override
+  Stream<PresencePushMessage> get foregroundMessages => _foreground.stream;
+
+  @override
+  Stream<PresencePushMessage> get openedMessages =>
+      const Stream<PresencePushMessage>.empty();
+
+  @override
+  Future<PresencePushMessage?> initialMessage() async => null;
+
+  @override
+  void simulatePresencePrompt({
+    required String venueId,
+    required String venueName,
+  }) {
+    _foreground.add(
+      PresencePushMessage(
+        venueId: venueId,
+        venueName: venueName,
+        simulated: true,
+      ),
+    );
+  }
+}
+
 /// Deterministic push fake for widget tests.
 class FakePushService implements PushService {
   FakePushService({this.available = true, this.permissionGranted = true});
@@ -131,6 +200,15 @@ class FakePushService implements PushService {
 
   @override
   bool get isAvailable => available;
+
+  @override
+  bool get isSimulationMode => false;
+
+  @override
+  void simulatePresencePrompt({
+    required String venueId,
+    required String venueName,
+  }) {}
 
   @override
   Future<bool> requestPermission() async {

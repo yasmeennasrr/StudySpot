@@ -9,10 +9,12 @@ class PresenceResponseView extends StatefulWidget {
     super.key,
     required this.venueId,
     required this.venueName,
+    this.simulated = false,
   });
 
   final String venueId;
   final String venueName;
+  final bool simulated;
 
   @override
   State<PresenceResponseView> createState() => _PresenceResponseViewState();
@@ -28,10 +30,12 @@ class _PresenceResponseViewState extends State<PresenceResponseView> {
       _error = null;
     });
     try {
-      final accepted = await AppScope.of(context).api.respondToPresencePrompt(
-        venueId: widget.venueId,
-        confirmed: confirmed,
-      );
+      final accepted = widget.simulated
+          ? true
+          : await AppScope.of(context).api.respondToPresencePrompt(
+              venueId: widget.venueId,
+              confirmed: confirmed,
+            );
       if (!mounted) return;
       if (!accepted) {
         setState(() {
@@ -43,7 +47,11 @@ class _PresenceResponseViewState extends State<PresenceResponseView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            confirmed
+            widget.simulated
+                ? confirmed
+                      ? 'Demo only: Yes selected. No presence was recorded.'
+                      : 'Demo only: No selected. No presence was recorded.'
+                : confirmed
                 ? 'Thanks. You count as present for this visit.'
                 : 'Thanks. You will not count as present for this visit.',
           ),
@@ -83,6 +91,15 @@ class _PresenceResponseViewState extends State<PresenceResponseView> {
                 'Your presence is counted only if you confirm.',
                 textAlign: TextAlign.center,
               ),
+              if (widget.simulated) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'This is a simulated notification. Your response will not '
+                  'be sent to the backend or used in crowd estimates.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 16),
                 Text(

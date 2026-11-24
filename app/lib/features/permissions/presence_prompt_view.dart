@@ -23,11 +23,21 @@ class _PresencePromptViewState extends State<PresencePromptView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final services = AppScope.of(context);
-    _enabled = services.flags.presencePromptsEnabled;
+    _enabled =
+        services.flags.presencePromptsEnabled &&
+        !services.push.isSimulationMode;
   }
 
   Future<void> _enable() async {
     final services = AppScope.of(context);
+    if (services.push.isSimulationMode) {
+      setState(() {
+        _message =
+            'Real push notifications are not configured. Use the demo '
+            'button below to preview the check-in flow.';
+      });
+      return;
+    }
     setState(() {
       _busy = true;
       _message = null;
@@ -54,8 +64,8 @@ class _PresencePromptViewState extends State<PresencePromptView> {
       }
       if (granted && services.session.isSignedIn) {
         await services.api.setPresencePromptsEnabled(true);
-        final installationId =
-            await services.push.registerAndGetInstallationId();
+        final installationId = await services.push
+            .registerAndGetInstallationId();
         if (installationId == null) {
           throw StateError('Firebase installation registration unavailable');
         }
@@ -77,9 +87,9 @@ class _PresencePromptViewState extends State<PresencePromptView> {
       _message = granted
           ? services.session.isSignedIn
                 ? 'Background location and notifications are enabled. '
-                    'StudySpot will ask you to confirm before counting you as present.'
+                      'StudySpot will ask you to confirm before counting you as present.'
                 : 'Background location and notifications are enabled. '
-                    'Check-ins will start after you sign in.'
+                      'Check-ins will start after you sign in.'
           : switch (result) {
               _ when pushUnavailable =>
                 'Push notifications are not configured in this build. '
@@ -213,6 +223,33 @@ class _PresencePromptViewState extends State<PresencePromptView> {
                 onPressed: _busy ? null : _enable,
                 child: Text(_busy ? 'Requesting access…' : 'Enable check-ins'),
               ),
+            if (AppScope.of(context).push.isSimulationMode) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Demo mode: no push provider is configured. You can preview '
+                'the check-in flow without sending a real notification or '
+                'recording presence.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('presence_simulate_notification'),
+                onPressed: () async {
+                  final services = AppScope.of(context);
+                  if (widget.onboarding) {
+                    // Trying the demo completes this optional intro without
+                    // opting into real location tracking.
+                    await services.flags.markPresenceIntroSeen();
+                  }
+                  services.push.simulatePresencePrompt(
+                    venueId: 'demo-campus-cafe',
+                    venueName: 'Campus Cafe',
+                  );
+                },
+                icon: const Icon(Icons.notifications_outlined),
+                label: const Text('Simulate check-in notification'),
+              ),
+            ],
             const SizedBox(height: 8),
             if (widget.onboarding)
               TextButton(

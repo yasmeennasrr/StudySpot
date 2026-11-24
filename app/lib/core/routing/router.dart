@@ -18,7 +18,13 @@ import '../services.dart';
 
 /// Screens that need a signed-in user (FR-007). Visitors can still search and
 /// view places (FR-006). M6: add protected routes here if you create any.
-const protectedRoutes = {'/account', '/account/edit', '/preferences', '/favorites', '/studymatch'};
+const protectedRoutes = {
+  '/account',
+  '/account/edit',
+  '/preferences',
+  '/favorites',
+  '/studymatch',
+};
 
 /// Screen flow:
 ///   first launch: /terms -> /location -> /presence -> /home
@@ -32,6 +38,7 @@ GoRouter buildRouter(AppServices services) {
       services,
       location: state.matchedLocation,
       from: state.uri.queryParameters['from'],
+      simulatedPresenceResponse: state.uri.queryParameters['demo'] == 'true',
     ),
     routes: [
       GoRoute(path: '/terms', builder: (context, state) => const TermsView()),
@@ -48,12 +55,16 @@ GoRouter buildRouter(AppServices services) {
       GoRoute(
         path: '/presence/respond',
         redirect: (context, state) {
-          if (services.session.isSignedIn) return null;
+          if (services.session.isSignedIn ||
+              state.uri.queryParameters['demo'] == 'true') {
+            return null;
+          }
           return '/signin?from=${Uri.encodeComponent(state.uri.toString())}';
         },
         builder: (context, state) => PresenceResponseView(
           venueId: state.uri.queryParameters['venueId']!,
           venueName: state.uri.queryParameters['venueName'] ?? 'this venue',
+          simulated: state.uri.queryParameters['demo'] == 'true',
         ),
       ),
       GoRoute(path: '/home', builder: (context, state) => const SearchView()),
@@ -83,7 +94,10 @@ GoRouter buildRouter(AppServices services) {
         path: '/favorites',
         builder: (context, state) => const FavoritesView(),
       ),
-      GoRoute(path: '/studymatch', builder: (context, state) => const StudyMatchView()),
+      GoRoute(
+        path: '/studymatch',
+        builder: (context, state) => const StudyMatchView(),
+      ),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>
@@ -99,6 +113,7 @@ String? appRedirect(
   AppServices services, {
   required String location,
   String? from,
+  bool simulatedPresenceResponse = false,
 }) {
   final flags = services.flags;
   if (!flags.termsAccepted) return location == '/terms' ? null : '/terms';
@@ -108,6 +123,7 @@ String? appRedirect(
   if (flags.locationAsked &&
       !flags.presenceIntroSeen &&
       location != '/presence' &&
+      !(simulatedPresenceResponse && location == '/presence/respond') &&
       location != '/terms' &&
       location != '/location') {
     return '/presence';

@@ -23,6 +23,20 @@ committed to this repository.
    services; iOS remote push requires an Apple device and valid APNs setup.
 
 The app catches missing Firebase platform configuration and leaves push
-check-ins disabled until setup is complete. Local backend development without
-the service-account setting uses a fake push adapter that logs the message
-instead of delivering it.
+check-ins disabled until setup is complete. When Firebase client configuration
+is absent, the app enables an in-app demo simulator from Presence settings. The
+demo shows the check-in prompt and Yes/No response UI without registering a
+device, calling the response API, or recording a presence. Local backend
+development without the service-account setting uses a fake push adapter that
+logs the message instead of delivering it.
+
+## Demonstrating PB-31 without provider accounts
+
+1. Run the app without `google-services.json` and
+   `GoogleService-Info.plist`.
+2. Open **Account → “Are you here?” check-ins**. On a fresh install, the
+   presence onboarding screen appears before the home screen.
+3. Tap **Simulate check-in notification**, then **Answer** on the in-app demo
+   notification.
+4. Choose **Yes, I’m here** or **No, I’m not here**. The screen labels the
+   response as simulated and does not send it to the backend.

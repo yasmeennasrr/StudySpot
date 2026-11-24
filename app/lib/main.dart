@@ -15,9 +15,11 @@ Future<void> main() async {
 
   final tokens = SecureTokenStore();
   final flags = SharedPrefsFlags();
-  final push = FirebasePushService();
+  final firebasePush = FirebasePushService();
   await flags.load();
-  await push.initialize();
+  final PushService push = await firebasePush.initialize()
+      ? firebasePush
+      : DemoPushService();
 
   final services = AppServices(
     api: DioApiClient(tokens: tokens),
@@ -53,7 +55,9 @@ void _connectPresenceUpdates(AppServices services) {
 }
 
 Future<void> _syncPresenceUpdates(AppServices services) async {
-  if (!services.flags.presencePromptsEnabled || !services.session.isSignedIn) {
+  if (services.push.isSimulationMode ||
+      !services.flags.presencePromptsEnabled ||
+      !services.session.isSignedIn) {
     await services.location.stopPresenceUpdates();
     return;
   }
