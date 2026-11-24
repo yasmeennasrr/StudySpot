@@ -4,7 +4,7 @@
 
 ## Summary
 
-**267** test cases: **265** pass, **1** fail, **1** not run yet. They cover **140** requirement IDs.
+**268** test cases: **266** pass, **1** fail, **1** not run yet. They cover **140** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -14,12 +14,12 @@
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
 | M6 | 12 | 12 | 0 | 0 | 12 |
-| Yasmeen | 9 | 9 | 0 | 0 | 9 |
+| Yasmeen | 10 | 10 | 0 | 0 | 10 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 82 |
+| Integration | 83 |
 | Performance | 3 |
 | Unit | 158 |
 | Unit (app) | 9 |
@@ -115,7 +115,7 @@
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
 | PERF-003 | TC-M2-46, TC-M2-53 | Unit, Integration | ✅ all pass |
-| PERF-005 | TC-M4-34, TC-M4-40, TC-M4-12 | Unit, Integration | ✅ all pass |
+| PERF-005 | TC-M4-34, TC-M4-40, TC-M4-43, TC-M4-12 | Unit, Integration | ✅ all pass |
 | PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
 | PERF-007 | TC-M2-55 | Unit | ✅ all pass |
 | PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ✅ all pass |
@@ -133,15 +133,15 @@
 | RT-006 | TC-M1-20, TC-M4-12, TC-M4-21 | Unit, Integration | ✅ all pass |
 | RT-008 | TC-M1-18, TC-M4-34, TC-M4-35, TC-M4-36, TC-M4-38, TC-M4-39 | Unit, Integration | ✅ all pass |
 | RT-008b | TC-M4-37 | Unit | ✅ all pass |
-| RT-009 | TC-M4-07, TC-M4-08, TC-M4-34, TC-M4-35, TC-M4-38, TC-M4-39 | Unit, Integration | ✅ all pass |
+| RT-009 | TC-M4-07, TC-M4-08, TC-M4-34, TC-M4-35, TC-M4-38, TC-M4-39, TC-M4-43 | Unit, Integration | ✅ all pass |
 | RT-012 | TC-M4-08, TC-M4-34, TC-M4-38, TC-M4-39, TC-M6-03 | Unit, Integration | ✅ all pass |
 | RT-015 | TC-M4-11 | Unit | ✅ all pass |
 | RT-016 | TC-M4-02, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-017 | TC-M4-10, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-018 | TC-M4-04, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-020 | TC-M4-09, TC-M4-38 | Unit, Integration | ✅ all pass |
-| RT-021 | TC-M4-05, TC-M4-06, TC-M4-07, TC-M1-82 | Unit, Integration | ✅ all pass |
-| RT-022 | TC-M4-06 | Unit | ✅ all pass |
+| RT-021 | TC-M4-05, TC-M4-06, TC-M4-07, TC-M4-43, TC-M1-82 | Unit, Integration | ✅ all pass |
+| RT-022 | TC-M4-06, TC-M4-43 | Unit, Integration | ✅ all pass |
 | RWD-002 | TC-M1-18 | Unit | ✅ all pass |
 | RWD-009 | TC-M1-33 | Integration | ✅ all pass |
 | RWD-016 | TC-M1-18, TC-M1-71 | Unit | ✅ all pass |
@@ -357,6 +357,7 @@
 | TC-M4-40 | CON-001..CON-008, PERF-005 | Use-case based (submit conditions survey) | Integration | pass | `backend/test/int/app.int-spec.ts` |
 | TC-M4-41 | CON-001..CON-008 | State transition + error guessing (optional answers and submit failure) | Unit (app) | pass | `app/test/features/surveys/survey_view_model_test.dart` |
 | TC-M4-42 | CON-001..CON-008 | Use-case based (quick survey widget) | Widget | pass | `app/test/features/surveys/survey_view_model_test.dart` |
+| TC-M4-43 | RT-009, RT-021, RT-022, PERF-005 | Use-case based (surveys to noise and Wi-Fi conditions) | Integration | pass | `backend/test/int/app.int-spec.ts` |
 | TC-M4-12 | RT-006, PERF-005 | State transition (cached / invalidated / expired) | Unit | pass | `backend/test/unit/conditions.service.spec.ts` |
 | TC-M4-13 | PRIV-013 | Boundary value analysis (90 days) | Unit | pass | `backend/test/unit/conditions.service.spec.ts` |
 | TC-M4-14 | FR-016, FR-017, FR-018, FR-019, FR-029, PRIV-014 | Equivalence partitioning (visible / removed / inactive) | Integration | pass | `backend/test/int/venue-details.int-spec.ts` |
