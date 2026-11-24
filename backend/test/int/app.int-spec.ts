@@ -747,4 +747,54 @@ describe('StudySpot backend on a real database (integration)', () => {
     expect(details.body.dynamic.noise).toMatchObject({ status: 'current', label: 'Quiet' });
     expect(details.body.dynamic.wifi).toMatchObject({ status: 'current', label: 'Good' });
   });
+
+  it('TC-M4-43 aggregates submitted noise and Wi-Fi surveys, counting each student’s newest answer', async () => {
+    const secondStudent = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: 'pb20-second-student@studyspot.test',
+        password: 'testpass123',
+        displayName: 'PB20 Second Student',
+        termsAccepted: true,
+      })
+      .expect(201);
+    const secondToken = secondStudent.body.accessToken as string;
+
+    // TC-M4-40 has already added a current Quiet noise and Good Wi-Fi answer
+    // from the first student. A different student's answers should combine
+    // into Moderate noise and Average Wi-Fi.
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ noise: 'noisy', wifi: 'poor' })
+      .expect(201);
+
+    let details = await request(app.getHttpServer())
+      .get(`/api/v1/venues/${SAMPLE_VENUE}`)
+      .expect(200);
+    expect(details.body.dynamic.noise).toMatchObject({
+      status: 'current',
+      level: 2,
+      label: 'Moderate',
+      basedOn: ['surveys'],
+    });
+    expect(details.body.dynamic.wifi).toMatchObject({
+      status: 'current',
+      level: 2,
+      label: 'Average',
+      basedOn: ['surveys'],
+    });
+
+    // A repeat answer replaces this student's earlier answer in the estimate.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ noise: 'quiet', wifi: 'good' })
+      .expect(201);
+
+    details = await request(app.getHttpServer()).get(`/api/v1/venues/${SAMPLE_VENUE}`).expect(200);
+    expect(details.body.dynamic.noise).toMatchObject({ status: 'current', level: 1, label: 'Quiet' });
+    expect(details.body.dynamic.wifi).toMatchObject({ status: 'current', level: 3, label: 'Good' });
+  });
 });
