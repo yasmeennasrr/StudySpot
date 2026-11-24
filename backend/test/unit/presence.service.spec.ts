@@ -130,7 +130,7 @@ describe('PresenceService', () => {
     );
   });
 
-  it('does not persist an unconfirmed location sample as crowd presence', async () => {
+  it('TC-M4-36 does not persist an unconfirmed location sample as crowd presence', async () => {
     const records = { save: jest.fn() };
     const visits = {
       manager: {
@@ -161,6 +161,7 @@ describe('PresenceService', () => {
         return query;
       },
     };
+    const events = { emit: jest.fn() };
     const service = new PresenceService(
       records as unknown as Repository<PresenceRecordEntity>,
       visits as unknown as Repository<PresenceVisitEntity>,
@@ -170,12 +171,13 @@ describe('PresenceService', () => {
       venues as unknown as Repository<VenueEntity>,
       { get: async (key: keyof typeof CONFIG_DEFAULTS) => CONFIG_DEFAULTS[key] } as IConfig,
       new FakeClock('2026-10-27T10:00:00+03:00'),
-      { emit: jest.fn() } as never,
+      events as never,
     );
 
     await service.reportLocation(USER, 30, 31);
 
     expect(records.save).not.toHaveBeenCalled();
+    expect(events.emit).not.toHaveBeenCalled();
   });
 
   it('ignores location samples when the user has not opted into presence prompts', async () => {
@@ -199,7 +201,7 @@ describe('PresenceService', () => {
     expect(visits.manager.transaction).not.toHaveBeenCalled();
   });
 
-  it('counts only the first yes response and leaves a declined visit unconfirmed', async () => {
+  it('TC-M4-35 counts only the first yes response and leaves a declined visit unconfirmed', async () => {
     const clock = new FakeClock('2026-10-27T10:20:00+03:00');
     const visit = {
       id: 'visit-1',
@@ -228,6 +230,7 @@ describe('PresenceService', () => {
         ),
       },
     };
+    const events = { emit: jest.fn() };
     const service = new PresenceService(
       records as unknown as Repository<PresenceRecordEntity>,
       visits as unknown as Repository<PresenceVisitEntity>,
@@ -235,7 +238,7 @@ describe('PresenceService', () => {
       {} as Repository<VenueEntity>,
       { get: async (key: keyof typeof CONFIG_DEFAULTS) => CONFIG_DEFAULTS[key] } as IConfig,
       clock,
-      { emit: jest.fn() } as never,
+      events as never,
     );
 
     expect(await service.respondToPrompt(USER, VENUE, true)).toBe(true);
@@ -244,8 +247,31 @@ describe('PresenceService', () => {
     expect(records.save).toHaveBeenCalledWith(
       expect.objectContaining({ userId: USER, venueId: VENUE, source: 'location' }),
     );
+    expect(events.emit).toHaveBeenCalledWith(DomainEvent.PresenceChanged, { venueId: VENUE });
 
     expect(await service.respondToPrompt(USER, VENUE, false)).toBe(false);
     expect(records.save).toHaveBeenCalledTimes(1);
+    expect(events.emit).toHaveBeenCalledTimes(1);
+  });
+
+  it('TC-M4-37 invalidates crowd conditions after a receipt check-in', async () => {
+    const records = { save: jest.fn() };
+    const events = { emit: jest.fn() };
+    const service = new PresenceService(
+      records as unknown as Repository<PresenceRecordEntity>,
+      {} as Repository<PresenceVisitEntity>,
+      {} as Repository<UserEntity>,
+      {} as Repository<VenueEntity>,
+      { get: async (key: keyof typeof CONFIG_DEFAULTS) => CONFIG_DEFAULTS[key] } as IConfig,
+      new FakeClock('2026-10-27T10:20:00+03:00'),
+      events as never,
+    );
+
+    await service.recordReceiptScan(USER, VENUE);
+
+    expect(records.save).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: USER, venueId: VENUE, source: 'receipt_scan' }),
+    );
+    expect(events.emit).toHaveBeenCalledWith(DomainEvent.PresenceChanged, { venueId: VENUE });
   });
 });

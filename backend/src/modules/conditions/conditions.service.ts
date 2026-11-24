@@ -5,6 +5,7 @@ import { In, LessThan, Repository } from 'typeorm';
 import {
   DomainEvent,
   type NoiseRecordedEvent,
+  type PresenceChangedEvent,
   type SurveyStoredEvent,
 } from '../../common/events/domain-events';
 import {
@@ -115,6 +116,12 @@ export class ConditionsService implements IConditions {
   /** Audio Analysis -> Conditions (RT-021). */
   @OnEvent(DomainEvent.NoiseRecorded)
   onNoiseRecorded(event: NoiseRecordedEvent): void {
+    this.invalidate(event.venueId);
+  }
+
+  /** A confirmed visit, refreshed location lease, or receipt scan changes crowd input. */
+  @OnEvent(DomainEvent.PresenceChanged)
+  onPresenceChanged(event: PresenceChangedEvent): void {
     this.invalidate(event.venueId);
   }
 
