@@ -9,6 +9,49 @@ const USER = '6f1c2a10-0000-4000-8000-000000000001';
 const VENUE = '6f1c2a10-0000-4000-8000-000000000002';
 
 describe('PresenceService', () => {
+  it('counts confirmed location visits for up to two hours and unions receipt scans by user', async () => {
+    const clock = new FakeClock('2026-10-27T10:00:00+03:00');
+    const makeQuery = (rows: { userId: string }[]) => {
+      type Query = {
+        select: (...args: unknown[]) => Query;
+        where: (...args: unknown[]) => Query;
+        andWhere: (...args: unknown[]) => Query;
+        getRawMany: () => Promise<{ userId: string }[]>;
+      };
+      const query = {} as Query;
+      query.select = jest.fn(() => query);
+      query.where = jest.fn(() => query);
+      query.andWhere = jest.fn(() => query);
+      query.getRawMany = jest.fn(async () => rows);
+      return query;
+    };
+    const locationQuery = makeQuery([{ userId: USER }]);
+    const scanQuery = makeQuery([
+      { userId: USER },
+      { userId: '6f1c2a10-0000-4000-8000-000000000003' },
+    ]);
+    const visits = { createQueryBuilder: () => locationQuery };
+    const records = { createQueryBuilder: () => scanQuery };
+    const config = {
+      get: async (key: keyof typeof CONFIG_DEFAULTS) => CONFIG_DEFAULTS[key],
+    } as IConfig;
+    const service = new PresenceService(
+      records as unknown as Repository<PresenceRecordEntity>,
+      visits as unknown as Repository<PresenceVisitEntity>,
+      {} as Repository<VenueEntity>,
+      config,
+      clock,
+      { emit: jest.fn() } as never,
+    );
+
+    expect(await service.countPresent(VENUE)).toBe(2);
+    expect(locationQuery.andWhere).toHaveBeenCalledWith('presence.lastSeenAt >= :locationSince', {
+      locationSince: new Date(clock.now().getTime() - 2 * 3_600_000),
+    });
+    expect(locationQuery.andWhere).toHaveBeenCalledWith('presence.active = true');
+    expect(locationQuery.andWhere).toHaveBeenCalledWith('presence.confirmedAt IS NOT NULL');
+  });
+
   it('emits one dwell event after the candidate reaches the dwell threshold', async () => {
     const clock = new FakeClock('2026-10-27T10:16:00+03:00');
     const startedAt = new Date(clock.now().getTime() - 16 * 60_000);

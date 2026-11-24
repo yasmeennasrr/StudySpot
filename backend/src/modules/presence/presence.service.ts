@@ -71,46 +71,62 @@ export class PresenceService implements IPresence {
   }
 
   async isPresent(userId: string, venueId: string): Promise<boolean> {
-    const [locationMinutes, scanMinutes] = await Promise.all([
-      this.config.get('presence.locationValidMinutes'),
+    const [retentionHours, scanMinutes] = await Promise.all([
+      this.config.get('presence.rawRetentionHours'),
       this.config.get('presence.scanValidMinutes'),
     ]);
     const now = this.clock.now();
+    const locationPresent = await this.visits
+      .createQueryBuilder('presence')
+      .where('presence.userId = :userId', { userId })
+      .andWhere('presence.venueId = :venueId', { venueId })
+      .andWhere('presence.active = true')
+      .andWhere('presence.confirmedAt IS NOT NULL')
+      .andWhere('presence.lastSeenAt >= :locationSince', {
+        locationSince: new Date(now.getTime() - retentionHours * 3_600_000),
+      })
+      .getExists();
+    if (locationPresent) return true;
+
     return this.records
       .createQueryBuilder('presence')
       .where('presence.userId = :userId', { userId })
       .andWhere('presence.venueId = :venueId', { venueId })
-      .andWhere(
-        `((presence.source = 'location' AND presence.recordedAt >= :locationSince)
-          OR (presence.source = 'receipt_scan' AND presence.recordedAt >= :scanSince))`,
-        {
-          locationSince: new Date(now.getTime() - locationMinutes * 60_000),
-          scanSince: new Date(now.getTime() - scanMinutes * 60_000),
-        },
-      )
+      .andWhere('presence.source = :source', { source: 'receipt_scan' })
+      .andWhere('presence.recordedAt >= :scanSince', {
+        scanSince: new Date(now.getTime() - scanMinutes * 60_000),
+      })
       .getExists();
   }
 
   async countPresent(venueId: string): Promise<number> {
-    const [locationMinutes, scanMinutes] = await Promise.all([
-      this.config.get('presence.locationValidMinutes'),
+    const [retentionHours, scanMinutes] = await Promise.all([
+      this.config.get('presence.rawRetentionHours'),
       this.config.get('presence.scanValidMinutes'),
     ]);
     const now = this.clock.now();
-    const result = await this.records
-      .createQueryBuilder('presence')
-      .select('COUNT(DISTINCT presence.userId)', 'count')
-      .where('presence.venueId = :venueId', { venueId })
-      .andWhere(
-        `((presence.source = 'location' AND presence.recordedAt >= :locationSince)
-          OR (presence.source = 'receipt_scan' AND presence.recordedAt >= :scanSince))`,
-        {
-          locationSince: new Date(now.getTime() - locationMinutes * 60_000),
+    const [locationRows, scanRows] = await Promise.all([
+      this.visits
+        .createQueryBuilder('presence')
+        .select('DISTINCT presence.userId', 'userId')
+        .where('presence.venueId = :venueId', { venueId })
+        .andWhere('presence.active = true')
+        .andWhere('presence.confirmedAt IS NOT NULL')
+        .andWhere('presence.lastSeenAt >= :locationSince', {
+          locationSince: new Date(now.getTime() - retentionHours * 3_600_000),
+        })
+        .getRawMany<{ userId: string }>(),
+      this.records
+        .createQueryBuilder('presence')
+        .select('DISTINCT presence.userId', 'userId')
+        .where('presence.venueId = :venueId', { venueId })
+        .andWhere('presence.source = :source', { source: 'receipt_scan' })
+        .andWhere('presence.recordedAt >= :scanSince', {
           scanSince: new Date(now.getTime() - scanMinutes * 60_000),
-        },
-      )
-      .getRawOne<{ count: string }>();
-    return Number(result?.count ?? 0);
+        })
+        .getRawMany<{ userId: string }>(),
+    ]);
+    return new Set([...locationRows, ...scanRows].map((row) => row.userId)).size;
   }
 
   async purgeExpired(): Promise<number> {
@@ -146,9 +162,9 @@ export class PresenceService implements IPresence {
     venueId: string | null,
   ): Promise<PresenceDwellEvent | null> {
     const now = this.clock.now();
-    const [dwellMinutes, locationValidMinutes] = await Promise.all([
+    const [dwellMinutes, retentionHours] = await Promise.all([
       this.config.get('presence.dwellMinutesForPrompt'),
-      this.config.get('presence.locationValidMinutes'),
+      this.config.get('presence.rawRetentionHours'),
     ]);
     let event: PresenceDwellEvent | null = null;
 
@@ -163,12 +179,12 @@ export class PresenceService implements IPresence {
         return;
       }
 
-      const staleAfterMs = locationValidMinutes * 2 * 60_000;
+      const staleAfterMs = retentionHours * 3_600_000;
       let visit = active;
       if (
         !visit ||
         visit.venueId !== venueId ||
-        (now.getTime() - visit.lastSeenAt.getTime() > staleAfterMs && !visit.promptedAt)
+        now.getTime() - visit.lastSeenAt.getTime() > staleAfterMs
       ) {
         if (visit) await visits.update(visit.id, { active: false });
         visit = visits.create({
@@ -182,8 +198,8 @@ export class PresenceService implements IPresence {
       } else {
         visit.lastSeenAt = now;
         if (visit.confirmedAt) {
-          // Keep the 15-minute presence window fresh while the user stays at
-          // the venue, but only after an explicit response to the prompt.
+          // Refresh the visit's last-seen lease while the user stays at the
+          // venue, but only after an explicit response to the prompt.
           await manager.getRepository(PresenceRecordEntity).save({
             userId,
             venueId,
