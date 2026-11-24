@@ -7,6 +7,7 @@ import '../../features/auth/sign_in_view.dart';
 import '../../features/auth/terms_view.dart';
 import '../../features/favorites/view.dart';
 import '../../features/permissions/location_view.dart';
+import '../../features/permissions/presence_prompt_view.dart';
 import '../../features/preferences/view.dart';
 import '../../features/search/search_view.dart';
 import '../../features/venue_details/details_view.dart';
@@ -17,7 +18,7 @@ import '../services.dart';
 const protectedRoutes = {'/account', '/preferences', '/favorites'};
 
 /// Screen flow:
-///   first launch: /terms -> /location -> /home
+///   first launch: /terms -> /location -> /presence -> /home
 ///   /home (search list + map) -> /venues/:id (details); /signin or /account
 ///   /signin <-> /register; protected screens redirect to /signin?from=...
 GoRouter buildRouter(AppServices services) {
@@ -31,7 +32,16 @@ GoRouter buildRouter(AppServices services) {
     ),
     routes: [
       GoRoute(path: '/terms', builder: (context, state) => const TermsView()),
-      GoRoute(path: '/location', builder: (context, state) => const LocationView()),
+      GoRoute(
+        path: '/location',
+        builder: (context, state) => const LocationView(),
+      ),
+      GoRoute(
+        path: '/presence',
+        builder: (context, state) => PresencePromptView(
+          onboarding: state.uri.queryParameters['onboarding'] != 'false',
+        ),
+      ),
       GoRoute(path: '/home', builder: (context, state) => const SearchView()),
       GoRoute(
         path: '/signin',
@@ -43,9 +53,18 @@ GoRouter buildRouter(AppServices services) {
         builder: (context, state) =>
             RegisterView(from: state.uri.queryParameters['from']),
       ),
-      GoRoute(path: '/account', builder: (context, state) => const AccountView()),
-      GoRoute(path: '/preferences', builder: (context, state) => const PreferencesView()),
-      GoRoute(path: '/favorites', builder: (context, state) => const FavoritesView()),
+      GoRoute(
+        path: '/account',
+        builder: (context, state) => const AccountView(),
+      ),
+      GoRoute(
+        path: '/preferences',
+        builder: (context, state) => const PreferencesView(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesView(),
+      ),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>
@@ -57,11 +76,22 @@ GoRouter buildRouter(AppServices services) {
 
 /// Where to send the user instead of [location], or null to stay. Kept as a
 /// plain function so the rules can be unit-tested.
-String? appRedirect(AppServices services, {required String location, String? from}) {
+String? appRedirect(
+  AppServices services, {
+  required String location,
+  String? from,
+}) {
   final flags = services.flags;
   if (!flags.termsAccepted) return location == '/terms' ? null : '/terms';
   if (!flags.locationAsked && location != '/location' && location != '/terms') {
     return '/location';
+  }
+  if (flags.locationAsked &&
+      !flags.presenceIntroSeen &&
+      location != '/presence' &&
+      location != '/terms' &&
+      location != '/location') {
+    return '/presence';
   }
   final signedIn = services.session.isSignedIn;
   if (!signedIn && protectedRoutes.contains(location)) {

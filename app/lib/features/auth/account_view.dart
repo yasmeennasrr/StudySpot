@@ -55,6 +55,11 @@ class _AccountViewState extends State<AccountView> {
             title: const Text('Location settings'),
             onTap: () => context.push('/location'),
           ),
+          ListTile(
+            leading: const Icon(Icons.notifications_active_outlined),
+            title: const Text('“Are you here?” check-ins'),
+            onTap: () => context.push('/presence?onboarding=false'),
+          ),
           const Divider(),
           ListTile(
             key: const Key('account_signout'),

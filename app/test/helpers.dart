@@ -9,12 +9,22 @@ class TestWorld {
   TestWorld({
     bool termsAccepted = true,
     bool locationAsked = true,
+    bool presenceIntroSeen = true,
     LocationAccess locationAccess = LocationAccess.denied,
-  })  : api = MockApiClient(),
-        tokens = MemoryTokenStore(),
-        flags = MemoryFlags(termsAccepted: termsAccepted, locationAsked: locationAsked),
-        location = FakeLocationService(access: locationAccess) {
-    services = AppServices(api: api, tokens: tokens, flags: flags, location: location);
+  }) : api = MockApiClient(),
+       tokens = MemoryTokenStore(),
+       flags = MemoryFlags(
+         termsAccepted: termsAccepted,
+         locationAsked: locationAsked,
+         presenceIntroSeen: presenceIntroSeen,
+       ),
+       location = FakeLocationService(access: locationAccess) {
+    services = AppServices(
+      api: api,
+      tokens: tokens,
+      flags: flags,
+      location: location,
+    );
   }
 
   final MockApiClient api;
