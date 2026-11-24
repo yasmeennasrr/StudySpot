@@ -27,6 +27,7 @@
     "migration:run:prod": "typeorm -d dist/db/data-source.js migration:run",
     "seed": "ts-node src/db/seed/seed.ts",
     "seed:records": "node scripts/generate-records.mjs",
+    "staff:create": "ts-node src/db/staff-create.ts",
     "contract:check": "node -e \"require('@apidevtools/swagger-parser').validate('../contracts/openapi.yaml').then(a=>console.log('OpenAPI valid:',Object.keys(a.paths).length,'paths')).catch(e=>{console.error(e.message);process.exit(1)})\""
   },
   "dependencies": {
@@ -66,6 +67,7 @@
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",
+    "@types/multer": "^2.3.0",
     "@types/node": "^20.19.43",
     "@types/supertest": "^7.2.1",
     "dependency-cruiser": "^16.10.4",

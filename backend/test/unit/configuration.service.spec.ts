@@ -3,7 +3,7 @@ import type { DataSource, Repository } from 'typeorm';
 import { AppError } from '../../src/common/errors/app-error';
 import { DomainEvent } from '../../src/common/events/domain-events';
 import { CONFIG_DEFAULTS } from '../../src/contracts';
-import type { ConfigValueEntity } from '../../src/db/entities';
+import type { ConfigHistoryEntity, ConfigValueEntity } from '../../src/db/entities';
 import { FakeClock } from '../../src/modules/clock/fake-clock';
 import { ConfigurationService } from '../../src/modules/configuration/configuration.service';
 
@@ -34,7 +34,10 @@ describe('ConfigurationService', () => {
     } as unknown as DataSource;
     events = new EventEmitter2();
     clock = new FakeClock();
-    service = new ConfigurationService(repo, dataSource, events, clock);
+    const changes = {
+      find: async () => [],
+    } as unknown as Repository<ConfigHistoryEntity>;
+    service = new ConfigurationService(repo, changes, dataSource, events, clock);
   });
 
   it('TC-M1-18 returns the SRS defaults when nothing is stored', async () => {
@@ -86,5 +89,41 @@ describe('ConfigurationService', () => {
       AppError,
     );
     expect(saved).toHaveLength(0);
+  });
+
+  it.each([
+    ['points per answer', 'points.crowd', [0, 100], [-1, 101]],
+    ['daily cap', 'points.dailyCap', [10, 1000], [1001]],
+    ['freshness', 'freshness.noiseMinutes', [5, 1440], [4, 1441]],
+    ['venue radius', 'presence.venueRadiusMeters', [10, 500], [9, 501]],
+  ])(
+    'TC-M1-70 %s: accepts the range ends and refuses one past them (PB-34, FR-039, FR-040)',
+    async (_name, key, ok, bad) => {
+      for (const value of ok) {
+        await expect(service.set(key as never, value as never, 'admin-1')).resolves.toBeUndefined();
+      }
+      for (const value of bad) {
+        await expect(service.set(key as never, value as never, 'admin-1')).rejects.toMatchObject({
+          code: 'INVALID_INPUT',
+        });
+      }
+      await expect(service.set(key as never, 10.5 as never, 'admin-1')).rejects.toMatchObject({
+        message: expect.stringContaining('whole number'),
+      });
+    },
+  );
+
+  it('TC-M1-71 the daily cap can never be lower than the points for one answer (RWD-016)', async () => {
+    rows = [{ key: 'points.dailyCap', value: 30 }];
+    await expect(service.set('points.noise', 31, 'admin-1')).rejects.toMatchObject({
+      message: 'The daily cap (30) cannot be lower than the points for one answer (31).',
+    });
+    await expect(service.set('points.noise', 30, 'admin-1')).resolves.toBeUndefined();
+    rows = [{ key: 'points.wifi', value: 40 }];
+    service['cache'] = null;
+    await expect(service.set('points.dailyCap', 39, 'admin-1')).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+    });
+    await expect(service.set('points.dailyCap', 40, 'admin-1')).resolves.toBeUndefined();
   });
 });

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/account_view.dart';
+import '../../features/auth/edit_account_view.dart';
 import '../../features/auth/register_view.dart';
 import '../../features/auth/sign_in_view.dart';
 import '../../features/auth/terms_view.dart';
@@ -11,12 +12,13 @@ import '../../features/permissions/presence_prompt_view.dart';
 import '../../features/permissions/presence_response_view.dart';
 import '../../features/preferences/view.dart';
 import '../../features/search/search_view.dart';
+import '../../features/studymatch/studymatch_view.dart';
 import '../../features/venue_details/details_view.dart';
 import '../services.dart';
 
 /// Screens that need a signed-in user (FR-007). Visitors can still search and
 /// view places (FR-006). M6: add protected routes here if you create any.
-const protectedRoutes = {'/account', '/preferences', '/favorites'};
+const protectedRoutes = {'/account', '/account/edit', '/preferences', '/favorites', '/studymatch'};
 
 /// Screen flow:
 ///   first launch: /terms -> /location -> /presence -> /home
@@ -70,6 +72,10 @@ GoRouter buildRouter(AppServices services) {
         builder: (context, state) => const AccountView(),
       ),
       GoRoute(
+        path: '/account/edit',
+        builder: (context, state) => const EditAccountView(),
+      ),
+      GoRoute(
         path: '/preferences',
         builder: (context, state) => const PreferencesView(),
       ),
@@ -77,6 +83,7 @@ GoRouter buildRouter(AppServices services) {
         path: '/favorites',
         builder: (context, state) => const FavoritesView(),
       ),
+      GoRoute(path: '/studymatch', builder: (context, state) => const StudyMatchView()),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>

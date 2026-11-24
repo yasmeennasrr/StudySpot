@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../auth/token_store.dart';
 import '../config.dart';
 import '../models/auth.dart';
+import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/studymatch.dart';
+import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -177,6 +182,47 @@ class DioApiClient extends ApiClient {
   }
 
   @override
+  Future<AuthUser> getMe() async {
+    final r = await _send(() => _dio.get<dynamic>('/me'));
+    return AuthUser.fromJson(_json(r));
+  }
+
+  @override
+  Future<AccountUpdate> updateMe({
+    String? displayName,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    final r = await _send(() => _dio.patch<dynamic>('/me', data: {
+          'displayName': ?displayName,
+          'currentPassword': ?currentPassword,
+          'newPassword': ?newPassword,
+        }));
+    return AccountUpdate.fromJson(_json(r));
+  }
+
+  @override
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  }) async {
+    final r = await _send(() => _dio.post<dynamic>(
+          '/studymatch',
+          data: {
+            'text': text,
+            'lat': ?lat,
+            'lng': ?lng,
+            if (history.isNotEmpty) 'history': [for (final m in history) m.toJson()],
+          },
+          // StudyMatch answers within 10 s (PERF-003); allow a little more.
+          options: Options(receiveTimeout: const Duration(seconds: 15)),
+        ));
+    return StudyMatchAnswer.fromJson(_json(r));
+  }
+
+  @override
   Future<Preferences> getPreferences() async {
     final r = await _send(() => _dio.get<dynamic>('/me/preferences'));
     return Preferences.fromJson(_json(r));
@@ -311,5 +357,59 @@ class DioApiClient extends ApiClient {
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     final r = await _send(() => _dio.get<dynamic>('/venues/$venueId'));
     return _json(r);
+  }
+
+  @override
+  Future<MyReview?> getMyReview(String venueId) async {
+    final r = await _send(() => _dio.get<dynamic>('/me/reviews/$venueId'));
+    final review = _json(r)['review'];
+    return review is Map ? MyReview.fromJson(review.cast<String, dynamic>()) : null;
+  }
+
+  @override
+  Future<MyReview> writeReview(String venueId, {required int rating, String? text}) async {
+    final r = await _send(() => _dio.put<dynamic>('/venues/$venueId/review',
+        data: {'rating': rating, 'text': text}));
+    return MyReview.fromJson(_json(r));
+  }
+
+  @override
+  Future<void> reportReview(String reviewId) async {
+    await _send(() => _dio.post<dynamic>('/reviews/$reviewId/reports'));
+  }
+
+  @override
+  Future<bool> noiseSampleEligible(String venueId,
+      {required double lat, required double lng}) async {
+    final r = await _send(() => _dio.get<dynamic>('/venues/$venueId/noise-samples/eligibility',
+        queryParameters: {'lat': lat, 'lng': lng}));
+    return _json(r)['eligible'] == true;
+  }
+
+  @override
+  Future<NoiseSampleResult> sendNoiseSample(
+    String venueId,
+    Uint8List wav, {
+    required double lat,
+    required double lng,
+  }) async {
+    // The form is built inside the request so a retry after a token refresh
+    // sends a fresh one (a FormData can be sent only once).
+    final r = await _send(() => _dio.post<dynamic>(
+          '/venues/$venueId/noise-samples',
+          data: FormData.fromMap({
+            'lat': lat.toString(),
+            'lng': lng.toString(),
+            'audio': MultipartFile.fromBytes(wav,
+                filename: 'sample.wav', contentType: DioMediaType('audio', 'wav')),
+          }),
+          // Dio sets "multipart/form-data; boundary=..." itself for FormData.
+          options: Options(
+            // The AI gets 8 s on the server (SDS 5.1), plus the upload.
+            receiveTimeout: const Duration(seconds: 20),
+            sendTimeout: const Duration(seconds: 20),
+          ),
+        ));
+    return NoiseSampleResult.fromJson(_json(r));
   }
 }

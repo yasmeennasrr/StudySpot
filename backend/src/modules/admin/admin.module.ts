@@ -1,70 +1,39 @@
-import { Inject, Injectable, Module } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppError } from '../../common/errors/app-error';
-import {
-  ADMIN,
-  AUTH,
-  AUDIT,
-  CONFIG,
-  type IAdmin,
-  type IAudit,
-  type IAuth,
-  type IConfig,
-} from '../../contracts';
+import { ADMIN } from '../../contracts';
 import { ReviewEntity, SurveyEntity, UserEntity, VenueApiKeyEntity } from '../../db/entities';
 import { AccountsModule } from '../accounts/accounts.module';
 import { AuditModule } from '../audit/audit.module';
+import { ClockModule } from '../clock/clock.module';
+import { ConditionsModule } from '../conditions/conditions.module';
 import { ConfigurationModule } from '../configuration/configuration.module';
+import { AdminService } from './admin.service';
+import { StaffAccountsController } from './staff-accounts.controller';
+import { StaffModerationController } from './staff-moderation.controller';
+import { StaffSecurityController } from './staff-security.controller';
+import { StaffSettingsController } from './staff-settings.controller';
 
 /**
- * STUB. Venue keys in Sprint 2 (PB-35, by script until then); the rest in Sprint 3 (PB-32..PB-37).
- * TODO: Staff API (IStaffAPI) behind AuthGuard + @Roles('admin'|'moderator')
- * and re-authentication (FR-035); every action emits DomainEvent.StaffAction.
+ * Administration & Moderation. Provides IAdmin. Uses IConditions (drop cached values
+ * after a survey removal), IAudit, IConfig, IClock; publishes StaffAction -> Audit Log.
+ * Owners: M1 (settings, security log, statistics), M4 (moderation, accounts).
  */
-@Injectable()
-export class StubAdminService implements IAdmin {
-  constructor(
-    @Inject(AUTH) private readonly auth: IAuth,
-    @Inject(AUDIT) private readonly audit: IAudit,
-    @Inject(CONFIG) private readonly config: IConfig,
-    private readonly events: EventEmitter2,
-  ) {}
-
-  async suspendUser(): Promise<void> {
-    throw AppError.notImplemented('Administration', 'Sprint 3');
-  }
-  async reactivateUser(): Promise<void> {
-    throw AppError.notImplemented('Administration', 'Sprint 3');
-  }
-  async registerVenueKey(): Promise<{ apiKey: string }> {
-    throw AppError.notImplemented('Venue keys', 'Sprint 2');
-  }
-  async revokeVenueKey(): Promise<void> {
-    throw AppError.notImplemented('Venue keys', 'Sprint 2');
-  }
-  async removeReportedContent(): Promise<void> {
-    throw AppError.notImplemented('Moderation', 'Sprint 3');
-  }
-  async statistics(): Promise<{
-    users: number;
-    surveys: number;
-    pointsIssued: number;
-    couponsRedeemed: number;
-  }> {
-    throw AppError.notImplemented('Statistics', 'Sprint 3');
-  }
-}
-
-/** Administration & Moderation. Provides IAdmin. Uses IAuth, IAudit, IConfig; publishes StaffAction -> Audit Log. */
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity, VenueApiKeyEntity, ReviewEntity, SurveyEntity]),
     AccountsModule,
     AuditModule,
     ConfigurationModule,
+    ClockModule,
+    ConditionsModule,
   ],
-  providers: [{ provide: ADMIN, useClass: StubAdminService }],
+  controllers: [
+    StaffSettingsController,
+    StaffSecurityController,
+    StaffModerationController,
+    StaffAccountsController,
+  ],
+  providers: [{ provide: ADMIN, useClass: AdminService }],
   exports: [ADMIN],
 })
 export class AdminModule {}

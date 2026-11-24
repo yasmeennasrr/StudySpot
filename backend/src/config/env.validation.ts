@@ -23,6 +23,10 @@ export const envValidationSchema = Joi.object({
   JWT_ACCESS_SECRET: Joi.string().min(16).default('dev-only-access-secret-change-me'),
   JWT_ACCESS_TTL_SECONDS: Joi.number().default(900),
   SESSION_INACTIVITY_DAYS: Joi.number().default(14),
+  // Staff Console (PB-32, FR-035): staff sessions last this long, then the password is asked again.
+  STAFF_SESSION_TTL_SECONDS: Joi.number().integer().min(60).max(3600).default(900),
+  // Staff sign-in attempts per client per minute.
+  STAFF_SIGNIN_LIMIT: Joi.number().integer().min(1).default(5),
 
   // API layer.
   CORS_ORIGINS: Joi.string().default('*'),
@@ -33,6 +37,15 @@ export const envValidationSchema = Joi.object({
   GOOGLE_GEOCODING_API_KEY: Joi.string().allow('').default(''),
   GOOGLE_GEOCODING_TIMEOUT_MS: Joi.number().integer().min(500).max(10000).default(3000),
   GEMINI_API_KEY: Joi.string().allow('').default(''),
+  // Noise sampling (PB-19): gemini | loudness | fake. Empty: Gemini with a key, else loudness.
+  AUDIO_AI_PROVIDER: Joi.string().valid('', 'gemini', 'loudness', 'fake').default(''),
+  GEMINI_AUDIO_MODEL: Joi.string().allow('').default('gemini-3.8-flash'),
+  GEMINI_LLM_MODEL: Joi.string().allow('').default('gemini-3.5-flash-lite'),
+  GEMINI_LLM_THINKING: Joi.string().valid('', 'minimal', 'low', 'medium', 'high').default('minimal'),
+  LLM_PROVIDER: Joi.string().valid('', 'gemini', 'fake').default(''),
+  LLM_TIMEOUT_MS: Joi.number().integer().min(500).max(9000).default(5000),
+  LLM_BREAKER_FAILURES: Joi.number().integer().min(1).default(5),
+  LLM_BREAKER_OPEN_MS: Joi.number().integer().min(1000).default(30000),
   SENDGRID_API_KEY: Joi.string().allow('').default(''),
   SENDGRID_FROM_EMAIL: Joi.string().allow('').default(''),
   FCM_SERVICE_ACCOUNT_JSON: Joi.string().allow('').default(''),

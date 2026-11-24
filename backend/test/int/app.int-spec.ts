@@ -35,13 +35,34 @@ const NEARBY_TEST_VENUES = [
     priceLevel: 2,
     studyType: 'both' as const,
     openingHours: {
-      0: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      1: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      2: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      3: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      4: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      5: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
-      6: [{ open: '00:00', close: '00:01' }, { open: '00:01', close: '00:00' }],
+      0: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      1: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      2: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      3: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      4: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      5: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
+      6: [
+        { open: '00:00', close: '00:01' },
+        { open: '00:01', close: '00:00' },
+      ],
     },
   },
   {
@@ -223,7 +244,7 @@ describe('StudySpot backend on a real database (integration)', () => {
       {
         action: 'auth.sign_in_failed',
         target: 'nobody@example.com',
-        details: { reason: 'unknown_email' },
+        details: { reason: 'unknown_email', channel: 'app' },
       },
     ]);
   });
@@ -451,14 +472,17 @@ describe('StudySpot backend on a real database (integration)', () => {
     expect(res.body.code).toBe('INVALID_INPUT');
   });
 
-  it.each([0, 31])('TC-M3-11 rejects result limit %i outside the supported range', async (limit) => {
-    const res = await request(app.getHttpServer()).get(
-      `/api/v1/venues/nearby?lat=30&lng=31&limit=${limit}`,
-    );
+  it.each([0, 31])(
+    'TC-M3-11 rejects result limit %i outside the supported range',
+    async (limit) => {
+      const res = await request(app.getHttpServer()).get(
+        `/api/v1/venues/nearby?lat=30&lng=31&limit=${limit}`,
+      );
 
-    expect(res.status).toBe(400);
-    expect(res.body.code).toBe('INVALID_INPUT');
-  });
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('INVALID_INPUT');
+    },
+  );
 
   it.each([
     ['latitude', 'lat=91&lng=31'],
@@ -623,7 +647,9 @@ describe('StudySpot backend on a real database (integration)', () => {
   });
 
   it('TC-M3-23 returns no matches for maxDistance without an origin', async () => {
-    const res = await request(app.getHttpServer()).get('/api/v1/venues/search?q=Nearby&maxDistance=100');
+    const res = await request(app.getHttpServer()).get(
+      '/api/v1/venues/search?q=Nearby&maxDistance=100',
+    );
     expect(res.status).toBe(200);
     expect(res.body.items).toEqual([]);
   });

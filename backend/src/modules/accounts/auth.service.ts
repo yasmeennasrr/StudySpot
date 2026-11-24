@@ -17,6 +17,8 @@ import {
   type LoginInput,
   type Profile,
   type RegisterInput,
+  type UpdateProfileInput,
+  type UpdateProfileResult,
 } from '../../contracts';
 import { SessionEntity, UserEntity } from '../../db/entities';
 
@@ -29,7 +31,12 @@ const DUMMY_HASH = bcrypt.hashSync(randomBytes(16).toString('hex'), BCRYPT_ROUND
 const EMAIL_TAKEN = 'An account with this e-mail already exists. Try signing in instead.';
 const BAD_CREDENTIALS = 'The e-mail or password is not correct.';
 const SESSION_ENDED = 'Your session has ended. Please sign in again.';
-const SUSPENDED ='This account has been suspended. Contact support if you think this is a mistake.';
+const NOTHING_TO_CHANGE = 'Send a new displayName or a newPassword to change your account.';
+const CURRENT_PASSWORD_NEEDED = 'Enter your current password to set a new one.';
+const CURRENT_PASSWORD_WRONG = 'Your current password is not correct. Nothing was changed.';
+const SAME_PASSWORD = 'Your new password must be different from your current one.';
+const SUSPENDED =
+  'This account has been suspended. Contact support if you think this is a mistake.';
 
 /** What the access token carries. `sub` is the user id. */
 interface AccessTokenPayload {
@@ -188,6 +195,60 @@ export class AuthService implements IAuth {
     };
   }
 
+  /**
+   * PB-05, FR-005 (UC-02): change the display name and/or the password. A new
+   * password needs the right current password (checked with bcrypt, like sign-in).
+   * After a password change all the user's sessions are revoked and one new
+   * session is started and returned, so a stolen refresh token stops working.
+   * Access tokens already handed out still work until they expire (15 min).
+   */
+  async updateProfile(userId: string, input: UpdateProfileInput): Promise<UpdateProfileResult> {
+    const { displayName, currentPassword, newPassword } = input;
+    if (displayName === undefined && newPassword === undefined) {
+      throw AppError.invalidInput(NOTHING_TO_CHANGE);
+    }
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (!user) throw AppError.notFound('Your account could not be found. Please sign in again.');
+
+    const patch: Partial<UserEntity> = {};
+    if (newPassword !== undefined) {
+      if (!currentPassword) {
+        throw AppError.invalidInput(CURRENT_PASSWORD_NEEDED, [
+          { field: 'currentPassword', problems: [CURRENT_PASSWORD_NEEDED] },
+        ]);
+      }
+      if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+        // INVALID_INPUT, not UNAUTHENTICATED: the user is signed in, only the field is wrong,
+        // and a 401 would make the app sign them out.
+        throw AppError.invalidInput(CURRENT_PASSWORD_WRONG, [
+          { field: 'currentPassword', problems: [CURRENT_PASSWORD_WRONG] },
+        ]);
+      }
+      if (newPassword === currentPassword) {
+        throw AppError.invalidInput(SAME_PASSWORD, [
+          { field: 'newPassword', problems: [SAME_PASSWORD] },
+        ]);
+      }
+      patch.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    }
+    if (displayName !== undefined) patch.displayName = displayName;
+
+    await this.users.update({ id: user.id }, patch);
+    Object.assign(user, patch);
+
+    let tokens: AuthTokens | undefined;
+    if (patch.passwordHash) {
+      await this.sessions.update(
+        { userId: user.id, revokedAt: IsNull() },
+        { revokedAt: this.clock.now() },
+      );
+      tokens = await this.startSession(user);
+      this.logger.log({ userId: user.id }, 'Password changed; other sessions signed out');
+    }
+    const profile = await this.getProfile(user.id);
+    return tokens ? { ...profile, tokens } : profile;
+  }
+
   private isIdleTooLong(session: SessionEntity, now: Date): boolean {
     const days = this.config.get<number>('SESSION_INACTIVITY_DAYS', 14);
     return now.getTime() - session.lastUsedAt.getTime() > days * 24 * 60 * 60 * 1000;
@@ -222,9 +283,10 @@ export class AuthService implements IAuth {
       name: user.displayName,
       role: user.role,
     };
-    const accessToken = await this.jwt.signAsync(payload,
-      { secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'), expiresIn },
-    );
+    const accessToken = await this.jwt.signAsync(payload, {
+      secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      expiresIn,
+    });
     return { accessToken, expiresIn, refreshToken, user: publicUser };
   }
 }

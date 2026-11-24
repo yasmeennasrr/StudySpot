@@ -29,6 +29,14 @@ tags:
     description: Owners M3 (search, nearby), M4 (details), M6 (screens). PB-07 to PB-11.
   - name: me
     description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
+  - name: studymatch
+    description: Owner M2 (backend and chat screen). PB-29, PB-46. UC-05.
+  - name: staff
+    description: |
+      Staff API, used by the Staff Console at /console (owner M1; pages by their story owners).
+      Every route except POST /staff/session needs "Authorization: Bearer <staffToken>". A staff
+      token comes only from POST /staff/session with the password (re-authentication, FR-035),
+      lasts 15 minutes and cannot be refreshed. App access tokens are refused here.
 
 paths:
   /health:
@@ -141,6 +149,29 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Profile' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
+    patch:
+      tags: [auth]
+      summary: Edit the display name and/or change the password (FR-005, PB-05)
+      description: |
+        Send at least one of `displayName` or `newPassword`. A new password needs `currentPassword`
+        and follows the registration rules (SEC-002). A wrong current password is 400 INVALID_INPUT
+        (not 401), so the app keeps the user signed in. After a password change every session of the
+        user is signed out and the response carries `tokens` for one new session: store them in place
+        of the old ones.
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200':
+          description: Updated profile; `tokens` only after a password change
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UpdateProfileResult' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
 
   /venues:
     get:
@@ -249,6 +280,68 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/VenueDetails' }
         '400': { $ref: '#/components/responses/InvalidInput' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /venues/{venueId}/review:
+    put:
+      tags: [venues]
+      summary: Write or replace the signed-in student's review of a venue (PB-15, FR-025, DATA-007)
+      description: |
+        One review per student per venue: sending again replaces the rating and text, and the
+        submission time becomes the new one (SDS 6.6.6). Replacing also clears the reports and any
+        moderator removal of the old text. The author, venue and time are added by the system.
+      operationId: writeReview
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WriteReviewRequest' }
+      responses:
+        '200':
+          description: The saved review
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyReview' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /me/reviews/{venueId}:
+    get:
+      tags: [me]
+      summary: The signed-in student's own review of a venue, to prefill the form (PB-15)
+      operationId: getMyReview
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      responses:
+        '200':
+          description: The review, or null when there is none
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [review]
+                properties:
+                  review:
+                    allOf: [{ $ref: '#/components/schemas/MyReview' }]
+                    nullable: true
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /reviews/{reviewId}/reports:
+    post:
+      tags: [venues]
+      summary: Report someone else's review to the moderators (PB-16, FR-034). Safe to repeat
+      operationId: reportReview
+      parameters:
+        - { $ref: '#/components/parameters/ReviewId' }
+      responses:
+        '204': { description: Reported (or already reported by this student) }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
   /me/preferences:
@@ -420,6 +513,433 @@ paths:
         '204': { description: Removed }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
+  /staff/session:
+    post:
+      tags: [staff]
+      summary: Staff sign-in with the password (PB-32, FR-035, UC-17). 5 tries per minute per client
+      description: |
+        Refusals are written to the security log (SEC-010) with channel "staff". A student account
+        gets 403. Local dev staff: admin@studyspot.test / adminpass123, mod@studyspot.test / modpass123.
+      operationId: staffSignIn
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Staff session opened
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StaffSession' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    get:
+      tags: [staff]
+      summary: The staff member of this session and when it ends
+      operationId: staffCurrentSession
+      security: [{ staffToken: [] }]
+      responses:
+        '200':
+          description: Current staff session
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: '#/components/schemas/AuthUser' }
+                  - type: object
+                    properties:
+                      sessionExpiresAt: { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    delete:
+      tags: [staff]
+      summary: Staff sign-out, recorded in the security log (FR-044)
+      operationId: staffSignOut
+      security: [{ staffToken: [] }]
+      responses:
+        '204': { description: Signed out }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /staff/settings:
+    get:
+      tags: [staff]
+      summary: Settings an administrator may change, with value, default and allowed range (PB-34, FR-039, FR-040)
+      operationId: staffListSettings
+      security: [{ staffToken: [] }]
+      responses:
+        '200':
+          description: The editable settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Setting' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/settings/history:
+    get:
+      tags: [staff]
+      summary: Recent setting changes, newest first, with who made them (DATA-012)
+      operationId: staffSettingsHistory
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200':
+          description: Changes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SettingChange' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/settings/{key}:
+    put:
+      tags: [staff]
+      summary: Change one setting. Whole number in range; the daily cap is never below one answer's points
+      description: Kept in config_history and logged as staff action config.changed (FR-044). Applies within 30 s.
+      operationId: staffUpdateSetting
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string, example: points.dailyCap } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              properties:
+                value: { type: integer }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Setting' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/security-log:
+    get:
+      tags: [staff]
+      summary: Security log, newest first (PB-36, FR-041, SEC-010). Administrators only
+      description: Period from (inclusive) to (exclusive); default the last 30 days, at most 366 days.
+      operationId: staffSecurityLog
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/PeriodFrom' }
+        - { $ref: '#/components/parameters/PeriodTo' }
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [auth.sign_in_failed, staff.sign_in, staff.sign_out, config.changed, moderation.review_removed, moderation.reports_dismissed, moderation.survey_removed, account.created, account.suspended, account.reactivated]
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+      responses:
+        '200':
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SecurityLogEntry' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/statistics:
+    get:
+      tags: [staff]
+      summary: Users, surveys, points issued, coupons redeemed and failed sign-ins for a period (PB-36, FR-042)
+      operationId: staffStatistics
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/PeriodFrom' }
+        - { $ref: '#/components/parameters/PeriodTo' }
+      responses:
+        '200':
+          description: Totals
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Statistics' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/accounts:
+    get:
+      tags: [staff]
+      summary: Find staff and user accounts, newest first (PB-33, FR-036). Administrators only
+      operationId: staffListAccounts
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: q, in: query, description: Part of the e-mail or display name, schema: { type: string, maxLength: 100 } }
+        - { name: role, in: query, schema: { type: string, enum: [user, moderator, admin] } }
+        - { name: suspended, in: query, schema: { type: boolean } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 100 } }
+      responses:
+        '200':
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Account' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [staff]
+      summary: Create a student, moderator or administrator account (PB-33, FR-036, FR-037, FR-044)
+      description: |
+        Students need a password of 8 characters, staff 10, both with a letter and a digit.
+        Logged as staff action account.created.
+      operationId: staffCreateAccount
+      security: [{ staffToken: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAccountRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: An account with this e-mail address already exists }
+
+  /staff/accounts/{userId}/suspend:
+    post:
+      tags: [staff]
+      summary: Suspend an account; sign-in is refused and its sessions end at once (PB-33, FR-038)
+      description: Safe to repeat. An administrator cannot suspend their own account. Logged as account.suspended.
+      operationId: staffSuspendAccount
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/UserId' }
+      responses:
+        '200':
+          description: The account, now suspended
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/accounts/{userId}/reactivate:
+    post:
+      tags: [staff]
+      summary: Reactivate a suspended account (PB-33, FR-038). Safe to repeat
+      operationId: staffReactivateAccount
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/UserId' }
+      responses:
+        '200':
+          description: The account, now active
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Account' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/moderation/reviews:
+    get:
+      tags: [staff]
+      summary: Moderation queue, visible reviews with reports, most reported first (PB-37, FR-029)
+      operationId: staffReportedReviews
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 100 } }
+      responses:
+        '200':
+          description: Reported reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ReportedReview' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/moderation/reviews/{reviewId}/remove:
+    post:
+      tags: [staff]
+      summary: Remove a review; it leaves the app and the rating at once (PB-37, FR-029, FR-044)
+      operationId: staffRemoveReview
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ReviewId' }
+      responses:
+        '204': { description: Removed; logged as moderation.review_removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/moderation/reviews/{reviewId}/dismiss:
+    post:
+      tags: [staff]
+      summary: Keep a reported review; its reports are cleared (PB-37, FR-044)
+      operationId: staffDismissReports
+      security: [{ staffToken: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/ReviewId' }
+      responses:
+        '204': { description: Reports cleared; logged as moderation.reports_dismissed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/moderation/surveys:
+    get:
+      tags: [staff]
+      summary: Newest surveys that are not removed, optionally for one venue (PB-37, UC-21)
+      operationId: staffRecentSurveys
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: venueId, in: query, schema: { type: string, format: uuid } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 100 } }
+      responses:
+        '200':
+          description: Surveys, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RecentSurvey' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /staff/moderation/surveys/{surveyId}/remove:
+    post:
+      tags: [staff]
+      summary: Remove a survey; its answers stop feeding conditions at once (PB-37, FR-029, FR-044)
+      operationId: staffRemoveSurvey
+      security: [{ staffToken: [] }]
+      parameters:
+        - { name: surveyId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed; logged as moderation.survey_removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /venues/{venueId}/noise-samples/eligibility:
+    get:
+      tags: [venues]
+      summary: May the signed-in student share a noise sample here now? (PB-19, SEN-009)
+      description: |
+        Yes when Presence places the student at the venue, or the position given is within the
+        venue radius (presence.venueRadiusMeters, 50 m by default). The app offers the recording only then.
+      operationId: noiseSampleEligibility
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+        - { name: lat, in: query, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: lng, in: query, schema: { type: number, minimum: -180, maximum: 180 } }
+      responses:
+        '200':
+          description: Eligibility
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eligible: { type: boolean }
+                  reason: { type: string, enum: [not_present], nullable: true }
+                  radiusMeters: { type: integer }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /venues/{venueId}/noise-samples:
+    post:
+      tags: [venues]
+      summary: Send a 7-second noise snippet; only its level is kept (PB-19, UC-11, AI-023, PRIV-001)
+      description: |
+        multipart/form-data with "audio" (WAV 16-bit PCM preferred; WebM, OGG, MP4, AAC accepted; at most 1 MB)
+        and the student's "lat" and "lng". The snippet is analysed in memory and discarded; a level becomes
+        one noise record (venue, level, time). When the analysis is unavailable or inconclusive the answer is
+        200 with status "unavailable" and nothing is saved (AI-026). 6 uploads per minute per client.
+      operationId: sendNoiseSample
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio: { type: string, format: binary }
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        '200':
+          description: Recorded, or unavailable (nothing saved)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, level, message]
+                properties:
+                  status: { type: string, enum: [recorded, unavailable] }
+                  level: { type: string, enum: [quiet, moderate, noisy], nullable: true }
+                  message: { type: string }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '413': { description: The file is larger than 1 MB }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /studymatch:
+    post:
+      tags: [studymatch]
+      summary: Ask StudyMatch in your own words (PB-29, UC-05, AI-001)
+      description: |
+        English, Arabic or a mix in; English out (AI-024). Send lat and lng only when the student granted
+        location (AI-003); without them StudyMatch uses an area from the text or asks for one (NEEDS_INFO).
+        Recommendations are ranked by the backend from real data, with reasons (AI-012 to AI-014).
+        When the AI is unavailable (error, open circuit, or the 9 s deadline) the answer is still 200, with
+        degraded true, reasonCode AI_UNAVAILABLE and standard results: nearby places matching the saved
+        preferences, or none with a prompt to use Search (AI-019, AI-029). Answers within 10 s (PERF-003).
+        For follow-ups ("which of those is cheaper?") send the last exchanges in history. It is context only:
+        facts are looked up again, and nothing is stored. A history that is not whole pairs is a 400.
+        10 questions per minute per client (STUDYMATCH_LIMIT).
+      operationId: askStudyMatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StudyMatchRequest' }
+      responses:
+        '200':
+          description: The reply, with recommendations or standard results
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StudyMatchAnswer' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
 security:
   - bearerAuth: []
 
@@ -428,8 +948,32 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+    staffToken:
+      type: http
+      scheme: bearer
+      description: Staff token from POST /staff/session (not an app access token)
 
   parameters:
+    PeriodFrom:
+      name: from
+      in: query
+      description: Start of the period, inclusive (date or date-time)
+      schema: { type: string, example: '2026-11-01' }
+    PeriodTo:
+      name: to
+      in: query
+      description: End of the period, exclusive (date or date-time)
+      schema: { type: string, example: '2026-11-08' }
+    ReviewId:
+      name: reviewId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
     VenueId:
       name: venueId
       in: path
@@ -502,6 +1046,11 @@ components:
             requestId: 5f0c1f7e-7a39-4a8e-9c3a-0e2f2b1c9d10
     Unauthenticated:
       description: Missing, invalid or expired token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+    Forbidden:
+      description: Signed in, but this account or role may not do this
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorBody' }
@@ -585,6 +1134,24 @@ components:
             termsAcceptedAt: { type: string, format: date-time }
             createdAt: { type: string, format: date-time }
             pointsBalance: { type: integer, minimum: 0 }
+    UpdateProfileRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName: { type: string, minLength: 2, maxLength: 30 }
+        currentPassword: { type: string, minLength: 1, maxLength: 128, description: Needed with newPassword }
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: At least one letter and one digit
+      example: { displayName: Karma, currentPassword: secret123, newPassword: newsecret456 }
+    UpdateProfileResult:
+      allOf:
+        - $ref: '#/components/schemas/Profile'
+        - type: object
+          properties:
+            tokens: { $ref: '#/components/schemas/AuthTokens' }
 
     NoiseWord: { type: string, enum: [quiet, moderate, noisy] }
     WifiWord: { type: string, enum: [poor, average, good] }
@@ -663,6 +1230,45 @@ components:
             conditions:
               nullable: true
               allOf: [{ $ref: '#/components/schemas/VenueConditions' }]
+    StudyMatchRequest:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 500, example: 'quiet place with good wifi near me' }
+        lat: { type: number, minimum: -90, maximum: 90, description: 'Send with lng, or neither' }
+        lng: { type: number, minimum: -180, maximum: 180 }
+        history:
+          type: array
+          maxItems: 6
+          description: |
+            Optional. Up to 3 earlier question/answer pairs, oldest first: a user message, then the model
+            reply to it. Text only; the app adds the names of the places shown to the reply text.
+          items: { $ref: '#/components/schemas/StudyMatchMessage' }
+    StudyMatchMessage:
+      type: object
+      additionalProperties: false
+      required: [role, text]
+      properties:
+        role: { type: string, enum: [user, model], description: 'user = the student, model = StudyMatch' }
+        text: { type: string, minLength: 1, maxLength: 1000 }
+    StudyMatchAnswer:
+      type: object
+      required: [reply, recommendations, degraded, reasonCode]
+      properties:
+        reply: { type: string, description: Text to show in the chat (English) }
+        recommendations:
+          type: array
+          maxItems: 5
+          description: Ranked places with reasons; standard results when degraded is true
+          items:
+            type: object
+            required: [venue, reasons]
+            properties:
+              venue: { $ref: '#/components/schemas/VenueSummary' }
+              reasons: { type: array, items: { type: string } }
+        degraded: { type: boolean, description: True when the AI was unavailable and these are standard results (AI-029) }
+        reasonCode: { type: string, enum: [OK, AI_UNAVAILABLE, NEEDS_INFO, OFF_TOPIC] }
     SearchResult:
       type: object
       required: [origin, items, degraded]
@@ -684,6 +1290,77 @@ components:
         text: { type: string, nullable: true, maxLength: 1000 }
         authorDisplayName: { type: string }
         createdAt: { type: string, format: date-time }
+    WriteReviewRequest:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5, description: Whole stars }
+        text: { type: string, nullable: true, maxLength: 1000, description: Blank text is saved as none }
+    MyReview:
+      allOf:
+        - { $ref: '#/components/schemas/Review' }
+        - type: object
+          required: [venueId, hidden]
+          properties:
+            venueId: { type: string, format: uuid }
+            hidden: { type: boolean, description: True when a moderator removed it; writing again shows it again }
+    Account:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        displayName: { type: string }
+        role: { type: string, enum: [user, moderator, admin] }
+        suspended: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    CreateAccountRequest:
+      type: object
+      additionalProperties: false
+      required: [email, displayName, role, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        displayName: { type: string, minLength: 2, maxLength: 30 }
+        role: { type: string, enum: [user, moderator, admin] }
+        password: { type: string, minLength: 8, maxLength: 128, description: Staff need at least 10 characters }
+    ContentAuthor:
+      type: object
+      description: Staff view of an author; never shown in the app (PRIV-014)
+      properties:
+        id: { type: string, format: uuid }
+        displayName: { type: string }
+        email: { type: string }
+        suspended: { type: boolean }
+    ReportedReview:
+      type: object
+      properties:
+        reviewId: { type: string, format: uuid }
+        venue: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string } } }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, nullable: true }
+        author: { $ref: '#/components/schemas/ContentAuthor' }
+        writtenAt: { type: string, format: date-time }
+        reportCount: { type: integer, minimum: 1 }
+        firstReportedAt: { type: string, format: date-time }
+        lastReportedAt: { type: string, format: date-time }
+    RecentSurvey:
+      type: object
+      properties:
+        surveyId: { type: string, format: uuid }
+        venue: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string } } }
+        source: { type: string, enum: [qr, in_app] }
+        answers:
+          type: object
+          properties:
+            crowd: { type: string, nullable: true }
+            noise: { type: string, nullable: true }
+            wifi: { type: string, nullable: true }
+        author:
+          allOf: [{ $ref: '#/components/schemas/ContentAuthor' }]
+          nullable: true
+          description: Null when the account was deleted
+        submittedAt: { type: string, format: date-time }
+        pointsAwarded: { type: integer }
     VenueDetails:
       type: object
       required: [static, dynamic, averageRating, reviewCount, reviews, isFavorite]
@@ -710,3 +1387,76 @@ components:
         openNow: { type: boolean }
         maxDistance: { type: integer, minimum: 1, maximum: 5000 }
         studyType: { type: string, enum: [individual, group] }
+
+    StaffSession:
+      type: object
+      required: [staffToken, expiresIn, expiresAt, user]
+      properties:
+        staffToken: { type: string }
+        expiresIn: { type: integer, description: 'Seconds (900 by default)' }
+        expiresAt: { type: string, format: date-time }
+        user: { $ref: '#/components/schemas/AuthUser' }
+
+    Setting:
+      type: object
+      properties:
+        key: { type: string, example: points.dailyCap }
+        group: { type: string, enum: [Rewards, Freshness, Presence] }
+        label: { type: string }
+        unit: { type: string }
+        min: { type: integer }
+        max: { type: integer }
+        requirement: { type: string }
+        value: { type: integer }
+        defaultValue: { type: integer }
+
+    SettingChange:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        oldValue: { nullable: true }
+        newValue: {}
+        changedBy:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string, nullable: true }
+            displayName: { type: string, nullable: true }
+        changedAt: { type: string, format: date-time }
+
+    SecurityLogEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        actorType: { type: string, enum: [user, staff, system, anonymous] }
+        actorId: { type: string, format: uuid, nullable: true }
+        actor:
+          type: object
+          nullable: true
+          properties:
+            email: { type: string }
+            displayName: { type: string }
+        action: { type: string }
+        target: { type: string, nullable: true }
+        details: { type: object, additionalProperties: true }
+        ip: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    Statistics:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            from: { type: string, format: date-time }
+            to: { type: string, format: date-time }
+        users:
+          type: object
+          properties:
+            total: { type: integer }
+            newInPeriod: { type: integer }
+        surveysSubmitted: { type: integer }
+        pointsIssued: { type: integer }
+        couponsRedeemed: { type: integer }
+        failedSignIns: { type: integer }

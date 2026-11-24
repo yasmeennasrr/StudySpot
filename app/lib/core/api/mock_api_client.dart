@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import '../models/auth.dart';
+import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/studymatch.dart';
+import '../models/review.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -41,10 +46,33 @@ class MockApiClient extends ApiClient {
   ];
   final Set<String> favoriteIds = {};
 
+  /// PB-19: whether the student counts as being at the venue, and what the
+  /// noise analysis answers. [noiseSamples] keeps the size of each upload.
+  bool noiseEligible = true;
+  NoiseSampleResult noiseResult = const NoiseSampleResult(
+      recorded: true, level: 'quiet', message: 'Thanks! The noise level was saved.');
+  final List<int> noiseSamples = [];
+
+  /// PB-15 / PB-16: the signed-in student's reviews by venue, and the ids of
+  /// reviews they reported.
+  final Map<String, MyReview> myReviews = {};
+  final Set<String> reportedReviewIds = {};
+
+  /// PB-29: what StudyMatch answers next, and every question it was asked.
+  StudyMatchAnswer? studyMatchAnswer;
+  final List<({String text, double? lat, double? lng, List<StudyMatchMessage> history})>
+      studyMatchQuestions = [];
+
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
 
   int logoutCalls = 0;
+
+  /// Who the last sign-in or registration was for (the mock has no real tokens).
+  String? signedInEmail;
+
+  /// Every PATCH /me body, so tests can check what the app sent.
+  final List<Map<String, String>> accountUpdates = [];
 
   Future<void> _step() async {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
@@ -91,6 +119,7 @@ class MockApiClient extends ApiClient {
     }
     accounts[key] = password;
     displayNames[key] = displayName;
+    signedInEmail = key;
     return _tokensFor(key);
   }
 
@@ -108,6 +137,7 @@ class MockApiClient extends ApiClient {
         message: 'E-mail or password is wrong. Please try again.',
       );
     }
+    signedInEmail = key;
     return _tokensFor(key);
   }
 
@@ -128,6 +158,84 @@ class MockApiClient extends ApiClient {
   Future<void> logout(String refreshToken) async {
     await _step();
     logoutCalls++;
+  }
+
+  String _currentEmail() {
+    final email = signedInEmail;
+    if (email == null) {
+      onUnauthorized?.call();
+      throw const ApiError(
+          code: 'UNAUTHENTICATED', statusCode: 401, message: 'Please sign in to continue.');
+    }
+    return email;
+  }
+
+  @override
+  Future<AuthUser> getMe() async {
+    await _step();
+    return _tokensFor(_currentEmail()).user;
+  }
+
+  /// Same rules as the backend (PB-05): wrong current password is 400, not 401.
+  @override
+  Future<AccountUpdate> updateMe({
+    String? displayName,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    await _step();
+    final email = _currentEmail();
+    accountUpdates.add({
+      'displayName': ?displayName,
+      'currentPassword': ?currentPassword,
+      'newPassword': ?newPassword,
+    });
+    if (newPassword != null && accounts[email] != currentPassword) {
+      throw const ApiError(
+        code: 'INVALID_INPUT',
+        statusCode: 400,
+        message: 'Your current password is not correct. Nothing was changed.',
+        fieldErrors: {
+          'currentPassword': 'Your current password is not correct. Nothing was changed.'
+        },
+      );
+    }
+    if (displayName != null) displayNames[email] = displayName.trim();
+    if (newPassword != null) accounts[email] = newPassword;
+    final user = _tokensFor(email).user;
+    if (newPassword == null) return AccountUpdate(user: user);
+    // A new session, so the tokens differ from the ones stored at sign-in.
+    final n = accountUpdates.length;
+    return AccountUpdate(
+      user: user,
+      tokens: AuthTokens(
+        accessToken: 'mock-access-$email-$n',
+        expiresIn: 900,
+        refreshToken: 'mock-refresh-$email-$n',
+        user: user,
+      ),
+    );
+  }
+
+  @override
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  }) async {
+    await _step();
+    studyMatchQuestions.add((text: text, lat: lat, lng: lng, history: history));
+    return studyMatchAnswer ??
+        StudyMatchAnswer(
+          reply: 'Here are quiet places near you.',
+          recommendations: [
+            StudyMatchRecommendation(
+              venue: venues.first,
+              reasons: const ['Noise: Quiet (current)', 'Wi-Fi: Good (current)'],
+            ),
+          ],
+        );
   }
 
   @override
@@ -277,6 +385,7 @@ class MockApiClient extends ApiClient {
         message: 'This place was not found.',
       ),
     );
+    final mine = myReviews[v.id];
     return {
       'static': {
         'id': v.id,
@@ -327,6 +436,14 @@ class MockApiClient extends ApiClient {
       'averageRating': 4.5,
       'reviewCount': 2,
       'reviews': [
+        if (mine != null && !mine.hidden)
+          {
+            'id': mine.id,
+            'rating': mine.rating,
+            'text': mine.text,
+            'authorDisplayName': 'Dev User',
+            'createdAt': mine.createdAt.toUtc().toIso8601String(),
+          },
         {
           'id': 'r1',
           'rating': 5,
@@ -344,5 +461,70 @@ class MockApiClient extends ApiClient {
       ],
       'isFavorite': favoriteIds.contains(v.id),
     };
+  }
+
+  @override
+  Future<MyReview?> getMyReview(String venueId) async {
+    await _step();
+    return myReviews[venueId];
+  }
+
+  @override
+  Future<MyReview> writeReview(String venueId, {required int rating, String? text}) async {
+    await _step();
+    if (rating < 1 || rating > 5) {
+      throw const ApiError(
+          code: 'INVALID_INPUT',
+          statusCode: 400,
+          message: 'Please check rating: rating must be 1 to 5 stars.',
+          fieldErrors: {'rating': 'rating must be 1 to 5 stars'});
+    }
+    final trimmed = text?.trim();
+    final review = MyReview(
+      id: myReviews[venueId]?.id ?? 'mine-$venueId',
+      venueId: venueId,
+      rating: rating,
+      text: trimmed == null || trimmed.isEmpty ? null : trimmed,
+      createdAt: DateTime.now(),
+    );
+    myReviews[venueId] = review;
+    return review;
+  }
+
+  @override
+  Future<void> reportReview(String reviewId) async {
+    await _step();
+    if (myReviews.values.any((r) => r.id == reviewId)) {
+      throw const ApiError(
+          code: 'NOT_ALLOWED',
+          statusCode: 403,
+          message: 'You cannot report your own review. Edit it instead.');
+    }
+    reportedReviewIds.add(reviewId);
+  }
+
+  @override
+  Future<bool> noiseSampleEligible(String venueId,
+      {required double lat, required double lng}) async {
+    await _step();
+    return noiseEligible;
+  }
+
+  @override
+  Future<NoiseSampleResult> sendNoiseSample(
+    String venueId,
+    Uint8List wav, {
+    required double lat,
+    required double lng,
+  }) async {
+    await _step();
+    if (!noiseEligible) {
+      throw const ApiError(
+          code: 'NOT_ALLOWED',
+          statusCode: 403,
+          message: 'You can share a noise sample only while you are at this place.');
+    }
+    noiseSamples.add(wav.length);
+    return noiseResult;
   }
 }
