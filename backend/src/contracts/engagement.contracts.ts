@@ -53,8 +53,20 @@ export interface StudyMatchAnswer {
   reasonCode: 'OK' | 'AI_UNAVAILABLE' | 'NEEDS_INFO' | 'OFF_TOPIC';
 }
 
+/** One earlier chat message, text only: 'user' is the student, 'model' is StudyMatch. */
+export interface StudyMatchMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
 export interface IStudyMatch {
-  ask(input: { userId: string; text: string; location?: GeoPoint }): Promise<StudyMatchAnswer>;
+  /** `history`: earlier question/answer pairs, oldest first, for follow-ups. Never stored. */
+  ask(input: {
+    userId: string;
+    text: string;
+    location?: GeoPoint;
+    history?: StudyMatchMessage[];
+  }): Promise<StudyMatchAnswer>;
 }
 
 // ---------------------------------------------------------------- INotify

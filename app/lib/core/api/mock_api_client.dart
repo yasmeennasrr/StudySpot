@@ -60,7 +60,8 @@ class MockApiClient extends ApiClient {
 
   /// PB-29: what StudyMatch answers next, and every question it was asked.
   StudyMatchAnswer? studyMatchAnswer;
-  final List<({String text, double? lat, double? lng})> studyMatchQuestions = [];
+  final List<({String text, double? lat, double? lng, List<StudyMatchMessage> history})>
+      studyMatchQuestions = [];
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -211,9 +212,14 @@ class MockApiClient extends ApiClient {
   }
 
   @override
-  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  }) async {
     await _step();
-    studyMatchQuestions.add((text: text, lat: lat, lng: lng));
+    studyMatchQuestions.add((text: text, lat: lat, lng: lng, history: history));
     return studyMatchAnswer ??
         StudyMatchAnswer(
           reply: 'Here are quiet places near you.',

@@ -34,7 +34,7 @@ package "modules/studymatch (M2)" as SMPKG {
     -deadlineMs = 9000
     -maxRounds = 4
     +ask(input): Promise<StudyMatchAnswer>
-    +converse(ctx, text): Promise<StudyMatchAnswer>
+    +converse(ctx, text, history): Promise<StudyMatchAnswer>
     +standardResults(ctx, reason): Promise<StudyMatchAnswer>
   }
   class StudyMatchTools <<allow-list>> {
@@ -49,7 +49,7 @@ package "modules/studymatch (M2)" as SMPKG {
 
 package "contracts" as CPKG {
   interface IStudyMatch <<interface>> {
-    +ask(input: {userId, text, location?}): Promise<StudyMatchAnswer>
+    +ask(input: {userId, text, location?, history?}): Promise<StudyMatchAnswer>
   }
   interface ILLM <<interface>> {
     +generate(input: {system, turns, tools, timeoutMs}): Promise<LlmTurn>
@@ -86,7 +86,7 @@ package "adapters: LLM and resilience" as APKG {
     +execute(call): Promise<T>
   }
   class GeminiLlmAdapter <<Adapter>> {
-    -model = gemini-3.5-flash
+    -model = gemini-3.5-flash-lite
     -thinkingLevel = minimal
     +generate(input): Promise<LlmTurn>
   }

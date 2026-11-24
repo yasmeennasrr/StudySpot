@@ -90,7 +90,13 @@ abstract class ApiClient {
 
   // StudyMatch (M2: PB-29, UC-05)
   /// POST /studymatch. Send [lat]/[lng] only when location is granted (AI-003).
-  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng});
+  /// [history]: up to 3 earlier question/answer pairs, oldest first, for follow-ups.
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  });
 
   // Noise sampling (M1: PB-19, UC-11)
   /// True when the signed-in student is at this venue now, so the app may offer

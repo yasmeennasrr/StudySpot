@@ -25,13 +25,13 @@ participant "IPreferences" as Prefs
 
 Student -> App : types a request (English or Arabic)
 App -> App : show question + "Finding places…" (PERF-007)
-App -> API : POST /api/v1/studymatch {text, lat?, lng?}\n(lat/lng only if location granted, AI-003)
-API -> API : AuthGuard (user from token, AI-009)\nvalidate text 1-500, lat+lng together
+App -> API : POST /api/v1/studymatch {text, lat?, lng?, history?}\n(lat/lng only if location granted, AI-003;\nhistory = last 3 question/answer pairs, text only)
+API -> API : AuthGuard (user from token, AI-009)\nvalidate text 1-500, lat+lng together,\nhistory: max 6 messages of 1-1000, whole pairs
 alt invalid input or not signed in
   API --> App : 400 INVALID_INPUT / 401
 end
-API -> SM : ask({userId, text, location})
-SM -> SM : deadline = now + 9 s (AI-028)
+API -> SM : ask({userId, text, location, history})
+SM -> SM : deadline = now + 9 s (AI-028)\nturns = history + new message (nothing stored)
 
 loop up to 4 rounds, while time is left
   SM -> RL : generate(system prompt, turns, 5 tools,\ntimeoutMs = min(5 s, time left))
