@@ -37,6 +37,10 @@ export class VenueEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   address: string | null;
 
+  /** HTTPS link to a photo of the place, shown on lists and the details page. */
+  @Column({ name: 'photo_url', type: 'varchar', length: 500, nullable: true })
+  photoUrl: string | null;
+
   /** Neighbourhood for display and area search, e.g. "New Cairo", "Zamalek". */
   @Column({ type: 'varchar', length: 80, nullable: true })
   area: string | null;

@@ -18,7 +18,7 @@ class AppServices {
     required this.location,
     required this.push,
     NoiseRecorder? noise,
-    this.mapTiles = true,
+    this.loadNetworkImages = true,
   }) : noise = noise ?? RecordNoiseRecorder(),
         session = Session(api: api, tokens: tokens);
 
@@ -32,9 +32,10 @@ class AppServices {
   final NoiseRecorder noise;
   final Session session;
 
-  /// Whether maps download OpenStreetMap tiles. Tests turn this off, since
-  /// they have no network; the pins still show.
-  final bool mapTiles;
+  /// Whether the app downloads pictures from the internet: map tiles and place
+  /// photos. Tests turn this off, since they have no network; the map pins and
+  /// the photo placeholders still show.
+  final bool loadNetworkImages;
 }
 
 /// Makes [AppServices] reachable from any widget: `AppScope.of(context)`.

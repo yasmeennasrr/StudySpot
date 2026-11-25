@@ -29,7 +29,7 @@ class TestWorld {
       location: location,
       push: push,
       noise: noise,
-      mapTiles: false,
+      loadNetworkImages: false,
     );
   }
 

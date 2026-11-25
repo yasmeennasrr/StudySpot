@@ -6,6 +6,7 @@
     "lng": 31.4952,
     "address": "University District, New Cairo",
     "area": "New Cairo",
+    "photoUrl": "https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "00:00" }],
       "1": [{ "open": "08:00", "close": "00:00" }],
@@ -28,6 +29,7 @@
     "lng": 31.2197,
     "address": "26th of July Street, Zamalek",
     "area": "Zamalek",
+    "photoUrl": "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "23:00" }],
       "1": [{ "open": "09:00", "close": "23:00" }],
@@ -50,6 +52,7 @@
     "lng": 31.2585,
     "address": "Road 9, Maadi",
     "area": "Maadi",
+    "photoUrl": "https://images.unsplash.com/photo-1761695939616-1c03087c1ce4?auto=format&fit=crop&w=1200&q=70",
     "openingHours": null,
     "priceLevel": 1,
     "wifiAvailable": false,
@@ -64,6 +67,7 @@
     "lng": 31.4934,
     "address": "Near the American University in Cairo, New Cairo",
     "area": "New Cairo",
+    "photoUrl": "https://images.unsplash.com/photo-1662379940109-1026a0dcfe95?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "23:00" }],
       "1": [{ "open": "09:00", "close": "23:00" }],
@@ -86,6 +90,7 @@
     "lng": 31.4301,
     "address": "Fifth Settlement, New Cairo",
     "area": "Fifth Settlement",
+    "photoUrl": "https://images.unsplash.com/photo-1461988625982-7e46a099bf4f?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "22:00" }],
       "1": [{ "open": "08:00", "close": "22:00" }],
@@ -108,6 +113,7 @@
     "lng": 31.6421,
     "address": "South Market Area, Madinaty",
     "area": "Madinaty",
+    "photoUrl": "https://images.unsplash.com/photo-1759269106058-a52e5ac35e01?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "10:00", "close": "23:00" }],
       "1": [{ "open": "10:00", "close": "23:00" }],
@@ -130,6 +136,7 @@
     "lng": 31.3301,
     "address": "Abbas El-Akkad Street, Nasr City",
     "area": "Nasr City",
+    "photoUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "23:00" }],
       "1": [{ "open": "08:00", "close": "23:00" }],
@@ -152,6 +159,7 @@
     "lng": 31.3225,
     "address": "El-Merghany Street, Heliopolis",
     "area": "Heliopolis",
+    "photoUrl": "https://images.unsplash.com/photo-1542372147193-a7aca54189cd?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "22:00" }],
       "1": [{ "open": "09:00", "close": "22:00" }],
@@ -174,6 +182,7 @@
     "lng": 31.2381,
     "address": "Near Bab El-Louq Square, Downtown Cairo",
     "area": "Downtown Cairo",
+    "photoUrl": "https://images.unsplash.com/photo-1535688391459-479d308104f8?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "22:00" }],
       "1": [{ "open": "08:00", "close": "22:00" }],
@@ -196,6 +205,7 @@
     "lng": 31.2123,
     "address": "Tahrir Street, Dokki",
     "area": "Dokki",
+    "photoUrl": "https://images.unsplash.com/photo-1601065700897-d9fa1c093f3e?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "23:00" }],
       "1": [{ "open": "09:00", "close": "23:00" }],
@@ -218,6 +228,7 @@
     "lng": 31.2318,
     "address": "Garden City, Cairo",
     "area": "Garden City",
+    "photoUrl": "https://images.unsplash.com/photo-1728761390316-935ffeb3fbcc?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "21:00" }],
       "1": [{ "open": "08:00", "close": "21:00" }],
@@ -240,6 +251,7 @@
     "lng": 31.3037,
     "address": "Mokattam Plateau, Cairo",
     "area": "Mokattam",
+    "photoUrl": "https://images.unsplash.com/photo-1776703808255-42a98f22547f?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "10:00", "close": "22:00" }],
       "1": [{ "open": "10:00", "close": "22:00" }],
@@ -262,6 +274,7 @@
     "lng": 30.9438,
     "address": "University District, 6th of October City",
     "area": "6th of October City",
+    "photoUrl": "https://images.unsplash.com/photo-1730047614287-65e28e013ce1?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "22:00" }],
       "1": [{ "open": "09:00", "close": "22:00" }],
@@ -284,6 +297,7 @@
     "lng": 31.2318,
     "address": "Fustat, Old Cairo",
     "area": "Old Cairo",
+    "photoUrl": "https://images.unsplash.com/photo-1758945185175-3d54780cd8d0?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "09:00", "close": "21:00" }],
       "1": [{ "open": "09:00", "close": "21:00" }],
@@ -306,6 +320,7 @@
     "lng": 30.9815,
     "address": "Sheikh Zayed City, Giza",
     "area": "Sheikh Zayed",
+    "photoUrl": "https://images.unsplash.com/photo-1729212093065-9373982cfe65?auto=format&fit=crop&w=1200&q=70",
     "openingHours": {
       "0": [{ "open": "08:00", "close": "22:00" }],
       "1": [{ "open": "08:00", "close": "22:00" }],

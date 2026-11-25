@@ -88,6 +88,7 @@ class VenueSummary {
     this.lng,
     this.address,
     this.area,
+    this.photoUrl,
     this.priceLevel,
     this.wifiAvailable,
     this.outletsAvailable,
@@ -105,6 +106,9 @@ class VenueSummary {
   final double? lng;
   final String? address;
   final String? area;
+
+  /// HTTPS link to a photo of the place, or null (a placeholder is shown).
+  final String? photoUrl;
   final int? priceLevel;
   final bool? wifiAvailable;
   final bool? outletsAvailable;
@@ -127,6 +131,7 @@ class VenueSummary {
         lng: lng,
         address: address,
         area: area,
+        photoUrl: photoUrl,
         priceLevel: priceLevel,
         wifiAvailable: wifiAvailable,
         outletsAvailable: outletsAvailable,
@@ -147,6 +152,7 @@ class VenueSummary {
       lng: _d(location?['lng']),
       address: json['address'] as String?,
       area: json['area'] as String?,
+      photoUrl: _httpsUrl(json['photoUrl']),
       priceLevel: _i(json['priceLevel']),
       wifiAvailable: json['wifiAvailable'] as bool?,
       outletsAvailable: json['outletsAvailable'] as bool?,
@@ -242,4 +248,11 @@ class VenueDetails {
       isFavorite: json['isFavorite'] as bool?,
     );
   }
+}
+
+/// Only https links are shown as photos; anything else counts as no photo.
+String? _httpsUrl(Object? value) {
+  if (value is! String) return null;
+  final uri = Uri.tryParse(value);
+  return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty ? value : null;
 }

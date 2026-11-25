@@ -11,6 +11,7 @@ export const SAMPLE_VENUES: VenueStatic[] = [
     location: { lat: 30.0205, lng: 31.4952 },
     address: '90th Street, New Cairo',
     area: 'New Cairo',
+    photoUrl: null,
     openingHours: {
       0: [{ open: '08:00', close: '00:00' }],
       1: [{ open: '08:00', close: '00:00' }],
@@ -31,6 +32,7 @@ export const SAMPLE_VENUES: VenueStatic[] = [
     location: { lat: 30.0626, lng: 31.2197 },
     address: '26th of July Street, Zamalek',
     area: 'Zamalek',
+    photoUrl: null,
     openingHours: {
       0: [{ open: '09:00', close: '23:00' }],
       1: [{ open: '09:00', close: '23:00' }],
@@ -50,6 +52,7 @@ export const SAMPLE_VENUES: VenueStatic[] = [
     location: { lat: 29.9597, lng: 31.2585 },
     address: 'Road 9, Maadi',
     area: 'Maadi',
+    photoUrl: null,
     openingHours: null,
     priceLevel: 1,
     wifiAvailable: false,

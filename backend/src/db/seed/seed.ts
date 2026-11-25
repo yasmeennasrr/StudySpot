@@ -30,6 +30,8 @@ export interface SeedVenue {
   lng: number;
   address?: string | null;
   area?: string | null;
+  /** HTTPS link to a photo (see seed/PHOTOS.md for sources and licences). */
+  photoUrl?: string | null;
   openingHours?: VenueEntity['openingHours'];
   priceLevel?: 1 | 2 | 3 | 4 | null;
   wifiAvailable?: boolean | null;
@@ -142,7 +144,19 @@ export function validateVenue(v: SeedVenue, index: number): string[] {
     problems.push(`${where}: lng must be a number inside Egypt`);
   if (v.priceLevel != null && ![1, 2, 3, 4].includes(v.priceLevel))
     problems.push(`${where}: priceLevel must be 1..4`);
+  if (v.photoUrl != null && !isHttpsUrl(v.photoUrl, 500))
+    problems.push(`${where}: photoUrl must be an https:// link of at most 500 characters`);
   return problems;
+}
+
+/** True for an absolute https:// URL no longer than [max] characters. */
+export function isHttpsUrl(value: string, max: number): boolean {
+  if (value.length > max) return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 async function main(): Promise<void> {
@@ -182,6 +196,7 @@ async function main(): Promise<void> {
           location: { type: 'Point', coordinates: [v.lng, v.lat] },
           address: v.address ?? null,
           area: v.area ?? null,
+          photoUrl: v.photoUrl ?? null,
           openingHours: v.openingHours ?? null,
           priceLevel: v.priceLevel ?? null,
           wifiAvailable: v.wifiAvailable ?? null,

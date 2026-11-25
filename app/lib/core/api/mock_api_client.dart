@@ -22,7 +22,8 @@ class MockApiClient extends ApiClient {
   final Map<String, String> accounts = {'dev@studyspot.test': 'devpass123'};
   final Map<String, String> displayNames = {'dev@studyspot.test': 'Dev User'};
   Preferences preferences = Preferences.empty;
-  final List<VenueSummary> venues = const [
+  /// Tests may replace a venue (for example to give it a photo).
+  final List<VenueSummary> venues = [
     VenueSummary(
       id: '6f1c2a10-0000-4000-8000-000000000001',
       name: 'Sample Study Café (New Cairo)',
@@ -432,6 +433,7 @@ class MockApiClient extends ApiClient {
         'location': {'lat': v.lat, 'lng': v.lng},
         'address': v.address,
         'area': v.area,
+        'photoUrl': v.photoUrl,
         'openingHours': {
           '0': [
             {'open': '08:00', 'close': '23:00'},

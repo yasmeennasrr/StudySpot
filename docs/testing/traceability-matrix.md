@@ -4,7 +4,7 @@
 
 ## Summary
 
-**307** test cases: **304** pass, **1** fail, **2** not run yet. They cover **159** requirement IDs.
+**314** test cases: **310** pass, **1** fail, **3** not run yet. They cover **159** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -13,18 +13,18 @@
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
-| M6 | 51 | 50 | 0 | 1 | 50 |
+| M6 | 58 | 56 | 0 | 2 | 56 |
 | Yasmeen | 10 | 10 | 0 | 0 | 10 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 99 |
+| Integration | 100 |
 | Performance | 3 |
-| System | 1 |
-| Unit | 175 |
+| System | 2 |
+| Unit | 178 |
 | Unit (app) | 9 |
-| Widget | 10 |
+| Widget | 12 |
 
 ## Requirement → test cases
 
@@ -87,11 +87,11 @@
 | FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36, TC-M5-12, TC-M6-06 | Integration, Unit | ✅ all pass |
-| FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
+| FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06, TC-M1-93, TC-M6-54, TC-M6-57, TC-M6-58 | Integration, Unit, Unit (app), Widget, System | ⏳ 2 not run |
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-014 | TC-M6-12, TC-M6-51 | Widget, System | ⏳ 1 not run |
 | FR-015 | TC-M6-11, TC-M6-12 | Unit, Widget | ✅ all pass |
-| FR-016 | TC-M4-14, TC-M6-05, TC-M6-10 | Integration, Unit | ✅ all pass |
+| FR-016 | TC-M4-14, TC-M6-05, TC-M6-10, TC-M6-52, TC-M6-53, TC-M6-54, TC-M6-55, TC-M6-56, TC-M6-57, TC-M6-58 | Integration, Unit, Widget, System | ⏳ 1 not run |
 | FR-017 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-018 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-019 | TC-M4-14, TC-M6-10, TC-M6-12 | Integration, Unit, Widget | ✅ all pass |
@@ -504,6 +504,13 @@
 | TC-M6-49 | USE-001 | Boundary value analysis | Widget | pass | `app/test/core/adaptive_layout_test.dart` |
 | TC-M6-50 | FR-006, FR-007, USE-001 | Use-case based | Widget | pass | `app/test/core/adaptive_layout_test.dart` |
 | TC-M6-51 | USE-001, FR-014 | Manual (exploratory) on a laptop | System | not run | manual |
+| TC-M6-52 | FR-016 | Equivalence partitioning and boundary value analysis | Unit | pass | `backend/test/unit/seed-photos.spec.ts` |
+| TC-M6-53 | FR-016 | Data validation | Unit | pass | `backend/test/unit/seed-photos.spec.ts` |
+| TC-M6-54 | FR-012, FR-016 | Equivalence partitioning | Integration | pass | `backend/test/int/venue-details.int-spec.ts` |
+| TC-M6-55 | FR-016 | Equivalence partitioning | Unit | pass | `app/test/features/venue_details/venue_photo_test.dart` |
+| TC-M6-56 | FR-016 | Error guessing | Widget | pass | `app/test/features/venue_details/venue_photo_test.dart` |
+| TC-M6-57 | FR-012, FR-016 | Use-case based | Widget | pass | `app/test/features/venue_details/venue_photo_test.dart` |
+| TC-M6-58 | FR-012, FR-016 | Manual (exploratory) | System | not run | manual |
 
 ## Sheet problems
 

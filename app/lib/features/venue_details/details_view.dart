@@ -6,6 +6,7 @@ import '../../core/services.dart';
 import '../../core/widgets/back_or_home_button.dart';
 import '../../core/widgets/condition_label.dart';
 import '../../core/widgets/error_view.dart';
+import '../../core/widgets/venue_photo.dart';
 import '../../core/widgets/view_model_builder.dart';
 import '../favorites/favorite_button.dart';
 import '../noise/noise_sample_card.dart';
@@ -66,6 +67,22 @@ class _Body extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // The place's photo across the top, when it has one.
+        if (v.photoUrl != null) ...[
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: VenuePhoto(
+                key: const Key('venue_details_photo'),
+                url: v.photoUrl,
+                radius: 16,
+                iconSize: 40,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         Text([if (v.address != null) v.address!, if (v.area != null) v.area!].join(', ')),
         const SizedBox(height: 4),
         Text('${priceText(v.priceLevel)} · $rating',

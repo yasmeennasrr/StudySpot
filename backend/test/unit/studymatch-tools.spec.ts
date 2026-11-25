@@ -44,6 +44,7 @@ const VENUE: VenueSummary = {
   location: { lat: 30.06, lng: 31.22 },
   address: null,
   area: 'Zamalek',
+  photoUrl: null,
   openingHours: null,
   priceLevel: 2,
   wifiAvailable: true,
