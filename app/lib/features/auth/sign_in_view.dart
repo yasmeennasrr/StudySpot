@@ -25,7 +25,9 @@ class SignInView extends StatelessWidget {
       },
       builder: (context, vm) {
         Future<void> done(bool ok) async {
-          if (ok && context.mounted) context.go(from ?? '/home');
+          if (ok && context.mounted) {
+            context.go(from == '/account' ? '/home' : from ?? '/home');
+          }
         }
 
         return Scaffold(

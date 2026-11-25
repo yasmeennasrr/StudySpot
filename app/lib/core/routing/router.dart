@@ -254,7 +254,7 @@ String? appRedirect(
     return '/signin?from=${Uri.encodeComponent(location)}';
   }
   if (signedIn && (location == '/signin' || location == '/register')) {
-    return from ?? '/home';
+    return from == '/account' ? '/home' : from ?? '/home';
   }
   return null;
 }
