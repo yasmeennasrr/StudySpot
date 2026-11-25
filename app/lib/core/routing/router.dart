@@ -6,7 +6,6 @@ import '../../features/auth/edit_account_view.dart';
 import '../../features/auth/register_view.dart';
 import '../../features/auth/sign_in_view.dart';
 import '../../features/auth/terms_view.dart';
-import '../../features/auth/welcome_view.dart';
 import '../../features/favorites/view.dart';
 import '../../features/permissions/location_view.dart';
 import '../../features/permissions/presence_prompt_view.dart';
@@ -41,8 +40,7 @@ bool isProtected(String location) =>
 
 /// Screen flow (DRS feedback: logical and natural, on a phone and a laptop):
 ///
-///   first launch: /welcome -> sign in / sign up / guest
-///                 -> /terms -> /location -> /presence -> chosen destination
+///   first launch: /terms -> /location -> /presence -> /home
 ///
 ///   Main places, always one tap away (AppShell: bottom bar on a phone,
 ///   navigation rail on a tablet or laptop). Each keeps its own history:
@@ -58,50 +56,36 @@ bool isProtected(String location) =>
 ///
 ///   A protected screen sends a visitor to /signin?from=..., and signing in
 ///   returns them to it. On wide screens every page keeps a readable width.
-GoRouter buildRouter(
-  AppServices services, {
-  GlobalKey<NavigatorState>? navigatorKey,
-}) {
+GoRouter buildRouter(AppServices services) {
   Widget readable(Widget child, [double maxWidth = pageMaxWidth]) =>
       ReadableWidth(maxWidth: maxWidth, child: child);
   Widget tab(WidgetBuilder builder, [double maxWidth = pageMaxWidth]) =>
       readable(SessionKeyed(builder: builder), maxWidth);
 
   return GoRouter(
-    navigatorKey: navigatorKey,
-    initialLocation: '/welcome',
+    initialLocation: '/home',
     refreshListenable: _SessionListenable(services),
     redirect: (context, state) => appRedirect(
       services,
       location: state.matchedLocation,
       from: state.uri.queryParameters['from'],
-      next: state.uri.queryParameters['next'],
       simulatedPresenceResponse: state.uri.queryParameters['demo'] == 'true',
     ),
     routes: [
-      GoRoute(
-        path: '/welcome',
-        builder: (context, state) =>
-            readable(const WelcomeView(), formMaxWidth),
-      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/home',
-                builder: (context, state) => const SearchView(),
-              ),
+              GoRoute(path: '/home', builder: (context, state) => const SearchView()),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/favorites',
-                builder: (context, state) =>
-                    tab((context) => const FavoritesView()),
+                builder: (context, state) => tab((context) => const FavoritesView()),
               ),
             ],
           ),
@@ -109,8 +93,7 @@ GoRouter buildRouter(
             routes: [
               GoRoute(
                 path: '/studymatch',
-                builder: (context, state) =>
-                    tab((context) => const StudyMatchView()),
+                builder: (context, state) => tab((context) => const StudyMatchView()),
               ),
             ],
           ),
@@ -127,8 +110,7 @@ GoRouter buildRouter(
             routes: [
               GoRoute(
                 path: '/account',
-                builder: (context, state) =>
-                    tab((context) => const AccountView()),
+                builder: (context, state) => tab((context) => const AccountView()),
               ),
             ],
           ),
@@ -136,32 +118,17 @@ GoRouter buildRouter(
       ),
       GoRoute(
         path: '/terms',
-        builder: (context, state) => readable(
-          TermsView(
-            next: _safeOnboardingTarget(state.uri.queryParameters['next']),
-          ),
-          formMaxWidth,
-        ),
+        builder: (context, state) => readable(const TermsView(), formMaxWidth),
       ),
       GoRoute(
         path: '/location',
-        builder: (context, state) => readable(
-          LocationView(
-            next: state.uri.queryParameters['next'] == null
-                ? null
-                : _safeOnboardingTarget(state.uri.queryParameters['next']),
-          ),
-          formMaxWidth,
-        ),
+        builder: (context, state) => readable(const LocationView(), formMaxWidth),
       ),
       GoRoute(
         path: '/presence',
         builder: (context, state) => readable(
           PresencePromptView(
             onboarding: state.uri.queryParameters['onboarding'] != 'false',
-            next: state.uri.queryParameters['next'] == null
-                ? null
-                : _safeOnboardingTarget(state.uri.queryParameters['next']),
           ),
           formMaxWidth,
         ),
@@ -200,8 +167,7 @@ GoRouter buildRouter(
       ),
       GoRoute(
         path: '/account/edit',
-        builder: (context, state) =>
-            readable(const EditAccountView(), formMaxWidth),
+        builder: (context, state) => readable(const EditAccountView(), formMaxWidth),
       ),
       GoRoute(
         path: '/preferences',
@@ -214,10 +180,8 @@ GoRouter buildRouter(
       ),
       GoRoute(
         path: '/rewards/coupons/:id',
-        builder: (context, state) => readable(
-          CouponView(couponId: state.pathParameters['id']!),
-          formMaxWidth,
-        ),
+        builder: (context, state) =>
+            readable(CouponView(couponId: state.pathParameters['id']!), formMaxWidth),
       ),
     ],
   );
@@ -229,21 +193,12 @@ String? appRedirect(
   AppServices services, {
   required String location,
   String? from,
-  String? next,
   bool simulatedPresenceResponse = false,
 }) {
   final flags = services.flags;
-  final onboardingTarget = _safeOnboardingTarget(next);
-
-  if (location == '/welcome') {
-    return services.session.isSignedIn ? '/home' : null;
-  }
-
-  if (!flags.termsAccepted && location != '/terms') {
-    return _onboardingRoute('/terms', onboardingTarget);
-  }
+  if (!flags.termsAccepted) return location == '/terms' ? null : '/terms';
   if (!flags.locationAsked && location != '/location' && location != '/terms') {
-    return _onboardingRoute('/location', onboardingTarget);
+    return '/location';
   }
   if (flags.locationAsked &&
       !flags.presenceIntroSeen &&
@@ -251,25 +206,17 @@ String? appRedirect(
       !(simulatedPresenceResponse && location == '/presence/respond') &&
       location != '/terms' &&
       location != '/location') {
-    return _onboardingRoute('/presence', onboardingTarget);
+    return '/presence';
   }
   final signedIn = services.session.isSignedIn;
   if (!signedIn && isProtected(location)) {
     return '/signin?from=${Uri.encodeComponent(location)}';
   }
   if (signedIn && (location == '/signin' || location == '/register')) {
-    return from == '/account' ? '/home' : from ?? '/home';
+    return from ?? '/home';
   }
   return null;
 }
-
-String _safeOnboardingTarget(String? target) =>
-    const {'/home', '/signin', '/register'}.contains(target)
-    ? target!
-    : '/home';
-
-String _onboardingRoute(String route, String target) =>
-    target == '/home' ? route : '$route?next=${Uri.encodeComponent(target)}';
 
 /// go_router needs a Flutter Listenable; the session is a plain-Dart
 /// ViewModel, so this adapter forwards its changes.

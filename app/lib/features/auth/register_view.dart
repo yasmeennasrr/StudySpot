@@ -76,11 +76,7 @@ class RegisterView extends StatelessWidget {
                     ? null
                     : () async {
                         final ok = await vm.submit();
-                        if (ok && context.mounted) {
-                          context.go(
-                            from == '/account' ? '/home' : from ?? '/home',
-                          );
-                        }
+                        if (ok && context.mounted) context.go(from ?? '/home');
                       },
                 child: vm.busy
                     ? const SizedBox(

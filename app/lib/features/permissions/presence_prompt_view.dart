@@ -6,10 +6,9 @@ import '../../core/services.dart';
 
 /// PB-31: show the optional background-location feature during onboarding.
 class PresencePromptView extends StatefulWidget {
-  const PresencePromptView({super.key, this.onboarding = true, this.next});
+  const PresencePromptView({super.key, this.onboarding = true});
 
   final bool onboarding;
-  final String? next;
 
   @override
   State<PresencePromptView> createState() => _PresencePromptViewState();
@@ -153,7 +152,7 @@ class _PresencePromptViewState extends State<PresencePromptView> {
 
   void _leave() {
     if (widget.onboarding) {
-      context.go(widget.next ?? '/home');
+      context.go('/home');
     } else {
       context.pop();
     }

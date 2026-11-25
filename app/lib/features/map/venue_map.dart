@@ -12,7 +12,6 @@ class VenueMap extends StatelessWidget {
     required this.venues,
     required this.onOpen,
     this.showTiles = true,
-    this.markerInteractive = true,
   });
 
   final List<VenueSummary> venues;
@@ -20,9 +19,6 @@ class VenueMap extends StatelessWidget {
 
   /// False in tests (no network): the pins are drawn on a plain background.
   final bool showTiles;
-
-  /// Detail pages display the selected café's pin without making it tappable.
-  final bool markerInteractive;
 
   /// Cairo, when there is nothing to show.
   static const _cairo = LatLng(30.0444, 31.2357);
@@ -59,41 +55,17 @@ class VenueMap extends StatelessWidget {
                 height: 44,
                 child: Tooltip(
                   message: v.name,
-                  child: markerInteractive
-                      ? IconButton(
-                          key: Key('pin_${v.id}'),
-                          style: IconButton.styleFrom(
-                            backgroundColor: scheme.primary,
-                            foregroundColor: scheme.onPrimary,
-                            side: BorderSide(
-                              color: scheme.surfaceContainerLowest,
-                              width: 2,
-                            ),
-                          ),
-                          icon: const Icon(Icons.local_cafe_outlined, size: 20),
-                          onPressed: () => onOpen(v),
-                        )
-                      : DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: scheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: scheme.surfaceContainerLowest,
-                              width: 2,
-                            ),
-                          ),
-                          child: SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Center(
-                              child: Icon(
-                                Icons.local_cafe_outlined,
-                                size: 20,
-                                color: scheme.onPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
+                  // A round badge, like the pins in a maps app.
+                  child: IconButton(
+                    key: Key('pin_${v.id}'),
+                    style: IconButton.styleFrom(
+                      backgroundColor: scheme.primary,
+                      foregroundColor: scheme.onPrimary,
+                      side: BorderSide(color: scheme.surfaceContainerLowest, width: 2),
+                    ),
+                    icon: const Icon(Icons.local_cafe_outlined, size: 20),
+                    onPressed: () => onOpen(v),
+                  ),
                 ),
               ),
           ],
@@ -120,9 +92,7 @@ class _OsmCredit extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLowest.withValues(
-              alpha: 0.85,
-            ),
+            color: theme.colorScheme.surfaceContainerLowest.withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Padding(

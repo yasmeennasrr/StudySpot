@@ -9,18 +9,7 @@ import '../../core/theme/app_theme.dart';
 /// PB-39: explain why location is needed (PRIV-003), then ask. If refused,
 /// the app keeps working with a typed area (USE-007, PRIV-004).
 class LocationView extends StatelessWidget {
-  const LocationView({super.key, this.next});
-
-  final String? next;
-
-  void _continueToPresence(BuildContext context) {
-    final destination = next;
-    context.go(
-      destination == null
-          ? '/presence'
-          : '/presence?next=${Uri.encodeComponent(destination)}',
-    );
-  }
+  const LocationView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +27,9 @@ class LocationView extends StatelessWidget {
             child: switch (vm.step) {
               LocationStep.explain || LocationStep.asking => _Explain(vm: vm),
               LocationStep.granted => _Granted(
-                onContinue: () => _continueToPresence(context),
+                onContinue: () => context.go('/presence'),
               ),
-              LocationStep.manualArea => _ManualArea(
-                vm: vm,
-                onContinue: () => _continueToPresence(context),
-              ),
+              LocationStep.manualArea => _ManualArea(vm: vm),
             },
           ),
         ),
@@ -111,11 +97,7 @@ class _Granted extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(),
-        Icon(
-          Icons.check_circle,
-          size: 72,
-          color: StatusColors.of(context).success,
-        ),
+        Icon(Icons.check_circle, size: 72, color: StatusColors.of(context).success),
         const SizedBox(height: 24),
         const Text(
           'Location is on. We will show study places near you.',
@@ -133,10 +115,9 @@ class _Granted extends StatelessWidget {
 }
 
 class _ManualArea extends StatelessWidget {
-  const _ManualArea({required this.vm, required this.onContinue});
+  const _ManualArea({required this.vm});
 
   final LocationViewModel vm;
-  final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -165,13 +146,13 @@ class _ManualArea extends StatelessWidget {
           key: const Key('location_area_save'),
           onPressed: () async {
             final ok = await vm.saveArea();
-            if (ok && context.mounted) onContinue();
+            if (ok && context.mounted) context.go('/presence');
           },
           child: const Text('Continue'),
         ),
         TextButton(
           key: const Key('location_skip'),
-          onPressed: onContinue,
+          onPressed: () => context.go('/presence'),
           child: const Text('Skip, I will search by name'),
         ),
       ],

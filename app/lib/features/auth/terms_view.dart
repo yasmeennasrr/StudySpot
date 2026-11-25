@@ -6,9 +6,7 @@ import '../../core/services.dart';
 /// PRIV-011: at first launch, before any account exists, show the terms and
 /// privacy notice (what is collected, why, how long) and require acceptance.
 class TermsView extends StatefulWidget {
-  const TermsView({super.key, this.next = '/home'});
-
-  final String next;
+  const TermsView({super.key});
 
   @override
   State<TermsView> createState() => _TermsViewState();
@@ -20,7 +18,7 @@ class _TermsViewState extends State<TermsView> {
   Future<void> _continue() async {
     await AppScope.of(context).flags.acceptTerms();
     if (!mounted) return;
-    context.go('/location?next=${Uri.encodeComponent(widget.next)}');
+    context.go('/location');
   }
 
   @override
@@ -44,36 +42,31 @@ class _TermsViewState extends State<TermsView> {
                   const SizedBox(height: 16),
                   const _Point(
                     title: 'Your account',
-                    body:
-                        'E-mail, display name and a password (stored only as a '
+                    body: 'E-mail, display name and a password (stored only as a '
                         'secure hash). Used to sign you in and to send coupons. '
                         'Kept until you delete your account.',
                   ),
                   const _Point(
                     title: 'Your location',
-                    body:
-                        'Only if you allow it. Used to show places near you and '
+                    body: 'Only if you allow it. Used to show places near you and '
                         'to estimate how busy a place is. Never shown to other '
                         'users. Presence records are deleted after 2 hours.',
                   ),
                   const _Point(
                     title: 'Microphone',
-                    body:
-                        'Only if you allow it, for a short noise check at a '
+                    body: 'Only if you allow it, for a short noise check at a '
                         'venue. The recording is never stored; only the level '
                         '(Quiet, Moderate or Noisy) is kept.',
                   ),
                   const _Point(
                     title: 'Surveys and reviews',
-                    body:
-                        'Your answers about crowd, noise and Wi-Fi are shown '
+                    body: 'Your answers about crowd, noise and Wi-Fi are shown '
                         'without your name. Survey records are deleted after '
                         '90 days.',
                   ),
                   const _Point(
                     title: 'Your choices',
-                    body:
-                        'You can refuse any permission and keep using the app. '
+                    body: 'You can refuse any permission and keep using the app. '
                         'You can change permissions at any time in your phone '
                         'settings.',
                   ),
@@ -84,9 +77,7 @@ class _TermsViewState extends State<TermsView> {
               key: const Key('terms_checkbox'),
               value: _accepted,
               onChanged: (v) => setState(() => _accepted = v ?? false),
-              title: const Text(
-                'I have read and accept the terms and privacy notice',
-              ),
+              title: const Text('I have read and accept the terms and privacy notice'),
               controlAffinity: ListTileControlAffinity.leading,
             ),
             Padding(
