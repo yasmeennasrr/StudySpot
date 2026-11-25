@@ -8,6 +8,9 @@
  * if present, docs/testing/usability-sus.csv (the Google Form export). Prints the
  * unaided completion rate per task, PASS/FAIL for USE-002 (task T1, at least 80 %),
  * the median time per task, and the average SUS score.
+ * An optional column done_by_plan (yes/no) holds the check against the plan's success
+ * rule (e.g. the place named really is nearby and quiet). When it is filled in, a task
+ * counts only if it is yes; the moderator's own record stays untouched beside it.
  * Plan and method: docs/testing/usability-test-plan.md.
  */
 import { existsSync, readFileSync } from 'node:fs';
@@ -70,14 +73,17 @@ function median(values) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-/** Per task: participants, unaided completions (and not assisted), rate, median time. */
+/** Per task: participants, unaided (and not assisted) as recorded and by the plan's rule, rate by the rule, median time. */
 export function summarizeTasks(rows) {
   const byTask = new Map();
   for (const r of rows) {
     if (!r.task) continue;
-    const t = byTask.get(r.task) ?? { task: r.task, participants: 0, unaided: 0, times: [] };
+    const t = byTask.get(r.task) ?? { task: r.task, participants: 0, recorded: 0, unaided: 0, times: [] };
     t.participants += 1;
-    if (yes(r.unaided) && !yes(r.assisted)) t.unaided += 1;
+    if (yes(r.unaided) && !yes(r.assisted)) {
+      t.recorded += 1;
+      if (!r.done_by_plan || yes(r.done_by_plan)) t.unaided += 1;
+    }
     const time = Number(r.time_s);
     if (r.time_s !== '' && Number.isFinite(time)) t.times.push(time);
     byTask.set(r.task, t);
@@ -87,13 +93,14 @@ export function summarizeTasks(rows) {
     .map((t) => ({
       task: t.task,
       participants: t.participants,
+      recorded: t.recorded,
       unaided: t.unaided,
       rate: t.participants ? t.unaided / t.participants : 0,
       medianTimeS: median(t.times),
     }));
 }
 
-/** USE-002: T1 completed unaided by at least 80 % of participants. */
+/** USE-002: T1 completed unaided, by the plan's rule, by at least 80 % of participants. */
 export function use002(tasks) {
   const t1 = tasks.find((t) => t.task === USE_002_TASK);
   if (!t1 || t1.participants === 0) return { verdict: 'NO DATA', rate: null };
@@ -130,10 +137,10 @@ function main() {
     return;
   }
   const pct = (x) => `${Math.round(x * 100)} %`;
-  console.log('Task  Participants  Unaided  Rate   Median time');
+  console.log('Task  Participants  Recorded  By plan  Rate   Median time');
   for (const t of tasks) {
     console.log(
-      `${t.task.padEnd(6)}${String(t.participants).padEnd(14)}${String(t.unaided).padEnd(9)}${pct(t.rate).padEnd(7)}${t.medianTimeS === null ? '-' : `${t.medianTimeS} s`}`,
+      `${t.task.padEnd(6)}${String(t.participants).padEnd(14)}${String(t.recorded).padEnd(10)}${String(t.unaided).padEnd(9)}${pct(t.rate).padEnd(7)}${t.medianTimeS === null ? '-' : `${t.medianTimeS} s`}`,
     );
   }
   const verdict = use002(tasks);

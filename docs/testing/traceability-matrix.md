@@ -4,12 +4,12 @@
 
 ## Summary
 
-**317** test cases: **312** pass, **1** fail, **4** not run yet. They cover **160** requirement IDs.
+**317** test cases: **312** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 68 | 67 | 0 | 1 | 67 |
+| M2 | 68 | 67 | 1 | 0 | 68 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -185,8 +185,8 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
-| USE-001 | TC-M2-60, TC-M2-61, TC-M6-47, TC-M6-48, TC-M6-49, TC-M6-50, TC-M6-51 | Widget, System (manual), Unit, System | ⏳ 2 not run |
-| USE-002 | TC-M2-61 | System (manual) | ⏳ 1 not run |
+| USE-001 | TC-M2-60, TC-M2-61, TC-M6-47, TC-M6-48, TC-M6-49, TC-M6-50, TC-M6-51 | Widget, System (manual), Unit, System | ❌ 1 failing |
+| USE-002 | TC-M2-61 | System (manual) | ❌ 1 failing |
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
@@ -194,7 +194,7 @@
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
-| USE-003 to USE-007 | TC-M2-61 | System (manual) | ⏳ 1 not run |
+| USE-003 to USE-007 | TC-M2-61 | System (manual) | ❌ 1 failing |
 
 ## Test case → requirement
 
@@ -355,7 +355,7 @@
 | TC-M2-58 | USE-008 | Error guessing | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-59 | AI-019, AI-029, FR-007 | Use-case based | Widget | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-60 | USE-001 | Boundary value analysis (2 interactions) | Widget | pass | `app/test/usability/use001_test.dart` |
-| TC-M2-61 | USE-002, USE-001, USE-003 to USE-007 | Usability test (moderated, think-aloud, SUS) | System (manual) | not run | manual |
+| TC-M2-61 | USE-002, USE-001, USE-003 to USE-007 | Usability test (moderated, think-aloud, SUS) | System (manual) | fail | `docs/testing/usability-results.md` |
 | TC-M2-62 | FR-016, USE-008 | Equivalence partitioning | Widget | pass | `app/test/usability/price_labels_test.dart` |
 | TC-M2-63 | AI-001, AI-014 | Use-case based | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
 | TC-M2-64 | AI-001, AI-003 | Use-case based | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |

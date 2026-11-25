@@ -1,1 +1,21 @@
-participant,task,unaided,assisted,time_s,errors,notes
+participant,task,unaided,assisted,done_by_plan,time_s,errors,place,taps,notes
+1,T1,yes,yes,no,40,0,nadi el ketab,,used studymatch instead of filters
+1,T2,yes,no,yes,10,0,,1,
+1,T3,yes,yes,no,30,0,,,was asked to use filters this time
+1,T4,yes,yes,no,25,0,,,estimate based on historical data (dar al elm)
+1,T5,yes,no,yes,60,1,,,"participant tried using studymatch first, got that it was unavailable then used regular search"
+2,T1,yes,yes,no,40,2,nadi el ketab,,"searched a specific cafe, then scrolled through cafes, then was asked to use filters"
+2,T2,yes,no,yes,15,0,,1,
+2,T3,yes,no,no,23,0,,,the search gave studymatch unavailable (note that this was the first message)
+2,T4,yes,no,yes,20,0,,,moderate-estimate (Al-Fanar Study Spot)
+2,T5,yes,no,yes,5,0,,,scrolled through cafes to find a place in zamalek
+3,T1,yes,no,no,40,,dar-el-elm,,scrolled through cafes
+3,T2,yes,no,yes,10,,,1,
+3,T3,yes,yes,no,30,,,,searched first
+3,T4,yes,yes,no,20,,,,moderate-estimate
+3,T5,yes,no,yes,20,,,,scrolled
+4,T1,no,yes,no,30,,,,searched
+4,T2,yes,no,yes,10,,,1,
+4,T3,yes,no,no,15,,,,studymatch was unavailable
+4,T4,yes,no,yes,20,,,,moderate-historical data
+4,T5,no,no,no,20,,,,used studymatch
