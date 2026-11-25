@@ -118,6 +118,7 @@ void main() {
     final w = TestWorld();
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
     expect(find.byKey(const Key('nav_rail')), findsOneWidget);
     expect(find.text('All study places, A to Z'), findsOneWidget);
 

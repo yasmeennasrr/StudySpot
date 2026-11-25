@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:studyspot/core/api/mock_api_client.dart';
 import 'package:studyspot/core/audio/noise_recorder.dart';
 import 'package:studyspot/core/auth/token_store.dart';
@@ -5,6 +7,17 @@ import 'package:studyspot/core/location/location_service.dart';
 import 'package:studyspot/core/notifications/push_service.dart';
 import 'package:studyspot/core/services.dart';
 import 'package:studyspot/core/storage/local_flags.dart';
+
+/// Follows the new first-launch entry screen for widget tests that need the
+/// main app shell. Onboarding flags in [TestWorld] still determine the next
+/// screen after the guest chooses to continue.
+Future<void> continueAsGuest(WidgetTester tester) async {
+  final guestButton = find.byKey(const Key('welcome_guest'));
+  if (guestButton.evaluate().isEmpty) return;
+
+  await tester.tap(guestButton);
+  await tester.pumpAndSettle();
+}
 
 /// Test doubles for every outside dependency: no network, no phone storage.
 class TestWorld {

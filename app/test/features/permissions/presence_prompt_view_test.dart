@@ -13,6 +13,7 @@ void main() {
       ..location.answerToBackgroundRequest = LocationAccess.backgroundGranted;
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     expect(find.text('Want an “Are you here?” check-in?'), findsOneWidget);
     await tester.tap(find.byKey(const Key('presence_enable')));
@@ -36,6 +37,7 @@ void main() {
     final w = TestWorld(presenceIntroSeen: false);
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     await tester.drag(find.byType(ListView), const Offset(0, -240));
     await tester.pumpAndSettle();

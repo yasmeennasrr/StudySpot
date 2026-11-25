@@ -23,6 +23,7 @@ void main() {
         );
         await tester.pumpWidget(StudySpotApp(services: services));
         await tester.pumpAndSettle();
+        await continueAsGuest(tester);
 
         await tester.scrollUntilVisible(
           find.byKey(const Key('presence_simulate_notification')),
@@ -33,7 +34,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(
-          find.text('Demo notification: Are you at Campus Cafe?'),
+          find.byKey(const Key('presence_heads_up_notification')),
           findsOneWidget,
         );
 
