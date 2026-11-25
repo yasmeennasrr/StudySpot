@@ -4,12 +4,12 @@
 
 ## Summary
 
-**317** test cases: **312** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
+**324** test cases: **319** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 68 | 67 | 1 | 0 | 68 |
+| M2 | 75 | 74 | 1 | 0 | 75 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -23,7 +23,7 @@
 | Performance | 3 |
 | System | 2 |
 | System (manual) | 1 |
-| Unit | 178 |
+| Unit | 185 |
 | Unit (app) | 9 |
 | Widget | 14 |
 
@@ -32,7 +32,7 @@
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
 | AI-001 | TC-M2-26, TC-M2-27, TC-M2-41, TC-M2-52, TC-M2-53, TC-M2-54, TC-M2-55, TC-M2-57, TC-M2-63, TC-M2-64, TC-M2-65, TC-M2-66, TC-M2-67, TC-M2-68 | Unit, Integration | ✅ all pass |
-| AI-003 | TC-M2-42, TC-M2-56, TC-M2-64, TC-M2-67 | Unit | ✅ all pass |
+| AI-003 | TC-M2-42, TC-M2-56, TC-M2-64, TC-M2-67, TC-M2-72 | Unit | ✅ all pass |
 | AI-004 | TC-M2-49 | Unit | ✅ all pass |
 | AI-005 | TC-M2-52 | Integration | ✅ all pass |
 | AI-007 | TC-M2-35, TC-M2-45 | Unit | ✅ all pass |
@@ -51,8 +51,8 @@
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-024 | TC-M2-44 | Unit | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
-| AI-028 | TC-M2-33, TC-M2-46 | Unit | ✅ all pass |
-| AI-029 | TC-M2-28, TC-M2-30, TC-M2-47, TC-M2-49, TC-M2-50, TC-M2-53, TC-M2-59 | Unit, Integration, Widget | ✅ all pass |
+| AI-028 | TC-M2-33, TC-M2-46, TC-M2-73, TC-M2-74 | Unit | ✅ all pass |
+| AI-029 | TC-M2-28, TC-M2-30, TC-M2-47, TC-M2-49, TC-M2-50, TC-M2-53, TC-M2-59, TC-M2-73, TC-M2-74, TC-M2-75 | Unit, Integration, Widget | ✅ all pass |
 | CON-001 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-002 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-003 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
@@ -77,7 +77,7 @@
 | EIR-010 | TC-M1-28, TC-M2-35, TC-M2-37, TC-M2-38, TC-M2-39, TC-M2-40, TC-M2-54 | Integration, Unit | ✅ all pass |
 | EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M2-40, TC-M6-08, TC-M6-09, TC-M6-42 | Unit, API layer, Integration | ✅ all pass |
 | EIR-013 | TC-M6-16, TC-M6-29, TC-M6-30, TC-M6-36, TC-M6-37 | Unit, Integration | ✅ all pass |
-| EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M2-48, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
+| EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M2-48, TC-M2-75, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M5-06 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
@@ -86,7 +86,7 @@
 | FR-006 | TC-M1-56, TC-M5-15, TC-M6-06, TC-M6-46, TC-M6-50 | Integration, Unit, Widget | ✅ all pass |
 | FR-007 | TC-M2-59, TC-M4-23, TC-M5-15, TC-M6-34, TC-M6-50 | Widget, Unit (app), Unit, Integration | ✅ all pass |
 | FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
-| FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-06 | Integration, Unit | ✅ all pass |
+| FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M2-69, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36, TC-M5-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06, TC-M1-93, TC-M6-54, TC-M6-57, TC-M6-58 | Integration, Unit, Unit (app), Widget, System | ⏳ 2 not run |
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
@@ -117,14 +117,14 @@
 | FR-044 | TC-M4-20, TC-M4-24, TC-M4-25, TC-M4-26, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ✅ all pass |
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
-| PERF-003 | TC-M2-46, TC-M2-53 | Unit, Integration | ✅ all pass |
+| PERF-003 | TC-M2-46, TC-M2-53, TC-M2-73 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-34, TC-M4-40, TC-M4-43, TC-M4-12 | Unit, Integration | ✅ all pass |
 | PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
 | PERF-007 | TC-M2-55 | Unit | ✅ all pass |
 | PERF-010 | TC-M6-26 | Integration | ✅ all pass |
 | PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ✅ all pass |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
-| PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
+| PRIV-004 | TC-M2-71, TC-M5-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03, TC-M5-01, TC-M5-15 | Unit, Widget | ✅ all pass |
 | PRIV-013 | TC-M1-24, TC-M4-13, TC-M6-35 | Unit, Integration | ✅ all pass |
 | PRIV-014 | TC-M4-14, TC-M4-20 | Integration | ✅ all pass |
@@ -175,8 +175,8 @@
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
 | SEC-012 | TC-M6-15, TC-M6-30 | Unit, Integration | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
-| SEN-001 | TC-M5-11 | Unit | ✅ all pass |
-| SEN-002 | TC-M2-56 | Unit | ✅ all pass |
+| SEN-001 | TC-M2-69, TC-M5-11 | Unit | ✅ all pass |
+| SEN-002 | TC-M2-56, TC-M2-69, TC-M2-70, TC-M2-71 | Unit | ✅ all pass |
 | SEN-004 | TC-M1-87 | Unit (app) | ✅ all pass |
 | SEN-005 | TC-M1-82, TC-M1-85, TC-M1-88 | Integration, Unit (app) | ✅ all pass |
 | SEN-006 | TC-M1-87 | Unit (app) | ✅ all pass |
@@ -189,7 +189,7 @@
 | USE-002 | TC-M2-61 | System (manual) | ❌ 1 failing |
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
-| USE-007 | TC-M5-12 | Unit | ✅ all pass |
+| USE-007 | TC-M2-70, TC-M5-12 | Unit | ✅ all pass |
 | USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M2-62, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11, TC-M6-42, TC-M6-44 | Unit, API layer, Widget, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
@@ -363,6 +363,13 @@
 | TC-M2-66 | AI-001, SEC-007 | Boundary value analysis, equivalence partitioning | Integration | pass | `backend/test/int/studymatch.int-spec.ts` |
 | TC-M2-67 | AI-001, AI-003 | Use-case based | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-68 | AI-001, AI-019, SEC-007 | Boundary value analysis, error guessing | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
+| TC-M2-69 | SEN-001, SEN-002, FR-010 | Decision table | Unit | pass | `app/test/core/location_service_test.dart` |
+| TC-M2-70 | SEN-002, USE-007 | Error guessing | Unit | pass | `app/test/core/location_service_test.dart` |
+| TC-M2-71 | PRIV-004, SEN-002 | State transition | Unit | pass | `app/test/features/permissions/location_view_model_test.dart` |
+| TC-M2-72 | AI-003 | Equivalence partitioning | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
+| TC-M2-73 | AI-028, AI-029, PERF-003 | Error guessing | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
+| TC-M2-74 | AI-028, AI-029 | Boundary value analysis | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
+| TC-M2-75 | AI-029, EIR-015 | Equivalence partitioning | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |

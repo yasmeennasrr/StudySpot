@@ -36,4 +36,32 @@ void main() {
     expect(await vm.saveArea(), isTrue);
     expect(w.flags.manualArea, 'Zamalek');
   });
+
+  test('TC-M2-71 the app remembers the last choice: Allow, refused by the OS, "Not now"', () async {
+    final w = TestWorld(locationAsked: false);
+    final vm = LocationViewModel(location: w.location, flags: w.flags);
+    expect(w.flags.locationAllowed, isFalse);
+
+    for (final access in [
+      LocationAccess.granted,
+      LocationAccess.backgroundGranted,
+    ]) {
+      w.location.answerToRequest = access;
+      await vm.allow();
+      expect(w.flags.locationAllowed, isTrue, reason: '$access');
+      await vm.notNow();
+      expect(w.flags.locationAllowed, isFalse, reason: 'Not now');
+    }
+
+    for (final refusal in [
+      LocationAccess.denied,
+      LocationAccess.deniedForever,
+      LocationAccess.serviceOff,
+    ]) {
+      w.flags.locationAllowed = true;
+      w.location.answerToRequest = refusal;
+      await vm.allow();
+      expect(w.flags.locationAllowed, isFalse, reason: '$refusal');
+    }
+  });
 }

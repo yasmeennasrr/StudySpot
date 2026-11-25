@@ -137,7 +137,7 @@ class StudyMatchViewModel extends ViewModel {
 
   Future<DevicePosition?> _locationIfGranted() async {
     try {
-      if (await location.currentAccess() != LocationAccess.granted) return null;
+      // Null without permission (SEN-002), so no extra check here.
       return await location.currentPosition();
     } catch (_) {
       return null; // No location is fine: StudyMatch asks for an area instead.

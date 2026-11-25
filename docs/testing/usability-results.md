@@ -48,7 +48,7 @@ Why the attempts did not count:
 
 ## Findings
 
-1. **The app most likely never got the iPhone's location (likely cause of T1).** The Near me button never showed in the sessions (moderator's report). `currentPosition()` first asks the browser whether location is allowed and reads it only on a yes; iPhone Safari is reported to answer that wrongly ([WebKit bug 258726](https://bugs.webkit.org/show_bug.cgi?id=258726)). The app then shows "All study places, A to Z", as if location were off. Al-Fanar and Dar El-Elm, which participants named, are near the top of that A-to-Z list (they are 50 and 54 km from AUC; where each session was held is not recorded, so distance alone proves nothing). Not yet confirmed on the iPhone. The same check is on main.
+1. **The app most likely never got the iPhone's location (likely cause of T1).** The Near me button never showed in the sessions (moderator's report). `currentPosition()` first asks the browser whether location is allowed and reads it only on a yes; iPhone Safari is reported to answer that wrongly ([WebKit bug 258726](https://bugs.webkit.org/show_bug.cgi?id=258726)). The app then shows "All study places, A to Z", as if location were off. Al-Fanar and Dar El-Elm, which participants named, are near the top of that A-to-Z list (they are 50 and 54 km from AUC; where each session was held is not recorded, so distance alone proves nothing). Supported afterwards on 25 November: with the fix (PR #41) karma tried the app on the same iPhone and found it working.
 2. **StudyMatch was often unavailable.** It is noted as unavailable in 5 task attempts: P1 T5, P2 T3, and P4 T1, T3 and T5. A call that takes over 5 s is given up without a retry, and one question needs two or more calls. In a check of 8 calls on 25 November, 7 took 0.7 to 2 s and 1 hung for over 15 s. The reasons on the live server are in the Render logs and have not been read yet.
 3. **The fallback had nothing to show.** P2 and P4 got no places after "unavailable": without a location, StudyMatch can only say "use Search".
 4. **The app does not say when location is off.** After the first-launch screen, the only signs are the list label and the missing Near me button.
@@ -62,11 +62,11 @@ Why the attempts did not count:
 - T1 was set up for AUC, where Nadi El-Kitab is the expected answer. Only places within 2 km count as near, so a session elsewhere may have had no quiet, not too expensive place nearby at all. No T1 result depends on this: P1 and P2 had hints, P3's place is not Quiet, P4 found none.
 - Small sample; sessions were moderated by a team member.
 
-## Planned fixes
+## Fixes
 
-| Fix | Owner |
-| --- | --- |
-| Read the location on iPhone Safari even when the permission check is unclear; StudyMatch also accepts "background" access, which it ignores today | M2, with the owner of the location service (Hanna) |
-| StudyMatch: retry one slow call within its 9 s limit | M2 |
-| Say on the home screen when location is off | To be agreed with the owners of the screen |
-| Repeat T1 with new students after the location fix, so USE-002 is tested on a fair basis | M2 |
+| Fix | Owner | Status |
+| --- | --- | --- |
+| Read the location on iPhone Safari even when the permission check is unclear; StudyMatch also accepts "background" access, which it ignores today | M2, with the owner of the location service (Hanna) | PR #41 (TC-M2-69 to TC-M2-72); tried by karma on the iPhone |
+| StudyMatch: retry one slow call within its 9 s limit | M2 | Done on branch m2/pb-46-studymatch-retry (TC-M2-73 to TC-M2-75); not yet tried on the live server |
+| Say on the home screen when location is off | To be agreed with the owners of the screen | Open |
+| Repeat T1 with new students after the location fix, so USE-002 is tested on a fair basis | M2 | Open |

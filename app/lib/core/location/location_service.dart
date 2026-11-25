@@ -48,6 +48,23 @@ abstract class LocationService {
 }
 
 class GeolocatorLocationService implements LocationService {
+  GeolocatorLocationService({
+    this.isWeb = kIsWeb,
+    this.allowedInApp = _never,
+    this.positionTimeout = const Duration(seconds: 10),
+  });
+
+  final bool isWeb;
+
+  /// True when the student's last choice in the app was to allow location.
+  final bool Function() allowedInApp;
+
+  /// Our own limit: geolocator_web 4.1.4 sends the browser microseconds where it
+  /// expects milliseconds, so its `timeLimit` of 10 s becomes almost 3 hours.
+  final Duration positionTimeout;
+
+  static bool _never() => false;
+
   final StreamController<DevicePosition> _presenceUpdates =
       StreamController<DevicePosition>.broadcast();
   StreamSubscription<Position>? _presenceSubscription;
@@ -160,20 +177,27 @@ class GeolocatorLocationService implements LocationService {
   @override
   Future<DevicePosition?> currentPosition() async {
     // SEN-002: never touch the location without permission.
-    final access = await currentAccess();
-    if (!access.hasForegroundAccess) return null;
     try {
+      final access = await currentAccess();
+      if (!access.hasForegroundAccess && !_browserUndecided(access)) return null;
       final p = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
+        locationSettings: LocationSettings(
           accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: positionTimeout,
         ),
-      );
+      ).timeout(positionTimeout);
       return DevicePosition(p.latitude, p.longitude);
     } catch (_) {
       return null;
     }
   }
+
+  /// iPhone Safari can keep answering "prompt" (which geolocator maps to denied)
+  /// after the student allowed location (WebKit bug 258726). If they allowed it
+  /// in the app, read the position anyway: the browser still refuses or asks by
+  /// itself. A real "denied" arrives as deniedForever and is never overridden.
+  bool _browserUndecided(LocationAccess access) =>
+      isWeb && access == LocationAccess.denied && allowedInApp();
 }
 
 /// For tests: answers whatever [access] says.
