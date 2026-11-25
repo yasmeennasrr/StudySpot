@@ -6,7 +6,8 @@ Test case: TC-M2-61. Owner: M2 (karma). Plan: [`usability-test-plan.md`](usabili
 
 ## What was run
 
-- **4 participants** on 24 and 25 November 2026, one at a time, on one iPhone (web app on the home screen) against the live server. The plan called for 5 to 6; accounts p5 and p6 were not used. With 4, all 4 had to succeed at T1.
+- **4 participants** on 24 and 25 November 2026, one at a time, on one iPhone (web app on the home screen) against the live server. Not all sessions were at AUC New Cairo, as the plan had intended. The plan called for 5 to 6; accounts p5 and p6 were not used. With 4, all 4 had to succeed at T1.
+- **T1 as read aloud:** "find a quiet place near you that is not too expensive" (the meaning of the card, in shorter words).
 - **Build:** the app from before the 25 November redesign (commit 6b573c4). Nothing here describes the new look.
 - Both questionnaire and moderator form were filled in for all 4 participants. Times are round numbers; the records of P3 and P4 were all entered within about 5 minutes, so their times are approximate.
 
@@ -27,7 +28,7 @@ Why the attempts did not count:
 | Task | Participants | Reason |
 | --- | --- | --- |
 | T1 | P1, P2 | Named Nadi El-Kitab, the expected place, but after a hint |
-| T1 | P3 | Named Dar El-Elm, which is in 6th of October City, about 54 km away, and labelled Moderate noise, not Quiet (live server, checked 25 November). It fails on noise alone, whatever the distance |
+| T1 | P3 | Named Dar El-Elm, which is in 6th of October City (about 54 km from AUC), and labelled Moderate noise, not Quiet (live server, checked 25 November). It fails on noise alone, wherever the session was |
 | T1 | P4 | StudyMatch was unavailable and no place was found; a hint was given |
 | T3 | P1 | Told to use filters (moderator error); a hint was given |
 | T3 | P2, P4 | StudyMatch was unavailable and showed no places, so there were no standard results to use |
@@ -47,7 +48,7 @@ Why the attempts did not count:
 
 ## Findings
 
-1. **The app most likely never got the iPhone's location (likely cause of T1).** The Near me button never showed in the sessions (moderator's report). `currentPosition()` first asks the browser whether location is allowed and reads it only on a yes; iPhone Safari is reported to answer that wrongly ([WebKit bug 258726](https://bugs.webkit.org/show_bug.cgi?id=258726)). The app then shows "All study places, A to Z", as if location were off. The far-away places participants named (Al-Fanar, 50 km; Dar El-Elm, 54 km) fit an A-to-Z list. Not yet confirmed on the iPhone. The same check is on main.
+1. **The app most likely never got the iPhone's location (likely cause of T1).** The Near me button never showed in the sessions (moderator's report). `currentPosition()` first asks the browser whether location is allowed and reads it only on a yes; iPhone Safari is reported to answer that wrongly ([WebKit bug 258726](https://bugs.webkit.org/show_bug.cgi?id=258726)). The app then shows "All study places, A to Z", as if location were off. Al-Fanar and Dar El-Elm, which participants named, are near the top of that A-to-Z list (they are 50 and 54 km from AUC; where each session was held is not recorded, so distance alone proves nothing). Not yet confirmed on the iPhone. The same check is on main.
 2. **StudyMatch was often unavailable.** It is noted as unavailable in 5 task attempts: P1 T5, P2 T3, and P4 T1, T3 and T5. A call that takes over 5 s is given up without a retry, and one question needs two or more calls. In a check of 8 calls on 25 November, 7 took 0.7 to 2 s and 1 hung for over 15 s. The reasons on the live server are in the Render logs and have not been read yet.
 3. **The fallback had nothing to show.** P2 and P4 got no places after "unavailable": without a location, StudyMatch can only say "use Search".
 4. **The app does not say when location is off.** After the first-launch screen, the only signs are the list label and the missing Near me button.
@@ -58,6 +59,7 @@ Why the attempts did not count:
 - **T5's rule changed after the first session.** It asked participants to notice that location is off, but the app never shows that after first launch (finding 4). For everyone, T5 now counts if a place in Zamalek was found unaided within 3 minutes, by any route.
 - T5 does not show that the app handled location being switched off, because the app may have had no location in any task (finding 1).
 - Moderator errors with P1: StudyMatch instead of filters in T1, filters instead of StudyMatch in T3.
+- T1 was set up for AUC, where Nadi El-Kitab is the expected answer. Only places within 2 km count as near, so a session elsewhere may have had no quiet, not too expensive place nearby at all. No T1 result depends on this: P1 and P2 had hints, P3's place is not Quiet, P4 found none.
 - Small sample; sessions were moderated by a team member.
 
 ## Planned fixes
