@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/venue.dart';
 import '../../core/services.dart';
-import '../../core/widgets/back_or_home_button.dart';
 import '../../core/widgets/error_view.dart';
+import '../../core/widgets/venue_photo.dart';
 import '../../core/widgets/view_model_builder.dart';
 import 'repository.dart';
 import 'view_model.dart';
@@ -21,7 +21,6 @@ class FavoritesView extends StatelessWidget {
       onReady: (vm) => vm.load(),
       builder: (context, vm) => Scaffold(
         appBar: AppBar(
-          leading: const BackOrHomeButton(),
           title: const Text('Favorites'),
         ),
         body: _body(context, vm),
@@ -79,6 +78,7 @@ class _FavoriteTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       key: Key('favorite_${venue.id}'),
+      leading: VenuePhoto(url: venue.photoUrl, width: 52, height: 52, radius: 10, iconSize: 22),
       title: Text(venue.name),
       subtitle: venue.area == null ? null : Text(venue.area!),
       onTap: () => context.push('/venues/${venue.id}'),

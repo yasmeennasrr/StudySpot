@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/rewards.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
+import '../models/survey.dart';
 import '../models/venue.dart';
 
 /// Everything the app asks the backend (contracts/openapi.yaml).
@@ -75,6 +77,21 @@ abstract class ApiClient {
     Map<String, Object> filters = const {},
   });
 
+  /// POST /me/presence/location: transient sample from an opted-in user.
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  });
+
+  Future<bool> respondToPresencePrompt({
+    required String venueId,
+    required bool confirmed,
+  });
+
+  Future<void> registerPushInstallation(String installationId);
+
+  Future<void> setPresencePromptsEnabled(bool enabled);
+
   /// VenueDetails as raw JSON; M6 models it for the details screen.
   Future<Map<String, dynamic>> getVenue(String venueId);
 
@@ -88,9 +105,19 @@ abstract class ApiClient {
   /// Reports someone else's review to the moderators. Safe to repeat.
   Future<void> reportReview(String reviewId);
 
+  // Surveys (PB-17)
+  /// Submit at least one optional crowd, noise, or Wi-Fi answer for a venue.
+  Future<StoredSurvey> submitSurvey(String venueId, SurveyAnswers answers);
+
   // StudyMatch (M2: PB-29, UC-05)
   /// POST /studymatch. Send [lat]/[lng] only when location is granted (AI-003).
-  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng});
+  /// [history]: up to 3 earlier question/answer pairs, oldest first, for follow-ups.
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  });
 
   // Noise sampling (M1: PB-19, UC-11)
   /// True when the signed-in student is at this venue now, so the app may offer
@@ -105,4 +132,22 @@ abstract class ApiClient {
     required double lat,
     required double lng,
   });
+
+  // Rewards (M6: PB-24 to PB-27)
+  /// GET /me/points: balance and today's progress towards the daily cap.
+  Future<PointsSummary> getPoints();
+
+  /// GET /coupon-offers: open to guests too, cheapest first.
+  Future<List<CouponOffer>> listCouponOffers();
+
+  /// POST /coupon-offers/{id}/redeem. Not enough points: ApiError with
+  /// reason INSUFFICIENT_POINTS (409), and the balance is unchanged.
+  Future<Coupon> redeemCoupon(String offerId);
+
+  /// GET /me/coupons: issued, active and expired; the running one first.
+  Future<List<Coupon>> listMyCoupons();
+
+  /// POST /me/coupons/{id}/activate: starts the 5-minute countdown once.
+  /// After the 5 minutes: ApiError with reason COUPON_EXPIRED (409).
+  Future<Coupon> activateCoupon(String couponId);
 }

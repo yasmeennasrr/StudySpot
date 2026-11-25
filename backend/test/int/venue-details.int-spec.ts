@@ -1,12 +1,15 @@
 /**
  * Integration tests for venue details (PB-11) and the conditions read path on a
- * real PostgreSQL + PostGIS database, through the HTTP API. TC-M4-14, TC-M4-15.
+ * real PostgreSQL + PostGIS database, through the HTTP API. TC-M4-14, TC-M4-15, TC-M6-54.
  * Uses the studyspot_test database (see ./test-database.ts); its schema is wiped.
  */
 import { INestApplication } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
+import { DomainEvent } from '../../src/common/events/domain-events';
+import { PRESENCE } from '../../src/contracts';
 import { buildDataSourceOptions } from '../../src/db/typeorm.options';
 import { TEST_DATABASE_URL } from './test-database';
 
@@ -103,6 +106,7 @@ describe('Venue details and conditions on a real database (integration)', () => 
       location: { lat: 30.0205, lng: 31.4952 },
       address: '90th Street',
       area: 'New Cairo',
+      photoUrl: null,
       openingHours: { 0: [{ open: '08:00', close: '00:00' }] },
       priceLevel: 2,
       wifiAvailable: true,
@@ -162,5 +166,77 @@ describe('Venue details and conditions on a real database (integration)', () => 
       newestInputAt: null,
     });
     expect(quiet.body.dynamic.crowd.status).toBe('unavailable');
+  });
+
+  it('TC-M4-38 venue details combine distinct active presence and fresh surveys', async () => {
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`UPDATE venues SET size_class = 'small' WHERE id = $1`, [CAFE]);
+    await dataSource.query(
+      `INSERT INTO presence_visits
+         (user_id, venue_id, active, started_at, last_seen_at, prompted_at, confirmed_at, responded_at)
+       VALUES
+         ($1, $3, true, now() - interval '20 minutes', now() - interval '5 minutes',
+          now() - interval '5 minutes', now() - interval '5 minutes', now() - interval '5 minutes'),
+         ($2, $3, true, now() - interval '20 minutes', now() - interval '5 minutes',
+          now() - interval '5 minutes', now() - interval '5 minutes', now() - interval '5 minutes')`,
+      [ALICE, CAROL, CAFE],
+    );
+
+    // Add receipt check-ins through the real presence service; Carol is present by
+    // both sources and must still count once. The event also invalidates the cache.
+    const presence = app.get(PRESENCE);
+    await presence.recordReceiptScan(BOB, CAFE);
+    await presence.recordReceiptScan(CAROL, CAFE);
+
+    const fromPresence = await api().get(`/api/v1/venues/${CAFE}`).expect(200);
+    expect(fromPresence.body.dynamic.crowd).toMatchObject({
+      status: 'current',
+      level: 2,
+      label: 'Moderate',
+      basedOn: ['present_users'],
+    });
+
+    await dataSource.query(
+      `INSERT INTO dynamic_records (venue_id, condition_type, value, source_type, recorded_at)
+       VALUES ($1, 'crowd', 3, 'in_app_survey', now())`,
+      [CAFE],
+    );
+    app.get(EventEmitter2).emit(DomainEvent.SurveyStored, {
+      surveyId: 'pb18-current-crowd-survey',
+      venueId: CAFE,
+      userId: ALICE,
+      source: 'in_app',
+      submittedAt: new Date(),
+    });
+
+    const fromBoth = await api().get(`/api/v1/venues/${CAFE}`).expect(200);
+    expect(fromBoth.body.dynamic.crowd).toMatchObject({
+      status: 'current',
+      level: 3,
+      label: 'High',
+      basedOn: ['present_users', 'surveys'],
+    });
+    await dataSource.query(`UPDATE venues SET size_class = 'medium' WHERE id = $1`, [CAFE]);
+  });
+
+  it('TC-M6-54 a venue photo reaches the details page and the list; a venue without one gives null (FR-012, FR-016)', async () => {
+    const photo = 'https://images.unsplash.com/photo-1511081692775-05d0f180a065?w=1200';
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`UPDATE venues SET photo_url = $2 WHERE id = $1`, [CAFE, photo]);
+    try {
+      const details = await api().get(`/api/v1/venues/${CAFE}`).expect(200);
+      expect(details.body.static.photoUrl).toBe(photo);
+      const none = await api().get(`/api/v1/venues/${QUIET}`).expect(200);
+      expect(none.body.static.photoUrl).toBeNull();
+
+      const list = await api().get('/api/v1/venues').expect(200);
+      const byId = new Map<string, { photoUrl: string | null }>(
+        list.body.items.map((v: { id: string; photoUrl: string | null }) => [v.id, v]),
+      );
+      expect(byId.get(CAFE)?.photoUrl).toBe(photo);
+      expect(byId.get(QUIET)?.photoUrl).toBeNull();
+    } finally {
+      await dataSource.query(`UPDATE venues SET photo_url = NULL WHERE id = $1`, [CAFE]);
+    }
   });
 });

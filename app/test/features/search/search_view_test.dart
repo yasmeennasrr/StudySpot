@@ -10,6 +10,7 @@ void main() {
     final w = TestWorld();
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     final first = w.api.venues.reduce((a, b) => a.name.compareTo(b.name) <= 0 ? a : b);
     expect(find.text('All study places, A to Z'), findsOneWidget);
@@ -18,6 +19,7 @@ void main() {
     await tester.tap(find.byKey(Key('venue_${first.id}')));
     await tester.pumpAndSettle();
     expect(find.text('Conditions now'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('About this place'), 250);
     expect(find.text('About this place'), findsOneWidget);
     expect(find.textContaining('Current: Low'), findsOneWidget);
     expect(find.textContaining('Estimate based on historical data: Quiet'), findsOneWidget);
@@ -27,6 +29,7 @@ void main() {
     final w = TestWorld(locationAccess: LocationAccess.granted);
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
     expect(find.text('Near you, nearest first'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('scope_all')));
@@ -35,4 +38,3 @@ void main() {
     expect(find.textContaining('km away'), findsWidgets);
   });
 }
-

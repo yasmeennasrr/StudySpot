@@ -1,29 +1,56 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:studyspot/core/api/mock_api_client.dart';
 import 'package:studyspot/core/audio/noise_recorder.dart';
 import 'package:studyspot/core/auth/token_store.dart';
 import 'package:studyspot/core/location/location_service.dart';
+import 'package:studyspot/core/notifications/push_service.dart';
 import 'package:studyspot/core/services.dart';
 import 'package:studyspot/core/storage/local_flags.dart';
+
+/// Follows the new first-launch entry screen for widget tests that need the
+/// main app shell. Onboarding flags in [TestWorld] still determine the next
+/// screen after the guest chooses to continue.
+Future<void> continueAsGuest(WidgetTester tester) async {
+  final guestButton = find.byKey(const Key('welcome_guest'));
+  if (guestButton.evaluate().isEmpty) return;
+
+  await tester.tap(guestButton);
+  await tester.pumpAndSettle();
+}
 
 /// Test doubles for every outside dependency: no network, no phone storage.
 class TestWorld {
   TestWorld({
     bool termsAccepted = true,
     bool locationAsked = true,
+    bool presenceIntroSeen = true,
     LocationAccess locationAccess = LocationAccess.denied,
-  })  : api = MockApiClient(),
-        tokens = MemoryTokenStore(),
-        flags = MemoryFlags(termsAccepted: termsAccepted, locationAsked: locationAsked),
-        location = FakeLocationService(access: locationAccess),
-        noise = FakeNoiseRecorder() {
+  }) : api = MockApiClient(),
+       tokens = MemoryTokenStore(),
+       flags = MemoryFlags(
+         termsAccepted: termsAccepted,
+         locationAsked: locationAsked,
+         presenceIntroSeen: presenceIntroSeen,
+       ),
+       location = FakeLocationService(access: locationAccess),
+       noise = FakeNoiseRecorder() {
     services = AppServices(
-        api: api, tokens: tokens, flags: flags, location: location, noise: noise);
+      api: api,
+      tokens: tokens,
+      flags: flags,
+      location: location,
+      push: push,
+      noise: noise,
+      loadNetworkImages: false,
+    );
   }
 
   final MockApiClient api;
   final MemoryTokenStore tokens;
   final MemoryFlags flags;
   final FakeLocationService location;
+  final FakePushService push = FakePushService();
   final FakeNoiseRecorder noise;
   late final AppServices services;
 }

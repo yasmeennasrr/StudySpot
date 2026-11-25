@@ -19,8 +19,8 @@ enum LocationStep {
 /// PB-39: location permission with a working alternative when refused.
 class LocationViewModel extends ViewModel {
   LocationViewModel({required this.location, required LocalFlags flags})
-      : _flags = flags,
-        area = flags.manualArea ?? '';
+    : _flags = flags,
+      area = flags.manualArea ?? '';
 
   final LocationService location;
   final LocalFlags _flags;
@@ -35,7 +35,7 @@ class LocationViewModel extends ViewModel {
 
   /// Runs when the screen opens: if access was already granted, say so.
   Future<void> init() async {
-    if (await location.currentAccess() == LocationAccess.granted) {
+    if ((await location.currentAccess()).hasForegroundAccess) {
       step = LocationStep.granted;
       notify();
     }
@@ -47,7 +47,7 @@ class LocationViewModel extends ViewModel {
     notify();
     final result = await location.requestAccess();
     await _flags.markLocationAsked();
-    if (result == LocationAccess.granted) {
+    if (result.hasForegroundAccess) {
       step = LocationStep.granted;
     } else {
       refusal = result;

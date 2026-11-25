@@ -10,6 +10,8 @@
  *
  * Files (backend/seed/):
  *   venues.json   M3's fictional demo cafés. Falls back to venues.sample.json.
+ *   offers.json   demo coupon offers (PB-25), upserted by id. Offers of a venue that is
+ *                 not in the venue file are skipped.
  *   records.json  optional synthetic history (90 days of survey inputs), written by M4
  *                 with `npm run seed:records`, so the details screen shows current,
  *                 hours-ago, historical and unavailable values. Its times are moved
@@ -19,7 +21,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { In, IsNull } from 'typeorm';
 import dataSource from '../data-source';
-import { DynamicRecordEntity, UserEntity, VenueEntity } from '../entities';
+import { CouponOfferEntity, DynamicRecordEntity, UserEntity, VenueEntity } from '../entities';
 
 export interface SeedVenue {
   id: string;
@@ -28,12 +30,34 @@ export interface SeedVenue {
   lng: number;
   address?: string | null;
   area?: string | null;
+  /** HTTPS link to a photo (see seed/PHOTOS.md for sources and licences). */
+  photoUrl?: string | null;
   openingHours?: VenueEntity['openingHours'];
   priceLevel?: 1 | 2 | 3 | 4 | null;
   wifiAvailable?: boolean | null;
   outletsAvailable?: boolean | null;
   studyType?: 'individual' | 'group' | 'both' | null;
   sizeClass?: 'small' | 'medium' | 'large';
+}
+
+export interface SeedOffer {
+  id: string;
+  venueId: string;
+  reward: string;
+  pointCost: number;
+}
+
+/** Problems in offers.json, so a typo fails the seed instead of the database (PB-25). */
+export function validateOffer(o: SeedOffer, index: number): string[] {
+  const problems: string[] = [];
+  const where = `offers[${index}] (${o.reward ?? 'no reward'})`;
+  if (!/^[0-9a-f-]{36}$/i.test(o.id ?? '')) problems.push(`${where}: id must be a UUID`);
+  if (!/^[0-9a-f-]{36}$/i.test(o.venueId ?? '')) problems.push(`${where}: venueId must be a UUID`);
+  if (!o.reward || o.reward.length > 120)
+    problems.push(`${where}: reward is required, at most 120 characters`);
+  if (!Number.isInteger(o.pointCost) || o.pointCost <= 0)
+    problems.push(`${where}: pointCost must be a whole number above 0`);
+  return problems;
 }
 
 export interface SeedRecord {
@@ -120,14 +144,27 @@ export function validateVenue(v: SeedVenue, index: number): string[] {
     problems.push(`${where}: lng must be a number inside Egypt`);
   if (v.priceLevel != null && ![1, 2, 3, 4].includes(v.priceLevel))
     problems.push(`${where}: priceLevel must be 1..4`);
+  if (v.photoUrl != null && !isHttpsUrl(v.photoUrl, 500))
+    problems.push(`${where}: photoUrl must be an https:// link of at most 500 characters`);
   return problems;
+}
+
+/** True for an absolute https:// URL no longer than [max] characters. */
+export function isHttpsUrl(value: string, max: number): boolean {
+  if (value.length > max) return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 async function main(): Promise<void> {
   const venues =
     readJson<SeedVenue[]>('venues.json') ?? readJson<SeedVenue[]>('venues.sample.json');
   if (!venues) throw new Error(`No seed/venues.json or seed/venues.sample.json in ${SEED_DIR}`);
-  const problems = venues.flatMap(validateVenue);
+  const offers = readJson<SeedOffer[]>('offers.json') ?? [];
+  const problems = [...venues.flatMap(validateVenue), ...offers.flatMap(validateOffer)];
   if (problems.length) throw new Error('Seed data has problems:\n' + problems.join('\n'));
 
   await dataSource.initialize();
@@ -159,6 +196,7 @@ async function main(): Promise<void> {
           location: { type: 'Point', coordinates: [v.lng, v.lat] },
           address: v.address ?? null,
           area: v.area ?? null,
+          photoUrl: v.photoUrl ?? null,
           openingHours: v.openingHours ?? null,
           priceLevel: v.priceLevel ?? null,
           wifiAvailable: v.wifiAvailable ?? null,
@@ -168,6 +206,11 @@ async function main(): Promise<void> {
           source: 'team',
           active: true,
         });
+      }
+      const venueIds = new Set(venues.map((v) => v.id));
+      const seededOffers = offers.filter((o) => venueIds.has(o.venueId));
+      for (const o of seededOffers) {
+        await tx.getRepository(CouponOfferEntity).save({ ...o, active: true });
       }
       const file = readJson<SeedRecordsFile>('records.json');
       let records: SeedRecord[] | null = null;
@@ -187,7 +230,7 @@ async function main(): Promise<void> {
         }
       }
       console.log(
-        `Seeded ${venues.length} venues${records ? ` and ${records.length} dynamic records` : ''}.`,
+        `Seeded ${venues.length} venues, ${seededOffers.length} coupon offers${records ? ` and ${records.length} dynamic records` : ''}.`,
       );
     });
   } finally {

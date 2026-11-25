@@ -8,6 +8,7 @@ import type { StoredSurvey } from './contribution.contracts';
 // ---------------------------------------------------------------- IRewards
 export const REWARDS = Symbol('IRewards');
 
+/** A coupon a venue offers for points (RWD-005). */
 export interface CouponOfferView {
   id: string;
   venueId: string;
@@ -16,29 +17,68 @@ export interface CouponOfferView {
   pointCost: number;
 }
 
+/** issued -> active (on activation) -> expired (5 minutes later). Never back (RWD-020). */
 export type CouponStatus = 'issued' | 'active' | 'expired';
 
+/** pending: not sent yet or waiting for a retry; failed: all retries used (SDS 6.6.9). */
+export type CouponEmailStatus = 'pending' | 'sent' | 'failed';
+
+/** A coupon the user holds (RWD-021). Times are ISO 8601 strings. */
 export interface CouponView {
   id: string;
+  /** XXXX-XXXX, from a 32-character alphabet without 0, O, 1 and I (SDS 6.6.7). */
   code: string;
   reward: string;
+  venueId: string;
   venueName: string;
+  pointCost: number;
   status: CouponStatus;
+  redeemedAt: string;
   activatedAt: string | null;
+  /** activatedAt + 5 minutes (RWD-018); null until activated. */
   expiresAt: string | null;
-  emailStatus: 'pending' | 'sent' | 'failed';
+  emailStatus: CouponEmailStatus;
+}
+
+/** What the user sees on the Rewards screen (RWD-004, RWD-016). */
+export interface PointsSummary {
+  balance: number;
+  /** Points earned from surveys today (Africa/Cairo calendar day). */
+  earnedToday: number;
+  dailyCap: number;
+  /** Points one answer earns, per category (RWD-002, configurable). */
+  perCategory: { crowd: number; noise: number; wifi: number };
+}
+
+/** Result of a points award. `reason` says why fewer (or no) points were given. */
+export interface AwardResult {
+  points: number;
+  reason: string | null;
 }
 
 export interface IRewards {
-  /** Applies RWD-002, RWD-010, RWD-011, RWD-016 and the anti-abuse rules of SDS 6.6.5. */
-  awardForSurvey(survey: StoredSurvey): Promise<{ points: number; reason: string | null }>;
+  /**
+   * Call after the survey is stored (RWD-010). Applies RWD-002, RWD-011, RWD-016 and
+   * the anti-abuse rules of SDS 6.6.5; writes the points ledger and the balance in one
+   * transaction. Safe to call twice for the same survey: the second call returns the
+   * first result and awards nothing (RWD-011). The caller stores `points` and `reason`
+   * on the survey (surveys.points_awarded, surveys.no_points_reason).
+   */
+  awardForSurvey(survey: StoredSurvey): Promise<AwardResult>;
   getBalance(userId: string): Promise<number>;
+  getPointsSummary(userId: string): Promise<PointsSummary>;
   listOffers(): Promise<CouponOfferView[]>;
-  /** Unit of Work: balance check, deduction and coupon creation in one transaction. */
+  /** Unit of Work: balance check, deduction, ledger row and coupon in one transaction; then the e-mail. */
   redeem(userId: string, offerId: string): Promise<CouponView>;
+  /** From the app (RWD-017). Only the owner; once; starts the 5-minute timer. */
   activate(userId: string, couponId: string): Promise<CouponView>;
+  /** From the e-mail "Activate" link: the token is the user's proof (SDS 6.6.7). */
+  getCouponByToken(token: string): Promise<CouponView>;
+  activateByToken(token: string): Promise<CouponView>;
   listCoupons(userId: string): Promise<CouponView[]>;
+  /** Scheduler, every minute: active coupons older than 5 minutes become expired. */
   expireCoupons(): Promise<number>;
+  /** Scheduler, every minute: re-sends coupon e-mails that are due (SDS 6.6.9). */
   retryFailedEmails(): Promise<number>;
 }
 
@@ -53,8 +93,20 @@ export interface StudyMatchAnswer {
   reasonCode: 'OK' | 'AI_UNAVAILABLE' | 'NEEDS_INFO' | 'OFF_TOPIC';
 }
 
+/** One earlier chat message, text only: 'user' is the student, 'model' is StudyMatch. */
+export interface StudyMatchMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
 export interface IStudyMatch {
-  ask(input: { userId: string; text: string; location?: GeoPoint }): Promise<StudyMatchAnswer>;
+  /** `history`: earlier question/answer pairs, oldest first, for follow-ups. Never stored. */
+  ask(input: {
+    userId: string;
+    text: string;
+    location?: GeoPoint;
+    history?: StudyMatchMessage[];
+  }): Promise<StudyMatchAnswer>;
 }
 
 // ---------------------------------------------------------------- INotify
@@ -62,7 +114,7 @@ export const NOTIFY = Symbol('INotify');
 
 /** Presence prompts (SEN-013..SEN-016). Listens to DomainEvent.PresenceDwell. */
 export interface INotify {
-  registerDevice(userId: string, deviceToken: string): Promise<void>;
+  registerDevice(userId: string, installationId: string): Promise<void>;
   setPresencePromptsEnabled(userId: string, enabled: boolean): Promise<void>;
   sendPresencePrompt(userId: string, venueId: string): Promise<void>;
 }

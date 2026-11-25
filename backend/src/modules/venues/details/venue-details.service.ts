@@ -31,6 +31,7 @@ export function toVenueStatic(v: VenueEntity): VenueStatic {
     location: { lat, lng },
     address: v.address,
     area: v.area,
+    photoUrl: v.photoUrl,
     openingHours: v.openingHours,
     priceLevel: v.priceLevel as PriceLevel | null,
     wifiAvailable: v.wifiAvailable,

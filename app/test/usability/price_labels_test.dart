@@ -12,6 +12,7 @@ void main() {
       final w = TestWorld();
       await tester.pumpWidget(StudySpotApp(services: w.services));
       await tester.pumpAndSettle();
+      await continueAsGuest(tester);
 
       // The mock venues are price level 2 and 3.
       expect(find.textContaining('Moderate'), findsWidgets);

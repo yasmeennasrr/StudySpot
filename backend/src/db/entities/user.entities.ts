@@ -45,7 +45,7 @@ export class UserEntity {
   @Column({ name: 'points_balance', type: 'integer', default: 0 })
   pointsBalance: number;
 
-  @Column({ name: 'presence_prompts_enabled', type: 'boolean', default: true })
+  @Column({ name: 'presence_prompts_enabled', type: 'boolean', default: false })
   presencePromptsEnabled: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
@@ -80,7 +80,7 @@ export class SessionEntity {
   revokedAt: Date | null;
 }
 
-/** Push device tokens for presence prompts (EIR-007, Sprint 3). */
+/** Firebase installation IDs for presence prompts (EIR-007, PB-31). */
 @Entity({ name: 'device_tokens' })
 export class DeviceTokenEntity {
   @PrimaryGeneratedColumn('uuid')

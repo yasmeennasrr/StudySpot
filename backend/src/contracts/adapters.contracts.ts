@@ -29,7 +29,7 @@ export interface IEmail {
 }
 
 export const PUSH = Symbol('IPush');
-/** Firebase Cloud Messaging in Sprint 3 (EIR-007). */
+/** Firebase Cloud Messaging for device-targeted prompts (EIR-007, PB-31). */
 export interface IPush {
   send(
     deviceToken: string,

@@ -12,6 +12,14 @@ abstract class LocalFlags {
   bool get locationAsked;
   Future<void> markLocationAsked();
 
+  /// The first-launch explanation for the optional presence prompt was shown.
+  bool get presenceIntroSeen;
+  Future<void> markPresenceIntroSeen();
+
+  /// Whether the user enabled the optional background presence prompt.
+  bool get presencePromptsEnabled;
+  Future<void> setPresencePromptsEnabled(bool enabled);
+
   /// Area typed by a user who refused location (FR-011, USE-007). M6's
   /// search uses it when no device location is available.
   String? get manualArea;
@@ -23,6 +31,8 @@ class SharedPrefsFlags implements LocalFlags {
 
   static const _terms = 'terms_accepted_at';
   static const _location = 'location_asked';
+  static const _presenceIntroSeen = 'presence_intro_seen';
+  static const _presencePromptsEnabled = 'presence_prompts_enabled';
   static const _area = 'manual_area';
 
   @override
@@ -42,6 +52,21 @@ class SharedPrefsFlags implements LocalFlags {
   Future<void> markLocationAsked() => _prefs.setBool(_location, true);
 
   @override
+  bool get presenceIntroSeen => _prefs.getBool(_presenceIntroSeen) ?? false;
+
+  @override
+  Future<void> markPresenceIntroSeen() =>
+      _prefs.setBool(_presenceIntroSeen, true);
+
+  @override
+  bool get presencePromptsEnabled =>
+      _prefs.getBool(_presencePromptsEnabled) ?? false;
+
+  @override
+  Future<void> setPresencePromptsEnabled(bool enabled) =>
+      _prefs.setBool(_presencePromptsEnabled, enabled);
+
+  @override
   String? get manualArea => _prefs.getString(_area);
 
   @override
@@ -56,12 +81,24 @@ class SharedPrefsFlags implements LocalFlags {
 
 /// For tests.
 class MemoryFlags implements LocalFlags {
-  MemoryFlags({this.termsAccepted = false, this.locationAsked = false, this.manualArea});
+  MemoryFlags({
+    this.termsAccepted = false,
+    this.locationAsked = false,
+    this.presenceIntroSeen = false,
+    this.presencePromptsEnabled = false,
+    this.manualArea,
+  });
 
   @override
   bool termsAccepted;
   @override
   bool locationAsked;
+
+  @override
+  bool presenceIntroSeen;
+
+  @override
+  bool presencePromptsEnabled;
   @override
   String? manualArea;
 
@@ -73,6 +110,13 @@ class MemoryFlags implements LocalFlags {
 
   @override
   Future<void> markLocationAsked() async => locationAsked = true;
+
+  @override
+  Future<void> markPresenceIntroSeen() async => presenceIntroSeen = true;
+
+  @override
+  Future<void> setPresencePromptsEnabled(bool enabled) async =>
+      presencePromptsEnabled = enabled;
 
   @override
   Future<void> setManualArea(String? area) async => manualArea = area;

@@ -19,6 +19,20 @@ class StudyMatchRecommendation {
       );
 }
 
+/// One earlier chat message, sent with a new question so StudyMatch
+/// understands follow-ups. Text only.
+class StudyMatchMessage {
+  const StudyMatchMessage({required this.fromStudent, required this.text});
+
+  final bool fromStudent;
+  final String text;
+
+  Map<String, dynamic> toJson() => {
+    'role': fromStudent ? 'user' : 'model',
+    'text': text,
+  };
+}
+
 /// POST /studymatch answer (PB-29). When [degraded] is true the AI was
 /// unavailable and [recommendations] are standard results (AI-019, AI-029).
 class StudyMatchAnswer {

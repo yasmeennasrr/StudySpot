@@ -699,4 +699,104 @@ describe('StudySpot backend on a real database (integration)', () => {
       ),
     ).rejects.toThrow(/chk_venues_price_level/);
   });
+
+  it('TC-M4-40 stores an authenticated in-app survey and refreshes venue conditions', async () => {
+    const body = {
+      crowd: 'very_crowded',
+      noise: 'quiet',
+      wifi: 'good',
+    };
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .send(body)
+      .expect(401);
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({})
+      .expect(400);
+
+    const response = await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(body)
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      venueId: SAMPLE_VENUE,
+      source: 'in_app',
+      answers: body,
+      // PB-24: the student is not checked in at the venue, so no points (SDS 6.6.5 rule 3).
+      pointsAwarded: 0,
+      noPointsReason:
+        'No points this time: be at the venue when you send an in-app survey. Your answers were saved.',
+    });
+    expect(response.body.userId).toBeDefined();
+    expect(response.body.submittedAt).toBeDefined();
+
+    const records = await db.query(
+      `SELECT condition_type, value, source_type FROM dynamic_records WHERE survey_id = $1 ORDER BY condition_type`,
+      [response.body.id],
+    );
+    expect(records).toEqual([
+      { condition_type: 'crowd', value: 3, source_type: 'in_app_survey' },
+      { condition_type: 'noise', value: 1, source_type: 'in_app_survey' },
+      { condition_type: 'wifi', value: 3, source_type: 'in_app_survey' },
+    ]);
+
+    const details = await request(app.getHttpServer()).get(`/api/v1/venues/${SAMPLE_VENUE}`);
+    expect(details.body.dynamic.crowd).toMatchObject({ status: 'current', label: 'High' });
+    expect(details.body.dynamic.noise).toMatchObject({ status: 'current', label: 'Quiet' });
+    expect(details.body.dynamic.wifi).toMatchObject({ status: 'current', label: 'Good' });
+  });
+
+  it('TC-M4-43 aggregates submitted noise and Wi-Fi surveys, counting each student’s newest answer', async () => {
+    const secondStudent = await request(app.getHttpServer())
+      .post('/api/v1/auth/register')
+      .send({
+        email: 'pb20-second-student@studyspot.test',
+        password: 'testpass123',
+        displayName: 'PB20 Second Student',
+        termsAccepted: true,
+      })
+      .expect(201);
+    const secondToken = secondStudent.body.accessToken as string;
+
+    // TC-M4-40 has already added a current Quiet noise and Good Wi-Fi answer
+    // from the first student. A different student's answers should combine
+    // into Moderate noise and Average Wi-Fi.
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ noise: 'noisy', wifi: 'poor' })
+      .expect(201);
+
+    let details = await request(app.getHttpServer())
+      .get(`/api/v1/venues/${SAMPLE_VENUE}`)
+      .expect(200);
+    expect(details.body.dynamic.noise).toMatchObject({
+      status: 'current',
+      level: 2,
+      label: 'Moderate',
+      basedOn: ['surveys'],
+    });
+    expect(details.body.dynamic.wifi).toMatchObject({
+      status: 'current',
+      level: 2,
+      label: 'Average',
+      basedOn: ['surveys'],
+    });
+
+    // A repeat answer replaces this student's earlier answer in the estimate.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    await request(app.getHttpServer())
+      .post(`/api/v1/venues/${SAMPLE_VENUE}/surveys`)
+      .set('Authorization', `Bearer ${secondToken}`)
+      .send({ noise: 'quiet', wifi: 'good' })
+      .expect(201);
+
+    details = await request(app.getHttpServer()).get(`/api/v1/venues/${SAMPLE_VENUE}`).expect(200);
+    expect(details.body.dynamic.noise).toMatchObject({ status: 'current', level: 1, label: 'Quiet' });
+    expect(details.body.dynamic.wifi).toMatchObject({ status: 'current', level: 3, label: 'Good' });
+  });
 });

@@ -13,8 +13,9 @@ void main() {
       final w = TestWorld();
       await tester.pumpWidget(StudySpotApp(services: w.services));
       await tester.pumpAndSettle();
+      await continueAsGuest(tester);
 
-      // 0 interactions: the app opens on the main screen with the search field visible.
+      // 0 interactions: the main screen shows the search field.
       final field = find.byKey(const Key('search_field'));
       expect(field, findsOneWidget);
       expect(

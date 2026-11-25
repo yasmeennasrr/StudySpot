@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/layout/breakpoints.dart';
 import '../../core/models/venue.dart';
 import '../../core/services.dart';
 import '../../core/widgets/error_view.dart';
@@ -12,6 +15,9 @@ import 'venue_card.dart';
 
 /// The home screen (UC-03): search, nearby list with distance, filters, and
 /// the same results on a map. Visitors can use it without an account (FR-006).
+/// On a phone or tablet the map runs across the top with the list on a sheet
+/// below it (the switch shows the map full screen); on a laptop
+/// (splitViewMinWidth) they sit side by side.
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
 
@@ -23,16 +29,36 @@ class _SearchViewState extends State<SearchView> {
   bool _showMap = false;
   final _searchController = TextEditingController();
   late final AppServices _services;
+  String? _restoredDisplayName;
 
   @override
   void initState() {
     super.initState();
     _services = AppScope.of(context);
     _services.session.addListener(_rebuild);
+    if (_services.session.isSignedIn && _services.session.user == null) {
+      unawaited(_restoreDisplayName());
+    }
   }
 
   void _rebuild() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (!_services.session.isSignedIn) _restoredDisplayName = null;
+    setState(() {});
+  }
+
+  Future<void> _restoreDisplayName() async {
+    try {
+      final user = await _services.api.getMe();
+      if (!mounted ||
+          !_services.session.isSignedIn ||
+          _services.session.user != null) {
+        return;
+      }
+      setState(() => _restoredDisplayName = user.displayName);
+    } catch (_) {
+      // Explore remains available if the account name cannot be refreshed.
+    }
   }
 
   @override
@@ -56,7 +82,8 @@ class _SearchViewState extends State<SearchView> {
 
   @override
   Widget build(BuildContext context) {
-    final signedIn = _services.session.isSignedIn;
+    final displayName =
+        _services.session.user?.displayName ?? _restoredDisplayName;
     return ViewModelBuilder<SearchViewModel>(
       create: (context) => SearchViewModel(
         api: _services.api,
@@ -65,25 +92,143 @@ class _SearchViewState extends State<SearchView> {
       ),
       onReady: (vm) => vm.load(),
       builder: (context, vm) => Scaffold(
+        // StudyMatch, Saved, Rewards and Account are tabs now (AppShell).
         appBar: AppBar(
-          title: const Text('StudySpot'),
-          actions: [
-            // PB-29: StudyMatch (M2). Signed-out students are sent to sign-in first.
-            TextButton.icon(
-              key: const Key('home_studymatch'),
-              onPressed: () => context.push('/studymatch'),
-              icon: const Icon(Icons.auto_awesome, size: 18),
-              label: const Text('Ask StudyMatch'),
-            ),
-            IconButton(
-              key: const Key('home_account'),
-              tooltip: signedIn ? 'My account' : 'Sign in',
-              icon: Icon(signedIn ? Icons.account_circle : Icons.login),
-              onPressed: () => context.push(signedIn ? '/account' : '/signin'),
-            ),
-          ],
+          title: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.local_cafe_rounded,
+                  size: 17,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'StudySpot',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              if (_services.session.isSignedIn) ...[
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 22,
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 19,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    displayName == null ? 'Hello!' : 'Hello, $displayName!',
+                    key: const Key('home_greeting'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-        body: Column(
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final split = constraints.maxWidth >= splitViewMinWidth;
+            final panel = _panel(context, vm, split: split);
+            if (!split) return _mapFirst(context, vm, panel, constraints);
+            // Laptop: the list and the map side by side, like a maps app.
+            return Row(
+              key: const Key('search_split'),
+              children: [
+                SizedBox(
+                  width: 420,
+                  child: ColoredBox(
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    child: panel,
+                  ),
+                ),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: _map(vm)),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _map(SearchViewModel vm) => VenueMap(
+        key: ValueKey(vm.mappable.map((v) => v.id).join(',')),
+        venues: vm.mappable,
+        onOpen: _open,
+        showTiles: _services.loadNetworkImages,
+      );
+
+  /// Phone and tablet: the map across the top and the list on a sheet below
+  /// it, like a maps app. "Map" in the switch shows the map full screen. In a
+  /// short window (a phone on its side) the list gets all the room.
+  Widget _mapFirst(
+    BuildContext context,
+    SearchViewModel vm,
+    Widget panel,
+    BoxConstraints constraints,
+  ) {
+    final showStrip = !_showMap && vm.error == null && constraints.maxHeight >= 560;
+    if (!showStrip) return panel;
+    final scheme = Theme.of(context).colorScheme;
+    final mapHeight = (constraints.maxHeight * 0.34).clamp(170.0, 300.0);
+    return Stack(
+      key: const Key('search_map_first'),
+      children: [
+        // The map runs under the sheet's rounded corners.
+        Positioned(top: 0, left: 0, right: 0, height: mapHeight + 24, child: _map(vm)),
+        Positioned.fill(
+          top: mapHeight,
+          child: Material(
+            color: scheme.surfaceContainerLowest,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              side: BorderSide(color: scheme.outlineVariant),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 8, bottom: 4),
+                  decoration: BoxDecoration(
+                    color: scheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(child: panel),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Search box, source line, filters and results. With [split] the map is
+  /// already beside the list, so the list/map switch is hidden.
+  Widget _panel(BuildContext context, SearchViewModel vm, {required bool split}) {
+    final theme = Theme.of(context);
+    return Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -94,7 +239,6 @@ class _SearchViewState extends State<SearchView> {
                 decoration: InputDecoration(
                   hintText: 'Search by café name',
                   prefixIcon: const Icon(Icons.search),
-                  border: const OutlineInputBorder(),
                   isDense: true,
                   suffixIcon: vm.query.isEmpty
                       ? null
@@ -110,76 +254,91 @@ class _SearchViewState extends State<SearchView> {
                 onSubmitted: vm.search,
               ),
             ),
+            // What the list shows ("Near you, nearest first"), as the heading.
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.fromLTRB(16, 8, 12, 0),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(vm.sourceLabel,
                         key: const Key('search_source'),
-                        overflow: TextOverflow.ellipsis),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge),
                   ),
-                  TextButton.icon(
-                    key: const Key('search_filters'),
-                    onPressed: () => _filters(vm),
-                    icon: const Icon(Icons.tune),
-                    label: Text(vm.activeFilterCount == 0
-                        ? 'Filters'
-                        : 'Filters (${vm.activeFilterCount})'),
-                  ),
-                  SegmentedButton<bool>(
-                    key: const Key('search_view_toggle'),
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, icon: Icon(Icons.list), tooltip: 'List'),
-                      ButtonSegment(value: true, icon: Icon(Icons.map), tooltip: 'Map'),
-                    ],
-                    selected: {_showMap},
-                    onSelectionChanged: (s) => setState(() => _showMap = s.first),
-                  ),
+                  if (!split)
+                    SegmentedButton<bool>(
+                      key: const Key('search_view_toggle'),
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: false, icon: Icon(Icons.list), tooltip: 'List'),
+                        ButtonSegment(value: true, icon: Icon(Icons.map), tooltip: 'Map'),
+                      ],
+                      selected: {_showMap},
+                      onSelectionChanged: (s) => setState(() => _showMap = s.first),
+                    ),
                 ],
               ),
             ),
-            // Near me / All places: see every café, however far (planning ahead).
-            if (vm.hasLocation && vm.query.trim().isEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                child: Row(
+            // Near me / All places (see every café, however far, to plan
+            // ahead) and Filters. A Wrap, so they never overflow a narrow phone.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    ChoiceChip(
-                      key: const Key('scope_nearby'),
-                      label: const Text('Near me'),
-                      selected: !vm.showAll,
-                      onSelected: (_) => vm.setShowAll(false),
-                    ),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      key: const Key('scope_all'),
-                      label: const Text('All places'),
-                      selected: vm.showAll,
-                      onSelected: (_) => vm.setShowAll(true),
+                    if (vm.hasLocation && vm.query.trim().isEmpty) ...[
+                      ChoiceChip(
+                        key: const Key('scope_nearby'),
+                        label: const Text('Near me'),
+                        selected: !vm.showAll,
+                        onSelected: (_) => vm.setShowAll(false),
+                      ),
+                      ChoiceChip(
+                        key: const Key('scope_all'),
+                        label: const Text('All places'),
+                        selected: vm.showAll,
+                        onSelected: (_) => vm.setShowAll(true),
+                      ),
+                    ],
+                    TextButton.icon(
+                      key: const Key('search_filters'),
+                      onPressed: () => _filters(vm),
+                      icon: const Icon(Icons.tune),
+                      label: Text(vm.activeFilterCount == 0
+                          ? 'Filters'
+                          : 'Filters (${vm.activeFilterCount})'),
                     ),
                   ],
                 ),
               ),
+            ),
             if (vm.degraded)
               Container(
                 key: const Key('search_degraded'),
                 width: double.infinity,
                 margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
                 padding: const EdgeInsets.all(10),
-                color: Theme.of(context).colorScheme.errorContainer,
-                child: const Text('The maps service is unavailable, so the area could not '
-                    'be located. Showing name matches only.'),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'The maps service is unavailable, so the area could not '
+                  'be located. Showing name matches only.',
+                  style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                ),
               ),
-            Expanded(child: _results(context, vm)),
+            Expanded(child: _results(context, vm, split: split)),
           ],
-        ),
-      ),
-    );
+        );
   }
 
-  Widget _results(BuildContext context, SearchViewModel vm) {
+  Widget _results(BuildContext context, SearchViewModel vm, {bool split = false}) {
     if (vm.loading && vm.items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -193,7 +352,7 @@ class _SearchViewState extends State<SearchView> {
         ),
       );
     }
-    if (_showMap) return VenueMap(venues: vm.mappable, onOpen: _open);
+    if (_showMap && !split) return _map(vm);
     return RefreshIndicator(
       onRefresh: vm.load,
       child: ListView.builder(

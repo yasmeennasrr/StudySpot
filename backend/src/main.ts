@@ -26,6 +26,11 @@ export function configureApp(app: INestApplication): void {
     prefix: '/console',
     index: 'index.html',
   });
+  // Coupon activation page (PB-27): the e-mail "Activate" link opens /coupon/#t=<token>.
+  (app as NestExpressApplication).useStaticAssets(join(__dirname, '..', 'coupon'), {
+    prefix: '/coupon',
+    index: 'index.html',
+  });
   app.enableShutdownHooks();
 }
 

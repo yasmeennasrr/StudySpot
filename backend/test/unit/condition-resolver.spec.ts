@@ -169,6 +169,21 @@ describe('ConditionResolver (Chain of Responsibility, SDS 6.6)', () => {
     expect(crowdLevelFromCount(16, 'large')).toBe(3);
   });
 
+  it('TC-M4-39 expired crowd surveys stop contributing while valid presence remains current', () => {
+    const expiredHighSurvey = rec('crowd', 3, 61);
+
+    expect(resolve('crowd', [expiredHighSurvey])).toMatchObject({
+      status: 'hours_ago',
+      level: 3,
+      basedOn: ['surveys'],
+    });
+    expect(resolve('crowd', [expiredHighSurvey], { presentCount: 1 })).toMatchObject({
+      status: 'current',
+      level: 1,
+      basedOn: ['present_users'],
+    });
+  });
+
   it('TC-M4-10 historical estimate uses the first set with 3 records; the median tie goes up (SDS 6.6.3)', () => {
     // Same weekday (Tuesday) and hour, 1, 2 and 3 weeks ago: all Quiet.
     const sameHour = [1, 2, 3].map((w) => rec('noise', 1, w * 7 * DAY));

@@ -31,6 +31,11 @@ tags:
     description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
   - name: studymatch
     description: Owner M2 (backend and chat screen). PB-29, PB-46. UC-05.
+  - name: rewards
+    description: |
+      Points and coupons. Owner M6 (backend and screens). PB-24 to PB-27, PB-38. UC-09, UC-13, UC-14.
+      Points come from surveys (awarded by the backend after a survey is stored, never by a call
+      from the app). Coupon codes are XXXX-XXXX; a coupon is issued -> active (5 minutes) -> expired.
   - name: staff
     description: |
       Staff API, used by the Staff Console at /console (owner M1; pages by their story owners).
@@ -308,6 +313,32 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /venues/{venueId}/surveys:
+    post:
+      tags: [venues]
+      summary: Submit an in-app venue conditions survey (PB-17, CON-001..CON-008)
+      description: |
+        At least one answer is required; each question may otherwise be skipped. The venue and
+        author come from the path and signed-in session. A stored survey updates each answered
+        condition; Wi-Fi "not_used" is saved as an answer but does not contribute a Wi-Fi level.
+      operationId: submitInAppSurvey
+      parameters:
+        - { $ref: '#/components/parameters/VenueId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitSurveyRequest' }
+      responses:
+        '201':
+          description: Stored survey and reward result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StoredSurvey' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
   /me/reviews/{venueId}:
     get:
       tags: [me]
@@ -380,6 +411,97 @@ paths:
       operationId: deletePreferences
       responses:
         '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence/location:
+    post:
+      tags: [me]
+      summary: Submit an opted-in location sample for a possible presence visit
+      operationId: reportPresenceLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number, minimum: -90, maximum: 90 }
+                lng: { type: number, minimum: -180, maximum: 180 }
+      responses:
+        '200':
+          description: Sample accepted; raw coordinates are not retained
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [venueId]
+                properties:
+                  venueId: { type: string, format: uuid, nullable: true }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence/respond:
+    post:
+      tags: [me]
+      summary: Respond yes or no to an "Are you here?" push prompt
+      operationId: respondToPresencePrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [venueId, confirmed]
+              properties:
+                venueId: { type: string, format: uuid }
+                confirmed: { type: boolean }
+      responses:
+        '200':
+          description: Response accepted unless the prompt was already answered or expired
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accepted]
+                properties: { accepted: { type: boolean } }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/push-token:
+    put:
+      tags: [me]
+      summary: Register this app installation's Firebase installation ID
+      operationId: registerPushInstallation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [installationId]
+              properties: { installationId: { type: string, minLength: 1, maxLength: 512 } }
+      responses:
+        '204': { description: Token registered }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/presence-prompts:
+    put:
+      tags: [me]
+      summary: Enable or disable presence prompts for this account
+      operationId: setPresencePromptsEnabled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties: { enabled: { type: boolean } }
+      responses:
+        '204': { description: Preference updated }
+        '400': { $ref: '#/components/responses/InvalidInput' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
 
   /me/favorites:
@@ -830,6 +952,8 @@ paths:
         When the AI is unavailable (error, open circuit, or the 9 s deadline) the answer is still 200, with
         degraded true, reasonCode AI_UNAVAILABLE and standard results: nearby places matching the saved
         preferences, or none with a prompt to use Search (AI-019, AI-029). Answers within 10 s (PERF-003).
+        For follow-ups ("which of those is cheaper?") send the last exchanges in history. It is context only:
+        facts are looked up again, and nothing is stored. A history that is not whole pairs is a 400.
         10 questions per minute per client (STUDYMATCH_LIMIT).
       operationId: askStudyMatch
       requestBody:
@@ -846,6 +970,140 @@ paths:
         '400': { $ref: '#/components/responses/InvalidInput' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '429': { $ref: '#/components/responses/RateLimited' }
+
+  /me/points:
+    get:
+      tags: [rewards]
+      summary: My points balance and today's progress towards the daily cap (PB-24, RWD-004, RWD-016)
+      description: The daily cap counts survey points on the Africa/Cairo calendar day.
+      operationId: getMyPoints
+      responses:
+        '200':
+          description: Points summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PointsSummary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /coupon-offers:
+    get:
+      tags: [rewards]
+      summary: Coupons on offer, with point cost and venue, cheapest first (PB-25, RWD-005)
+      description: Open to guests, so a visitor can see what points are worth before signing up.
+      operationId: listCouponOffers
+      security: []
+      responses:
+        '200':
+          description: Active offers of active venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CouponOffer' }
+
+  /coupon-offers/{offerId}/redeem:
+    post:
+      tags: [rewards]
+      summary: Spend points on a coupon; it is e-mailed to the account's address (PB-25, PB-26, UC-13)
+      description: |
+        One transaction: balance check, deduction, points-history row and coupon (RWD-007 to RWD-009).
+        Then the coupon is e-mailed with an Activate link (RWD-014). A failed e-mail never undoes the
+        redemption: emailStatus is pending and the backend retries 1, 5, 15 and 60 minutes after the
+        first failure, then marks it failed (SDS 6.6.9); the coupon is always in GET /me/coupons.
+      operationId: redeemCouponOffer
+      parameters:
+        - { name: offerId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '201':
+          description: The new coupon (status issued)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Not enough points (RWD-008); the balance is unchanged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorBody' }
+              example:
+                code: CONFLICT
+                message: You need 10 more points for this coupon. Your points have not changed.
+                details: { reason: INSUFFICIENT_POINTS, balance: 20, pointCost: 30 }
+
+  /me/coupons:
+    get:
+      tags: [rewards]
+      summary: My coupons, issued, active and expired; the running one first (PB-25, RWD-021)
+      operationId: listMyCoupons
+      responses:
+        '200':
+          description: Coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Coupon' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/coupons/{couponId}/activate:
+    post:
+      tags: [rewards]
+      summary: Activate a coupon at the counter; starts the 5-minute countdown once (PB-27, UC-14)
+      description: |
+        RWD-017 to RWD-020. Activating again while it runs returns the same coupon (the timer never
+        restarts). After 5 minutes it is expired for good: 409 with details.reason COUPON_EXPIRED and
+        the coupon in details.coupon. Points are never refunded.
+      operationId: activateMyCoupon
+      parameters:
+        - { name: couponId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The active coupon with activatedAt and expiresAt
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CouponExpired' }
+
+  /coupons/by-token/{token}:
+    get:
+      tags: [rewards]
+      summary: The coupon behind an e-mail Activate link; reading never activates it (PB-27)
+      description: |
+        Used by the page at /coupon/#t=<token> that the e-mail links to. The 22-character token is
+        the proof (SDS 6.6.7); only its SHA-256 is stored.
+      operationId: getCouponByToken
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/ActivationToken' }
+      responses:
+        '200':
+          description: The coupon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /coupons/by-token/{token}/activate:
+    post:
+      tags: [rewards]
+      summary: Activate from the e-mail link page (PB-27, RWD-017)
+      operationId: activateCouponByToken
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/ActivationToken' }
+      responses:
+        '200':
+          description: The active coupon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CouponExpired' }
 
 security:
   - bearerAuth: []
@@ -881,6 +1139,12 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    ActivationToken:
+      name: token
+      in: path
+      required: true
+      description: 22 characters, URL-safe base64 (from the e-mail link)
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
     VenueId:
       name: venueId
       in: path
@@ -966,6 +1230,15 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorBody' }
+    CouponExpired:
+      description: The coupon expired; it can be activated only once and is not refunded (RWD-020)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+          example:
+            code: CONFLICT
+            message: This coupon has expired. A coupon can be activated only once, and its points are not refunded.
+            details: { reason: COUPON_EXPIRED }
     RateLimited:
       description: Too many requests
       content:
@@ -1085,13 +1358,20 @@ components:
         items: { $ref: '#/components/schemas/TimeRange' }
     VenueStatic:
       type: object
-      required: [id, name, location, address, area, openingHours, priceLevel, wifiAvailable, outletsAvailable, studyType]
+      required: [id, name, location, address, area, photoUrl, openingHours, priceLevel, wifiAvailable, outletsAvailable, studyType]
       properties:
         id: { type: string, format: uuid }
         name: { type: string }
         location: { $ref: '#/components/schemas/GeoPoint' }
         address: { type: string, nullable: true }
         area: { type: string, nullable: true }
+        photoUrl:
+          type: string
+          format: uri
+          maxLength: 500
+          nullable: true
+          description: HTTPS link to a photo of the place; null when there is none (show a placeholder).
+          example: https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=1200&q=70
         openingHours: { $ref: '#/components/schemas/OpeningHours' }
         priceLevel: { type: integer, minimum: 1, maximum: 4, nullable: true }
         wifiAvailable: { type: boolean, nullable: true }
@@ -1145,6 +1425,20 @@ components:
         text: { type: string, minLength: 1, maxLength: 500, example: 'quiet place with good wifi near me' }
         lat: { type: number, minimum: -90, maximum: 90, description: 'Send with lng, or neither' }
         lng: { type: number, minimum: -180, maximum: 180 }
+        history:
+          type: array
+          maxItems: 6
+          description: |
+            Optional. Up to 3 earlier question/answer pairs, oldest first: a user message, then the model
+            reply to it. Text only; the app adds the names of the places shown to the reply text.
+          items: { $ref: '#/components/schemas/StudyMatchMessage' }
+    StudyMatchMessage:
+      type: object
+      additionalProperties: false
+      required: [role, text]
+      properties:
+        role: { type: string, enum: [user, model], description: 'user = the student, model = StudyMatch' }
+        text: { type: string, minLength: 1, maxLength: 1000 }
     StudyMatchAnswer:
       type: object
       required: [reply, recommendations, degraded, reasonCode]
@@ -1190,6 +1484,26 @@ components:
       properties:
         rating: { type: integer, minimum: 1, maximum: 5, description: Whole stars }
         text: { type: string, nullable: true, maxLength: 1000, description: Blank text is saved as none }
+    SubmitSurveyRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        crowd: { type: string, enum: [not_crowded, slightly_crowded, moderately_crowded, very_crowded] }
+        noise: { type: string, enum: [quiet, moderate, noisy] }
+        wifi: { type: string, enum: [poor, average, good, not_used] }
+    StoredSurvey:
+      type: object
+      required: [id, venueId, userId, source, answers, submittedAt, pointsAwarded, noPointsReason]
+      properties:
+        id: { type: string, format: uuid }
+        venueId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        source: { type: string, enum: [qr, in_app] }
+        answers: { $ref: '#/components/schemas/SubmitSurveyRequest' }
+        submittedAt: { type: string, format: date-time }
+        pointsAwarded: { type: integer, minimum: 0 }
+        noPointsReason: { type: string, nullable: true }
     MyReview:
       allOf:
         - { $ref: '#/components/schemas/Review' }
@@ -1353,3 +1667,52 @@ components:
         pointsIssued: { type: integer }
         couponsRedeemed: { type: integer }
         failedSignIns: { type: integer }
+
+    PointsSummary:
+      type: object
+      required: [balance, earnedToday, dailyCap, perCategory]
+      properties:
+        balance: { type: integer, minimum: 0 }
+        earnedToday: { type: integer, minimum: 0, description: Survey points earned today (Africa/Cairo) }
+        dailyCap: { type: integer, example: 100 }
+        perCategory:
+          type: object
+          description: Points one answer earns (configurable, FR-039). Wi-Fi "not used" earns none.
+          required: [crowd, noise, wifi]
+          properties:
+            crowd: { type: integer, example: 10 }
+            noise: { type: integer, example: 10 }
+            wifi: { type: integer, example: 10 }
+
+    CouponOffer:
+      type: object
+      required: [id, venueId, venueName, reward, pointCost]
+      properties:
+        id: { type: string, format: uuid }
+        venueId: { type: string, format: uuid }
+        venueName: { type: string }
+        reward: { type: string, example: Free Turkish coffee }
+        pointCost: { type: integer, minimum: 1, example: 30 }
+
+    Coupon:
+      type: object
+      required:
+        [id, code, reward, venueId, venueName, pointCost, status, redeemedAt, activatedAt, expiresAt, emailStatus]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, pattern: '^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$', example: K7QM-4TXD }
+        reward: { type: string }
+        venueId: { type: string, format: uuid }
+        venueName: { type: string }
+        pointCost: { type: integer }
+        status:
+          type: string
+          enum: [issued, active, expired]
+          description: Checked on every read, so a coupon is expired the moment its 5 minutes end
+        redeemedAt: { type: string, format: date-time }
+        activatedAt: { type: string, format: date-time, nullable: true }
+        expiresAt: { type: string, format: date-time, nullable: true, description: activatedAt + 5 minutes }
+        emailStatus:
+          type: string
+          enum: [pending, sent, failed]
+          description: pending = not sent yet or waiting for a retry; failed = all retries used

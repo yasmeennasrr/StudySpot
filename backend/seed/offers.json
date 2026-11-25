@@ -1,0 +1,50 @@
+[
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000001",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000001",
+    "reward": "Free Turkish coffee",
+    "pointCost": 30
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000002",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000002",
+    "reward": "15% off any drink",
+    "pointCost": 40
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000003",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000003",
+    "reward": "Free mint tea",
+    "pointCost": 30
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000004",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000004",
+    "reward": "Free pastry with any hot drink",
+    "pointCost": 60
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000005",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000005",
+    "reward": "Free cappuccino",
+    "pointCost": 80
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000006",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000006",
+    "reward": "Free fresh juice",
+    "pointCost": 70
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000007",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000007",
+    "reward": "Free hot drink of your choice",
+    "pointCost": 100
+  },
+  {
+    "id": "c0a1b2c3-0000-4000-8000-000000000008",
+    "venueId": "6f1c2a10-0000-4000-8000-000000000008",
+    "reward": "Buy one drink, get one free",
+    "pointCost": 120
+  }
+]

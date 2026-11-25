@@ -162,6 +162,47 @@ export class PresenceRecordEntity {
   recordedAt: Date;
 }
 
+/** Candidate venue visits used only to trigger a presence prompt, never crowd counts. */
+@Entity({ name: 'presence_visits' })
+@Index('ix_presence_visits_active_seen', ['active', 'lastSeenAt'])
+@Index('uq_presence_visits_active_user', { synchronize: false })
+export class PresenceVisitEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id', foreignKeyConstraintName: 'fk_presence_visits_user' })
+  user?: UserEntity;
+
+  @Column({ name: 'venue_id', type: 'uuid' })
+  venueId: string;
+
+  @ManyToOne(() => VenueEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'venue_id', foreignKeyConstraintName: 'fk_presence_visits_venue' })
+  venue?: VenueEntity;
+
+  @Column({ type: 'boolean', default: true })
+  active: boolean;
+
+  @Column({ name: 'started_at', type: 'timestamptz' })
+  startedAt: Date;
+
+  @Column({ name: 'last_seen_at', type: 'timestamptz' })
+  lastSeenAt: Date;
+
+  @Column({ name: 'prompted_at', type: 'timestamptz', nullable: true })
+  promptedAt: Date | null;
+
+  @Column({ name: 'confirmed_at', type: 'timestamptz', nullable: true })
+  confirmedAt: Date | null;
+
+  @Column({ name: 'responded_at', type: 'timestamptz', nullable: true })
+  respondedAt: Date | null;
+}
+
 /** One-time receipt codes (DATA-010, QR-001..QR-013). Token: 128 random bits, base64url (SDS 6.6.7). */
 @Entity({ name: 'receipt_codes' })
 @Index('ix_receipt_codes_status_created', ['status', 'createdAt'])

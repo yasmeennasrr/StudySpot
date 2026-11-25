@@ -22,6 +22,7 @@ class ChatMessage {
 /// The question shows at once; a progress indicator runs while the backend
 /// answers (PERF-007). The location goes with the question only when the
 /// student has granted it (AI-003, SEN-002); it is never requested from here.
+/// The last [maxPairs] exchanges go along too, so follow-ups make sense.
 class StudyMatchViewModel extends ViewModel {
   StudyMatchViewModel({required this.api, required this.location});
 
@@ -29,6 +30,12 @@ class StudyMatchViewModel extends ViewModel {
   final LocationService location;
 
   static const maxLength = 500;
+
+  /// Earlier question/answer pairs sent with a question (6 messages).
+  static const maxPairs = 3;
+
+  /// Longest text of one earlier message (contracts/openapi.yaml).
+  static const maxHistoryText = 1000;
 
   final List<ChatMessage> messages = [];
   String draft = '';
@@ -82,6 +89,7 @@ class StudyMatchViewModel extends ViewModel {
         question,
         lat: here?.lat,
         lng: here?.lng,
+        history: _history(),
       );
       messages.add(ChatMessage.studyMatch(answer));
     } on ApiError catch (e) {
@@ -94,6 +102,38 @@ class StudyMatchViewModel extends ViewModel {
       notify();
     }
   }
+
+  /// The last answered questions, oldest first. A question that failed has no
+  /// answer right after it, so it is left out (the backend wants whole pairs).
+  List<StudyMatchMessage> _history() {
+    final pairs = <List<StudyMatchMessage>>[];
+    for (var i = 0; i + 1 < messages.length; i++) {
+      final answer = messages[i + 1].answer;
+      if (!messages[i].fromStudent || answer == null) continue;
+      pairs.add([
+        StudyMatchMessage(fromStudent: true, text: messages[i].text),
+        StudyMatchMessage(fromStudent: false, text: _answerText(answer)),
+      ]);
+    }
+    final from = pairs.length > maxPairs ? pairs.length - maxPairs : 0;
+    return [for (final pair in pairs.skip(from)) ...pair];
+  }
+
+  /// What the student saw, as text: the reply and the names on the place cards,
+  /// which a follow-up may point at ("the second one"). The "unavailable" notice
+  /// is left out so the AI does not repeat it once it is back.
+  String _answerText(StudyMatchAnswer answer) {
+    final names = answer.recommendations.map((r) => r.venue.name).join(', ');
+    final places = names.isEmpty ? '' : 'Places shown: $names';
+    final reply = answer.degraded ? '' : answer.reply.trim();
+    if (reply.isEmpty) return places.isEmpty ? '(No answer.)' : _cut(places, maxHistoryText);
+    if (places.isEmpty) return _cut(reply, maxHistoryText);
+    final tail = _cut('\n$places', maxHistoryText ~/ 2);
+    return _cut(reply, maxHistoryText - tail.length) + tail;
+  }
+
+  String _cut(String text, int max) =>
+      text.length <= max ? text : text.substring(0, max);
 
   Future<DevicePosition?> _locationIfGranted() async {
     try {

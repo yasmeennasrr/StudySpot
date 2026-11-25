@@ -5,6 +5,7 @@ import 'audio/noise_recorder.dart';
 import 'auth/session.dart';
 import 'auth/token_store.dart';
 import 'location/location_service.dart';
+import 'notifications/push_service.dart';
 import 'storage/local_flags.dart';
 
 /// The app's shared objects, created once in main.dart. Tests build their own
@@ -15,18 +16,26 @@ class AppServices {
     required this.tokens,
     required this.flags,
     required this.location,
+    required this.push,
     NoiseRecorder? noise,
-  })  : noise = noise ?? RecordNoiseRecorder(),
+    this.loadNetworkImages = true,
+  }) : noise = noise ?? RecordNoiseRecorder(),
         session = Session(api: api, tokens: tokens);
 
   final ApiClient api;
   final TokenStore tokens;
   final LocalFlags flags;
   final LocationService location;
+  final PushService push;
 
   /// Microphone for noise samples (PB-19). Tests pass a FakeNoiseRecorder.
   final NoiseRecorder noise;
   final Session session;
+
+  /// Whether the app downloads pictures from the internet: map tiles and place
+  /// photos. Tests turn this off, since they have no network; the map pins and
+  /// the photo placeholders still show.
+  final bool loadNetworkImages;
 }
 
 /// Makes [AppServices] reachable from any widget: `AppScope.of(context)`.

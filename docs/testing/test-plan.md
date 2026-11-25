@@ -140,4 +140,3 @@ cd app && flutter test           # Flutter widget tests
 The live PERF-006 failure is the hosting tier, not the code: Render's free instance has 0.1 CPU and serves about 45 requests per second, so 100 simultaneous users queue for 3 to 5 seconds. Nothing failed (0 errors in about 1,500 requests). Action: move to the Starter instance (0.5 CPU) before real use and run `npm run perf` again. The generated live report is [performance-results.md](performance-results.md).
 
 Two lessons from the live runs: the first two load runs were refused with 429 because the old instance (limit 120 per minute) still served traffic for a short while after the deploy that raised `THROTTLE_LIMIT`; wait a few minutes after that deploy. `THROTTLE_LIMIT` was removed again after the run.
-

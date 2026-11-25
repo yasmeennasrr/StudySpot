@@ -15,8 +15,8 @@ export interface GeminiLlmOptions {
 }
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
-/** Chosen 2026-11-22 after a live test: 3.8-flash was overloaded and has no 'minimal' thinking. */
-export const DEFAULT_LLM_MODEL = 'gemini-3.5-flash';
+/** Chosen 2026-11-24: 3.5-flash mostly timed out (5 s) or gave 503 that day; lite answered most questions in 1-4 s. */
+export const DEFAULT_LLM_MODEL = 'gemini-3.5-flash-lite';
 export const DEFAULT_LLM_THINKING = 'minimal';
 
 /**

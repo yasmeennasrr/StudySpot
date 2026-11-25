@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/auth/session.dart';
 import '../../core/services.dart';
-import '../../core/widgets/back_or_home_button.dart';
 
-/// The signed-in user's hub: edit account (FR-005), preferences, favorites,
-/// sign out (FR-004).
+/// The Account tab: edit account (FR-005), study preferences, location and
+/// check-in settings, sign out (FR-004). Favorites and Rewards are tabs of
+/// their own (AppShell).
 class AccountView extends StatefulWidget {
   const AccountView({super.key});
 
@@ -53,7 +53,6 @@ class _AccountViewState extends State<AccountView> {
     final user = AppScope.of(context).session.user;
     return Scaffold(
       appBar: AppBar(
-        leading: const BackOrHomeButton(),
         title: const Text('My account'),
       ),
       body: ListView(
@@ -77,14 +76,14 @@ class _AccountViewState extends State<AccountView> {
             onTap: () => context.push('/preferences'),
           ),
           ListTile(
-            leading: const Icon(Icons.favorite_border),
-            title: const Text('Favorites'),
-            onTap: () => context.push('/favorites'),
-          ),
-          ListTile(
             leading: const Icon(Icons.location_on_outlined),
             title: const Text('Location settings'),
             onTap: () => context.push('/location'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_active_outlined),
+            title: const Text('“Are you here?” check-ins'),
+            onTap: () => context.push('/presence?onboarding=false'),
           ),
           const Divider(),
           ListTile(

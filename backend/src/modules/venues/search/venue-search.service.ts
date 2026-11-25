@@ -128,6 +128,7 @@ export class VenueSearchService {
           location: { lat: venue.location.coordinates[1], lng: venue.location.coordinates[0] },
           address: venue.address,
           area: venue.area,
+          photoUrl: venue.photoUrl,
           openingHours: venue.openingHours,
           priceLevel: venue.priceLevel as PriceLevel | null,
           wifiAvailable: venue.wifiAvailable,

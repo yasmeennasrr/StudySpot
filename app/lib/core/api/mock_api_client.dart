@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/rewards.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
+import '../models/survey.dart';
 import '../models/venue.dart';
 import 'api_client.dart';
 import 'api_error.dart';
@@ -20,7 +22,8 @@ class MockApiClient extends ApiClient {
   final Map<String, String> accounts = {'dev@studyspot.test': 'devpass123'};
   final Map<String, String> displayNames = {'dev@studyspot.test': 'Dev User'};
   Preferences preferences = Preferences.empty;
-  final List<VenueSummary> venues = const [
+  /// Tests may replace a venue (for example to give it a photo).
+  final List<VenueSummary> venues = [
     VenueSummary(
       id: '6f1c2a10-0000-4000-8000-000000000001',
       name: 'Sample Study Café (New Cairo)',
@@ -57,10 +60,48 @@ class MockApiClient extends ApiClient {
   /// reviews they reported.
   final Map<String, MyReview> myReviews = {};
   final Set<String> reportedReviewIds = {};
+  final List<Map<String, Object?>> surveySubmissions = [];
 
   /// PB-29: what StudyMatch answers next, and every question it was asked.
   StudyMatchAnswer? studyMatchAnswer;
-  final List<({String text, double? lat, double? lng})> studyMatchQuestions = [];
+  final List<({String text, double? lat, double? lng, List<StudyMatchMessage> history})>
+      studyMatchQuestions = [];
+
+  /// PB-24..PB-27: the signed-in student's points and coupons, and the offers.
+  int pointsBalance = 120;
+  int pointsEarnedToday = 30;
+  int pointsDailyCap = 100;
+  final List<CouponOffer> couponOffers = [
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000001',
+      venueId: '6f1c2a10-0000-4000-8000-000000000002',
+      venueName: 'Quiet Corner Zamalek',
+      reward: 'Free Turkish coffee',
+      pointCost: 30,
+    ),
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000002',
+      venueId: '6f1c2a10-0000-4000-8000-000000000001',
+      venueName: 'Sample Study Café (New Cairo)',
+      reward: 'Free cappuccino',
+      pointCost: 80,
+    ),
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000003',
+      venueId: '6f1c2a10-0000-4000-8000-000000000002',
+      venueName: 'Quiet Corner Zamalek',
+      reward: 'Buy one drink, get one free',
+      pointCost: 150,
+    ),
+  ];
+  final List<Coupon> coupons = [];
+
+  /// The mock's clock for coupon times; tests replace it to move time.
+  DateTime Function() now = DateTime.now;
+
+  /// When true, coupon e-mails "fail" (the coupon is still issued).
+  bool couponEmailFails = false;
+  int _couponCount = 0;
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -84,16 +125,16 @@ class MockApiClient extends ApiClient {
   }
 
   AuthTokens _tokensFor(String email) => AuthTokens(
-        accessToken: 'mock-access-$email',
-        expiresIn: 900,
-        refreshToken: 'mock-refresh-$email',
-        user: AuthUser(
-          id: '00000000-0000-4000-8000-000000000001',
-          email: email,
-          displayName: displayNames[email] ?? email,
-          role: 'user',
-        ),
-      );
+    accessToken: 'mock-access-$email',
+    expiresIn: 900,
+    refreshToken: 'mock-refresh-$email',
+    user: AuthUser(
+      id: '00000000-0000-4000-8000-000000000001',
+      email: email,
+      displayName: displayNames[email] ?? email,
+      role: 'user',
+    ),
+  );
 
   @override
   Future<bool> wakeUp() async {
@@ -123,7 +164,10 @@ class MockApiClient extends ApiClient {
   }
 
   @override
-  Future<AuthTokens> login({required String email, required String password}) async {
+  Future<AuthTokens> login({
+    required String email,
+    required String password,
+  }) async {
     await _step();
     final key = email.trim().toLowerCase();
     if (accounts[key] != password) {
@@ -142,7 +186,10 @@ class MockApiClient extends ApiClient {
     await _step();
     if (!refreshToken.startsWith('mock-refresh-')) {
       throw const ApiError(
-          code: 'UNAUTHENTICATED', statusCode: 401, message: 'Please sign in again.');
+        code: 'UNAUTHENTICATED',
+        statusCode: 401,
+        message: 'Please sign in again.',
+      );
     }
     return _tokensFor(refreshToken.substring('mock-refresh-'.length));
   }
@@ -211,9 +258,14 @@ class MockApiClient extends ApiClient {
   }
 
   @override
-  Future<StudyMatchAnswer> askStudyMatch(String text, {double? lat, double? lng}) async {
+  Future<StudyMatchAnswer> askStudyMatch(
+    String text, {
+    double? lat,
+    double? lng,
+    List<StudyMatchMessage> history = const [],
+  }) async {
     await _step();
-    studyMatchQuestions.add((text: text, lat: lat, lng: lng));
+    studyMatchQuestions.add((text: text, lat: lat, lng: lng, history: history));
     return studyMatchAnswer ??
         StudyMatchAnswer(
           reply: 'Here are quiet places near you.',
@@ -266,6 +318,7 @@ class MockApiClient extends ApiClient {
   /// Every venue call, e.g. "search q=quiet", "nearby", "browse": tests check
   /// which endpoint the screen chose (FR-009 to FR-012).
   final List<String> venueCalls = [];
+  final List<({String venueId, bool confirmed})> presencePromptResponses = [];
 
   /// Filters sent with the last venue call.
   Map<String, Object> lastFilters = const {};
@@ -275,10 +328,14 @@ class MockApiClient extends ApiClient {
   bool degradedSearch = false;
 
   SearchResult _result(List<VenueSummary> items) => SearchResult(
-      items: returnNoVenues ? const [] : items, degraded: degradedSearch);
+    items: returnNoVenues ? const [] : items,
+    degraded: degradedSearch,
+  );
 
   @override
-  Future<SearchResult> browseVenues({Map<String, Object> filters = const {}}) async {
+  Future<SearchResult> browseVenues({
+    Map<String, Object> filters = const {},
+  }) async {
     venueCalls.add('browse');
     lastFilters = Map.of(filters)..remove('maxDistance');
     await _step();
@@ -294,20 +351,26 @@ class MockApiClient extends ApiClient {
     double? lng,
     Map<String, Object> filters = const {},
   }) async {
-    venueCalls.add([
-      'search',
-      if (q != null) 'q=$q',
-      if (area != null) 'area=$area',
-      if (lat != null) 'point',
-    ].join(' '));
+    venueCalls.add(
+      [
+        'search',
+        if (q != null) 'q=$q',
+        if (area != null) 'area=$area',
+        if (lat != null) 'point',
+      ].join(' '),
+    );
     lastFilters = filters;
     await _step();
     final text = (q ?? area ?? '').toLowerCase();
-    return _result(venues
-        .where((v) =>
-            v.name.toLowerCase().contains(text) ||
-            (v.area ?? '').toLowerCase().contains(text))
-        .toList());
+    return _result(
+      venues
+          .where(
+            (v) =>
+                v.name.toLowerCase().contains(text) ||
+                (v.area ?? '').toLowerCase().contains(text),
+          )
+          .toList(),
+    );
   }
 
   @override
@@ -323,13 +386,44 @@ class MockApiClient extends ApiClient {
   }
 
   @override
+  Future<void> reportPresenceLocation({
+    required double lat,
+    required double lng,
+  }) async {
+    await _step();
+  }
+
+  @override
+  Future<bool> respondToPresencePrompt({
+    required String venueId,
+    required bool confirmed,
+  }) async {
+    await _step();
+    presencePromptResponses.add((venueId: venueId, confirmed: confirmed));
+    return true;
+  }
+
+  @override
+  Future<void> registerPushInstallation(String installationId) async {
+    await _step();
+  }
+
+  @override
+  Future<void> setPresencePromptsEnabled(bool enabled) async {
+    await _step();
+  }
+
+  @override
   Future<Map<String, dynamic>> getVenue(String venueId) async {
     venueCalls.add('details');
     await _step();
     final v = venues.firstWhere(
       (v) => v.id == venueId,
       orElse: () => throw const ApiError(
-          code: 'NOT_FOUND', statusCode: 404, message: 'This place was not found.'),
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        message: 'This place was not found.',
+      ),
     );
     final mine = myReviews[v.id];
     return {
@@ -339,12 +433,13 @@ class MockApiClient extends ApiClient {
         'location': {'lat': v.lat, 'lng': v.lng},
         'address': v.address,
         'area': v.area,
+        'photoUrl': v.photoUrl,
         'openingHours': {
           '0': [
-            {'open': '08:00', 'close': '23:00'}
+            {'open': '08:00', 'close': '23:00'},
           ],
           '5': [
-            {'open': '12:00', 'close': '02:00'}
+            {'open': '12:00', 'close': '02:00'},
           ],
         },
         'priceLevel': v.priceLevel,
@@ -450,6 +545,19 @@ class MockApiClient extends ApiClient {
   }
 
   @override
+  Future<StoredSurvey> submitSurvey(String venueId, SurveyAnswers answers) async {
+    await _step();
+    surveySubmissions.add({'venueId': venueId, ...answers.toJson()});
+    return StoredSurvey(
+      id: 'survey-${surveySubmissions.length}',
+      venueId: venueId,
+      submittedAt: DateTime.now().toUtc(),
+      pointsAwarded: 0,
+      noPointsReason: 'Points are not enabled in the demo.',
+    );
+  }
+
+  @override
   Future<bool> noiseSampleEligible(String venueId,
       {required double lat, required double lng}) async {
     await _step();
@@ -472,5 +580,109 @@ class MockApiClient extends ApiClient {
     }
     noiseSamples.add(wav.length);
     return noiseResult;
+  }
+
+  @override
+  Future<PointsSummary> getPoints() async {
+    await _step();
+    return PointsSummary(
+      balance: pointsBalance,
+      earnedToday: pointsEarnedToday,
+      dailyCap: pointsDailyCap,
+      crowdPoints: 10,
+      noisePoints: 10,
+      wifiPoints: 10,
+    );
+  }
+
+  @override
+  Future<List<CouponOffer>> listCouponOffers() async {
+    await _step();
+    return List.of(couponOffers)..sort((a, b) => a.pointCost.compareTo(b.pointCost));
+  }
+
+  @override
+  Future<Coupon> redeemCoupon(String offerId) async {
+    await _step();
+    final offer = couponOffers.where((o) => o.id == offerId).firstOrNull;
+    if (offer == null) {
+      throw const ApiError(
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        message: 'This coupon is no longer offered. Pick another one from the list.',
+      );
+    }
+    if (pointsBalance < offer.pointCost) {
+      throw ApiError(
+        code: 'CONFLICT',
+        statusCode: 409,
+        reason: 'INSUFFICIENT_POINTS',
+        message: 'You need ${offer.pointCost - pointsBalance} more points for this '
+            'coupon. Your points have not changed.',
+      );
+    }
+    pointsBalance -= offer.pointCost;
+    _couponCount += 1;
+    final n = _couponCount.toString().padLeft(4, '2');
+    final coupon = Coupon(
+      id: 'c0c0c0c0-0000-4000-8000-${_couponCount.toString().padLeft(12, '0')}',
+      code: 'K7QM-$n',
+      reward: offer.reward,
+      venueId: offer.venueId,
+      venueName: offer.venueName,
+      pointCost: offer.pointCost,
+      status: CouponStatus.issued,
+      redeemedAt: now(),
+      emailStatus: couponEmailFails ? 'pending' : 'sent',
+    );
+    coupons.insert(0, coupon);
+    return coupon;
+  }
+
+  @override
+  Future<List<Coupon>> listMyCoupons() async {
+    await _step();
+    final at = now();
+    const order = {CouponStatus.active: 0, CouponStatus.issued: 1, CouponStatus.expired: 2};
+    final list = [
+      for (final c in coupons)
+        c.statusAt(at) == c.status ? c : c.copyWith(status: c.statusAt(at)),
+    ];
+    list.sort((a, b) {
+      final byStatus = order[a.status]!.compareTo(order[b.status]!);
+      return byStatus != 0 ? byStatus : b.redeemedAt.compareTo(a.redeemedAt);
+    });
+    return list;
+  }
+
+  @override
+  Future<Coupon> activateCoupon(String couponId) async {
+    await _step();
+    final i = coupons.indexWhere((c) => c.id == couponId);
+    if (i < 0) {
+      throw const ApiError(code: 'NOT_FOUND', statusCode: 404, message: 'Coupon not found.');
+    }
+    final at = now();
+    final c = coupons[i];
+    switch (c.statusAt(at)) {
+      case CouponStatus.issued:
+        coupons[i] = c.copyWith(
+          status: CouponStatus.active,
+          activatedAt: at,
+          expiresAt: at.add(const Duration(minutes: 5)),
+        );
+        return coupons[i];
+      case CouponStatus.active:
+        return c; // the timer never restarts
+      case CouponStatus.expired:
+        coupons[i] = c.copyWith(status: CouponStatus.expired);
+        throw const ApiError(
+          code: 'CONFLICT',
+          statusCode: 409,
+          reason: 'COUPON_EXPIRED',
+          message: 'This coupon has expired. A coupon can be activated only once, '
+              'and its points are not refunded.',
+        );
+    }
   }
 }

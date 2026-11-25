@@ -7,6 +7,7 @@ import '../../core/services.dart';
 import '../../core/widgets/view_model_builder.dart';
 import 'repository.dart';
 import 'view_model.dart';
+import '../../core/theme/app_theme.dart';
 
 /// The reviews part of M6's venue details screen (PB-15, PB-16, UC-08).
 /// Lists the reviews, offers "Write a review" (or "Edit your review"), and a
@@ -179,7 +180,7 @@ class ReviewSheet extends StatelessWidget {
                     key: Key('star-$star'),
                     tooltip: '$star star${star == 1 ? '' : 's'}',
                     icon: Icon(star <= vm.rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber.shade700),
+                        color: StatusColors.of(context).rating),
                     onPressed: vm.saving ? null : () => vm.setRating(star),
                   ),
               ],
