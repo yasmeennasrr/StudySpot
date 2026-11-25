@@ -12,9 +12,11 @@ class AppDestination {
     required this.icon,
     required this.selectedIcon,
     required this.key,
+    this.compactLabel,
   });
 
   final String label;
+  final String? compactLabel;
   final IconData icon;
   final IconData selectedIcon;
 
@@ -54,6 +56,7 @@ class AppShell extends StatefulWidget {
     ),
     const AppDestination(
       label: 'StudyMatch',
+      compactLabel: 'Match',
       icon: Icons.auto_awesome_outlined,
       selectedIcon: Icons.auto_awesome,
       key: Key('home_studymatch'),
@@ -129,7 +132,7 @@ class _AppShellState extends State<AppShell> {
                   NavigationDestination(
                     icon: Icon(d.icon, key: d.key),
                     selectedIcon: Icon(d.selectedIcon),
-                    label: d.label,
+                    label: d.compactLabel ?? d.label,
                   ),
               ],
             ),
