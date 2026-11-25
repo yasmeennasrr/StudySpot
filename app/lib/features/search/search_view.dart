@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/layout/breakpoints.dart';
 import '../../core/models/venue.dart';
 import '../../core/services.dart';
 import '../../core/widgets/error_view.dart';
@@ -12,6 +13,8 @@ import 'venue_card.dart';
 
 /// The home screen (UC-03): search, nearby list with distance, filters, and
 /// the same results on a map. Visitors can use it without an account (FR-006).
+/// On a phone the list and the map are two views of one area; on a laptop
+/// (splitViewMinWidth) they sit side by side.
 class SearchView extends StatefulWidget {
   const SearchView({super.key});
 
@@ -56,7 +59,6 @@ class _SearchViewState extends State<SearchView> {
 
   @override
   Widget build(BuildContext context) {
-    final signedIn = _services.session.isSignedIn;
     return ViewModelBuilder<SearchViewModel>(
       create: (context) => SearchViewModel(
         api: _services.api,
@@ -65,25 +67,38 @@ class _SearchViewState extends State<SearchView> {
       ),
       onReady: (vm) => vm.load(),
       builder: (context, vm) => Scaffold(
-        appBar: AppBar(
-          title: const Text('StudySpot'),
-          actions: [
-            // PB-29: StudyMatch (M2). Signed-out students are sent to sign-in first.
-            TextButton.icon(
-              key: const Key('home_studymatch'),
-              onPressed: () => context.push('/studymatch'),
-              icon: const Icon(Icons.auto_awesome, size: 18),
-              label: const Text('Ask StudyMatch'),
-            ),
-            IconButton(
-              key: const Key('home_account'),
-              tooltip: signedIn ? 'My account' : 'Sign in',
-              icon: Icon(signedIn ? Icons.account_circle : Icons.login),
-              onPressed: () => context.push(signedIn ? '/account' : '/signin'),
-            ),
-          ],
+        // StudyMatch, Saved, Rewards and Account are tabs now (AppShell).
+        appBar: AppBar(title: const Text('StudySpot')),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final split = constraints.maxWidth >= splitViewMinWidth;
+            final panel = _panel(context, vm, split: split);
+            if (!split) return panel;
+            // Laptop: the list and the map side by side, like a maps app.
+            return Row(
+              key: const Key('search_split'),
+              children: [
+                SizedBox(width: 420, child: panel),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(
+                  child: VenueMap(
+                    key: ValueKey(vm.mappable.map((v) => v.id).join(',')),
+                    venues: vm.mappable,
+                    onOpen: _open,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
-        body: Column(
+      ),
+    );
+  }
+
+  /// Search box, source line, filters and results. With [split] the map is
+  /// already beside the list, so the list/map switch is hidden.
+  Widget _panel(BuildContext context, SearchViewModel vm, {required bool split}) {
+    return Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -127,16 +142,17 @@ class _SearchViewState extends State<SearchView> {
                         ? 'Filters'
                         : 'Filters (${vm.activeFilterCount})'),
                   ),
-                  SegmentedButton<bool>(
-                    key: const Key('search_view_toggle'),
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: false, icon: Icon(Icons.list), tooltip: 'List'),
-                      ButtonSegment(value: true, icon: Icon(Icons.map), tooltip: 'Map'),
-                    ],
-                    selected: {_showMap},
-                    onSelectionChanged: (s) => setState(() => _showMap = s.first),
-                  ),
+                  if (!split)
+                    SegmentedButton<bool>(
+                      key: const Key('search_view_toggle'),
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: false, icon: Icon(Icons.list), tooltip: 'List'),
+                        ButtonSegment(value: true, icon: Icon(Icons.map), tooltip: 'Map'),
+                      ],
+                      selected: {_showMap},
+                      onSelectionChanged: (s) => setState(() => _showMap = s.first),
+                    ),
                 ],
               ),
             ),
@@ -172,14 +188,12 @@ class _SearchViewState extends State<SearchView> {
                 child: const Text('The maps service is unavailable, so the area could not '
                     'be located. Showing name matches only.'),
               ),
-            Expanded(child: _results(context, vm)),
+            Expanded(child: _results(context, vm, split: split)),
           ],
-        ),
-      ),
-    );
+        );
   }
 
-  Widget _results(BuildContext context, SearchViewModel vm) {
+  Widget _results(BuildContext context, SearchViewModel vm, {bool split = false}) {
     if (vm.loading && vm.items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -193,7 +207,13 @@ class _SearchViewState extends State<SearchView> {
         ),
       );
     }
-    if (_showMap) return VenueMap(venues: vm.mappable, onOpen: _open);
+    if (_showMap && !split) {
+      return VenueMap(
+        key: ValueKey(vm.mappable.map((v) => v.id).join(',')),
+        venues: vm.mappable,
+        onOpen: _open,
+      );
+    }
     return RefreshIndicator(
       onRefresh: vm.load,
       child: ListView.builder(

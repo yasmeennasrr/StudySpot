@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/rewards.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/survey.dart';
@@ -131,4 +132,22 @@ abstract class ApiClient {
     required double lat,
     required double lng,
   });
+
+  // Rewards (M6: PB-24 to PB-27)
+  /// GET /me/points: balance and today's progress towards the daily cap.
+  Future<PointsSummary> getPoints();
+
+  /// GET /coupon-offers: open to guests too, cheapest first.
+  Future<List<CouponOffer>> listCouponOffers();
+
+  /// POST /coupon-offers/{id}/redeem. Not enough points: ApiError with
+  /// reason INSUFFICIENT_POINTS (409), and the balance is unchanged.
+  Future<Coupon> redeemCoupon(String offerId);
+
+  /// GET /me/coupons: issued, active and expired; the running one first.
+  Future<List<Coupon>> listMyCoupons();
+
+  /// POST /me/coupons/{id}/activate: starts the 5-minute countdown once.
+  /// After the 5 minutes: ApiError with reason COUPON_EXPIRED (409).
+  Future<Coupon> activateCoupon(String couponId);
 }

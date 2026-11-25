@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/format.dart';
 import '../../core/models/studymatch.dart';
 import '../../core/services.dart';
-import '../../core/widgets/back_or_home_button.dart';
 import '../../core/widgets/condition_label.dart';
 import '../../core/widgets/view_model_builder.dart';
 import 'studymatch_view_model.dart';
@@ -34,10 +33,8 @@ class StudyMatchView extends StatelessWidget {
         return StudyMatchViewModel(api: s.api, location: s.location);
       },
       builder: (context, vm) => Scaffold(
-        appBar: AppBar(
-          leading: const BackOrHomeButton(),
-          title: const Text('StudyMatch'),
-        ),
+        // A main tab (AppShell): no back arrow.
+        appBar: AppBar(title: const Text('StudyMatch')),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(

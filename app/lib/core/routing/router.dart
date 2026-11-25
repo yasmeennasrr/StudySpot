@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/account_view.dart';
@@ -11,13 +11,18 @@ import '../../features/permissions/location_view.dart';
 import '../../features/permissions/presence_prompt_view.dart';
 import '../../features/permissions/presence_response_view.dart';
 import '../../features/preferences/view.dart';
+import '../../features/rewards/coupon_view.dart';
+import '../../features/rewards/rewards_view.dart';
 import '../../features/search/search_view.dart';
 import '../../features/studymatch/studymatch_view.dart';
 import '../../features/venue_details/details_view.dart';
+import '../layout/breakpoints.dart';
 import '../services.dart';
+import '../widgets/readable_width.dart';
+import 'app_shell.dart';
 
-/// Screens that need a signed-in user (FR-007). Visitors can still search and
-/// view places (FR-006). M6: add protected routes here if you create any.
+/// Screens that need a signed-in user (FR-007). Visitors can still search,
+/// view places and see the coupons on offer (FR-006).
 const protectedRoutes = {
   '/account',
   '/account/edit',
@@ -26,11 +31,37 @@ const protectedRoutes = {
   '/studymatch',
 };
 
-/// Screen flow:
+/// Protected screens with an id in the path, e.g. one coupon (PB-27).
+const protectedPrefixes = {'/rewards/coupons/'};
+
+bool isProtected(String location) =>
+    protectedRoutes.contains(location) ||
+    protectedPrefixes.any(location.startsWith);
+
+/// Screen flow (DRS feedback: logical and natural, on a phone and a laptop):
+///
 ///   first launch: /terms -> /location -> /presence -> /home
-///   /home (search list + map) -> /venues/:id (details); /signin or /account
-///   /signin <-> /register; protected screens redirect to /signin?from=...
+///
+///   Main places, always one tap away (AppShell: bottom bar on a phone,
+///   navigation rail on a tablet or laptop). Each keeps its own history:
+///     Explore     /home        search list (+ map beside it on wide screens)
+///     Saved       /favorites
+///     StudyMatch  /studymatch
+///     Rewards     /rewards     points, coupons on offer, my coupons
+///     Account     /account     (shows "Sign in" to visitors)
+///
+///   Task screens open on top, full screen, with a back arrow:
+///     /venues/:id, /rewards/coupons/:id, /signin, /register, /account/edit,
+///     /preferences, /location, /presence, /presence/respond
+///
+///   A protected screen sends a visitor to /signin?from=..., and signing in
+///   returns them to it. On wide screens every page keeps a readable width.
 GoRouter buildRouter(AppServices services) {
+  Widget readable(Widget child, [double maxWidth = pageMaxWidth]) =>
+      ReadableWidth(maxWidth: maxWidth, child: child);
+  Widget tab(WidgetBuilder builder, [double maxWidth = pageMaxWidth]) =>
+      readable(SessionKeyed(builder: builder), maxWidth);
+
   return GoRouter(
     initialLocation: '/home',
     refreshListenable: _SessionListenable(services),
@@ -41,15 +72,65 @@ GoRouter buildRouter(AppServices services) {
       simulatedPresenceResponse: state.uri.queryParameters['demo'] == 'true',
     ),
     routes: [
-      GoRoute(path: '/terms', builder: (context, state) => const TermsView()),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/home', builder: (context, state) => const SearchView()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/favorites',
+                builder: (context, state) => tab((context) => const FavoritesView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/studymatch',
+                builder: (context, state) => tab((context) => const StudyMatchView()),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/rewards',
+                builder: (context, state) =>
+                    tab((context) => const RewardsView(), wideContentMaxWidth),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/account',
+                builder: (context, state) => tab((context) => const AccountView()),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/terms',
+        builder: (context, state) => readable(const TermsView(), formMaxWidth),
+      ),
       GoRoute(
         path: '/location',
-        builder: (context, state) => const LocationView(),
+        builder: (context, state) => readable(const LocationView(), formMaxWidth),
       ),
       GoRoute(
         path: '/presence',
-        builder: (context, state) => PresencePromptView(
-          onboarding: state.uri.queryParameters['onboarding'] != 'false',
+        builder: (context, state) => readable(
+          PresencePromptView(
+            onboarding: state.uri.queryParameters['onboarding'] != 'false',
+          ),
+          formMaxWidth,
         ),
       ),
       GoRoute(
@@ -61,47 +142,46 @@ GoRouter buildRouter(AppServices services) {
           }
           return '/signin?from=${Uri.encodeComponent(state.uri.toString())}';
         },
-        builder: (context, state) => PresenceResponseView(
-          venueId: state.uri.queryParameters['venueId']!,
-          venueName: state.uri.queryParameters['venueName'] ?? 'this venue',
-          simulated: state.uri.queryParameters['demo'] == 'true',
+        builder: (context, state) => readable(
+          PresenceResponseView(
+            venueId: state.uri.queryParameters['venueId']!,
+            venueName: state.uri.queryParameters['venueName'] ?? 'this venue',
+            simulated: state.uri.queryParameters['demo'] == 'true',
+          ),
+          formMaxWidth,
         ),
       ),
-      GoRoute(path: '/home', builder: (context, state) => const SearchView()),
       GoRoute(
         path: '/signin',
-        builder: (context, state) =>
-            SignInView(from: state.uri.queryParameters['from']),
+        builder: (context, state) => readable(
+          SignInView(from: state.uri.queryParameters['from']),
+          formMaxWidth,
+        ),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) =>
-            RegisterView(from: state.uri.queryParameters['from']),
-      ),
-      GoRoute(
-        path: '/account',
-        builder: (context, state) => const AccountView(),
+        builder: (context, state) => readable(
+          RegisterView(from: state.uri.queryParameters['from']),
+          formMaxWidth,
+        ),
       ),
       GoRoute(
         path: '/account/edit',
-        builder: (context, state) => const EditAccountView(),
+        builder: (context, state) => readable(const EditAccountView(), formMaxWidth),
       ),
       GoRoute(
         path: '/preferences',
-        builder: (context, state) => const PreferencesView(),
-      ),
-      GoRoute(
-        path: '/favorites',
-        builder: (context, state) => const FavoritesView(),
-      ),
-      GoRoute(
-        path: '/studymatch',
-        builder: (context, state) => const StudyMatchView(),
+        builder: (context, state) => readable(const PreferencesView()),
       ),
       GoRoute(
         path: '/venues/:id',
         builder: (context, state) =>
-            VenueDetailsView(venueId: state.pathParameters['id']!),
+            readable(VenueDetailsView(venueId: state.pathParameters['id']!)),
+      ),
+      GoRoute(
+        path: '/rewards/coupons/:id',
+        builder: (context, state) =>
+            readable(CouponView(couponId: state.pathParameters['id']!), formMaxWidth),
       ),
     ],
   );
@@ -129,7 +209,7 @@ String? appRedirect(
     return '/presence';
   }
   final signedIn = services.session.isSignedIn;
-  if (!signedIn && protectedRoutes.contains(location)) {
+  if (!signedIn && isProtected(location)) {
     return '/signin?from=${Uri.encodeComponent(location)}';
   }
   if (signedIn && (location == '/signin' || location == '/register')) {

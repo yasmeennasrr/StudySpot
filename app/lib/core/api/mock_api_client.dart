@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/rewards.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/survey.dart';
@@ -64,6 +65,42 @@ class MockApiClient extends ApiClient {
   StudyMatchAnswer? studyMatchAnswer;
   final List<({String text, double? lat, double? lng, List<StudyMatchMessage> history})>
       studyMatchQuestions = [];
+
+  /// PB-24..PB-27: the signed-in student's points and coupons, and the offers.
+  int pointsBalance = 120;
+  int pointsEarnedToday = 30;
+  int pointsDailyCap = 100;
+  final List<CouponOffer> couponOffers = [
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000001',
+      venueId: '6f1c2a10-0000-4000-8000-000000000002',
+      venueName: 'Quiet Corner Zamalek',
+      reward: 'Free Turkish coffee',
+      pointCost: 30,
+    ),
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000002',
+      venueId: '6f1c2a10-0000-4000-8000-000000000001',
+      venueName: 'Sample Study Café (New Cairo)',
+      reward: 'Free cappuccino',
+      pointCost: 80,
+    ),
+    const CouponOffer(
+      id: 'c0a1b2c3-0000-4000-8000-000000000003',
+      venueId: '6f1c2a10-0000-4000-8000-000000000002',
+      venueName: 'Quiet Corner Zamalek',
+      reward: 'Buy one drink, get one free',
+      pointCost: 150,
+    ),
+  ];
+  final List<Coupon> coupons = [];
+
+  /// The mock's clock for coupon times; tests replace it to move time.
+  DateTime Function() now = DateTime.now;
+
+  /// When true, coupon e-mails "fail" (the coupon is still issued).
+  bool couponEmailFails = false;
+  int _couponCount = 0;
 
   /// Set to make the next call fail, e.g. ApiError.network.
   ApiError? failNext;
@@ -541,5 +578,109 @@ class MockApiClient extends ApiClient {
     }
     noiseSamples.add(wav.length);
     return noiseResult;
+  }
+
+  @override
+  Future<PointsSummary> getPoints() async {
+    await _step();
+    return PointsSummary(
+      balance: pointsBalance,
+      earnedToday: pointsEarnedToday,
+      dailyCap: pointsDailyCap,
+      crowdPoints: 10,
+      noisePoints: 10,
+      wifiPoints: 10,
+    );
+  }
+
+  @override
+  Future<List<CouponOffer>> listCouponOffers() async {
+    await _step();
+    return List.of(couponOffers)..sort((a, b) => a.pointCost.compareTo(b.pointCost));
+  }
+
+  @override
+  Future<Coupon> redeemCoupon(String offerId) async {
+    await _step();
+    final offer = couponOffers.where((o) => o.id == offerId).firstOrNull;
+    if (offer == null) {
+      throw const ApiError(
+        code: 'NOT_FOUND',
+        statusCode: 404,
+        message: 'This coupon is no longer offered. Pick another one from the list.',
+      );
+    }
+    if (pointsBalance < offer.pointCost) {
+      throw ApiError(
+        code: 'CONFLICT',
+        statusCode: 409,
+        reason: 'INSUFFICIENT_POINTS',
+        message: 'You need ${offer.pointCost - pointsBalance} more points for this '
+            'coupon. Your points have not changed.',
+      );
+    }
+    pointsBalance -= offer.pointCost;
+    _couponCount += 1;
+    final n = _couponCount.toString().padLeft(4, '2');
+    final coupon = Coupon(
+      id: 'c0c0c0c0-0000-4000-8000-${_couponCount.toString().padLeft(12, '0')}',
+      code: 'K7QM-$n',
+      reward: offer.reward,
+      venueId: offer.venueId,
+      venueName: offer.venueName,
+      pointCost: offer.pointCost,
+      status: CouponStatus.issued,
+      redeemedAt: now(),
+      emailStatus: couponEmailFails ? 'pending' : 'sent',
+    );
+    coupons.insert(0, coupon);
+    return coupon;
+  }
+
+  @override
+  Future<List<Coupon>> listMyCoupons() async {
+    await _step();
+    final at = now();
+    const order = {CouponStatus.active: 0, CouponStatus.issued: 1, CouponStatus.expired: 2};
+    final list = [
+      for (final c in coupons)
+        c.statusAt(at) == c.status ? c : c.copyWith(status: c.statusAt(at)),
+    ];
+    list.sort((a, b) {
+      final byStatus = order[a.status]!.compareTo(order[b.status]!);
+      return byStatus != 0 ? byStatus : b.redeemedAt.compareTo(a.redeemedAt);
+    });
+    return list;
+  }
+
+  @override
+  Future<Coupon> activateCoupon(String couponId) async {
+    await _step();
+    final i = coupons.indexWhere((c) => c.id == couponId);
+    if (i < 0) {
+      throw const ApiError(code: 'NOT_FOUND', statusCode: 404, message: 'Coupon not found.');
+    }
+    final at = now();
+    final c = coupons[i];
+    switch (c.statusAt(at)) {
+      case CouponStatus.issued:
+        coupons[i] = c.copyWith(
+          status: CouponStatus.active,
+          activatedAt: at,
+          expiresAt: at.add(const Duration(minutes: 5)),
+        );
+        return coupons[i];
+      case CouponStatus.active:
+        return c; // the timer never restarts
+      case CouponStatus.expired:
+        coupons[i] = c.copyWith(status: CouponStatus.expired);
+        throw const ApiError(
+          code: 'CONFLICT',
+          statusCode: 409,
+          reason: 'COUPON_EXPIRED',
+          message: 'This coupon has expired. A coupon can be activated only once, '
+              'and its points are not refunded.',
+        );
+    }
   }
 }

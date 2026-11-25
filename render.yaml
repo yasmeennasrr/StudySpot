@@ -35,4 +35,6 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: SENDGRID_API_KEY
-        sync: false
+        sync: false # PB-26: coupon e-mails; without it e-mails are only logged
+      - key: SENDGRID_FROM_EMAIL
+        sync: false # a sender address verified in SendGrid (Single Sender Verification)

@@ -7,6 +7,7 @@ import '../config.dart';
 import '../models/auth.dart';
 import '../models/noise.dart';
 import '../models/preferences.dart';
+import '../models/rewards.dart';
 import '../models/studymatch.dart';
 import '../models/review.dart';
 import '../models/survey.dart';
@@ -420,5 +421,43 @@ class DioApiClient extends ApiClient {
           ),
         ));
     return NoiseSampleResult.fromJson(_json(r));
+  }
+
+  List<Map<String, dynamic>> _list(Response<dynamic> r) => [
+    for (final item in (r.data as List)) (item as Map).cast<String, dynamic>(),
+  ];
+
+  @override
+  Future<PointsSummary> getPoints() async {
+    final r = await _send(() => _dio.get<dynamic>('/me/points'));
+    return PointsSummary.fromJson(_json(r));
+  }
+
+  @override
+  Future<List<CouponOffer>> listCouponOffers() async {
+    final r = await _send(() => _dio.get<dynamic>('/coupon-offers'));
+    return _list(r).map(CouponOffer.fromJson).toList();
+  }
+
+  @override
+  Future<Coupon> redeemCoupon(String offerId) async {
+    final r = await _send(
+      () => _dio.post<dynamic>('/coupon-offers/$offerId/redeem'),
+    );
+    return Coupon.fromJson(_json(r));
+  }
+
+  @override
+  Future<List<Coupon>> listMyCoupons() async {
+    final r = await _send(() => _dio.get<dynamic>('/me/coupons'));
+    return _list(r).map(Coupon.fromJson).toList();
+  }
+
+  @override
+  Future<Coupon> activateCoupon(String couponId) async {
+    final r = await _send(
+      () => _dio.post<dynamic>('/me/coupons/$couponId/activate'),
+    );
+    return Coupon.fromJson(_json(r));
   }
 }

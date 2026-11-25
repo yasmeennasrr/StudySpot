@@ -7,6 +7,7 @@ class ApiError implements Exception {
     required this.message,
     this.statusCode,
     this.fieldErrors = const {},
+    this.reason,
   });
 
   /// One of the ErrorCode values (INVALID_INPUT, UNAUTHENTICATED, ...) or
@@ -17,6 +18,10 @@ class ApiError implements Exception {
 
   /// For INVALID_INPUT: field name -> what is wrong with it.
   final Map<String, String> fieldErrors;
+
+  /// details.reason when the backend sends one, e.g. INSUFFICIENT_POINTS or
+  /// COUPON_EXPIRED (PB-25, PB-27), so a screen can react to the exact case.
+  final String? reason;
 
   bool get isUnauthenticated => code == 'UNAUTHENTICATED' || statusCode == 401;
   bool get isNetworkProblem => code == 'NETWORK' || code == 'TIMEOUT';
@@ -40,6 +45,9 @@ class ApiError implements Exception {
             'Something went wrong. Please try again.',
         statusCode: statusCode,
         fieldErrors: fields,
+        reason: details is Map && details['reason'] is String
+            ? details['reason'] as String
+            : null,
       );
     }
     return ApiError(
