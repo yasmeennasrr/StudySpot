@@ -25,7 +25,9 @@ Future<void> main() async {
     api: DioApiClient(tokens: tokens),
     tokens: tokens,
     flags: flags,
-    location: GeolocatorLocationService(),
+    location: GeolocatorLocationService(
+      allowedInApp: () => flags.locationAllowed,
+    ),
     push: push,
   );
   await services.session.restore();

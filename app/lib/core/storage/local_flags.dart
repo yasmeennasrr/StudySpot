@@ -12,6 +12,11 @@ abstract class LocalFlags {
   bool get locationAsked;
   Future<void> markLocationAsked();
 
+  /// The last choice on the location screen was to allow it. Only a memory of
+  /// the student's choice; the OS or browser still decides (SEN-002).
+  bool get locationAllowed;
+  Future<void> setLocationAllowed(bool allowed);
+
   /// The first-launch explanation for the optional presence prompt was shown.
   bool get presenceIntroSeen;
   Future<void> markPresenceIntroSeen();
@@ -31,6 +36,7 @@ class SharedPrefsFlags implements LocalFlags {
 
   static const _terms = 'terms_accepted_at';
   static const _location = 'location_asked';
+  static const _locationAllowed = 'location_allowed';
   static const _presenceIntroSeen = 'presence_intro_seen';
   static const _presencePromptsEnabled = 'presence_prompts_enabled';
   static const _area = 'manual_area';
@@ -50,6 +56,13 @@ class SharedPrefsFlags implements LocalFlags {
 
   @override
   Future<void> markLocationAsked() => _prefs.setBool(_location, true);
+
+  @override
+  bool get locationAllowed => _prefs.getBool(_locationAllowed) ?? false;
+
+  @override
+  Future<void> setLocationAllowed(bool allowed) =>
+      _prefs.setBool(_locationAllowed, allowed);
 
   @override
   bool get presenceIntroSeen => _prefs.getBool(_presenceIntroSeen) ?? false;
@@ -84,6 +97,7 @@ class MemoryFlags implements LocalFlags {
   MemoryFlags({
     this.termsAccepted = false,
     this.locationAsked = false,
+    this.locationAllowed = false,
     this.presenceIntroSeen = false,
     this.presencePromptsEnabled = false,
     this.manualArea,
@@ -93,6 +107,9 @@ class MemoryFlags implements LocalFlags {
   bool termsAccepted;
   @override
   bool locationAsked;
+
+  @override
+  bool locationAllowed;
 
   @override
   bool presenceIntroSeen;
@@ -110,6 +127,10 @@ class MemoryFlags implements LocalFlags {
 
   @override
   Future<void> markLocationAsked() async => locationAsked = true;
+
+  @override
+  Future<void> setLocationAllowed(bool allowed) async =>
+      locationAllowed = allowed;
 
   @override
   Future<void> markPresenceIntroSeen() async => presenceIntroSeen = true;
