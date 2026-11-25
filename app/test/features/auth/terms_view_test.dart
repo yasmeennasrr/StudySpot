@@ -10,6 +10,7 @@ void main() {
     final w = TestWorld(termsAccepted: false, locationAsked: false);
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     expect(find.text('Terms and privacy notice'), findsOneWidget);
     final button = find.byKey(const Key('terms_continue'));

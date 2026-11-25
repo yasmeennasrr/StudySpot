@@ -20,6 +20,7 @@ void main() {
     );
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     // A phone gets the bottom navigation bar.
     expect(find.byKey(const Key('nav_bar')), findsOneWidget);
@@ -68,6 +69,7 @@ void main() {
     final w = TestWorld();
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
 
     await tester.tap(find.byKey(const Key('nav_rewards')));
     await tester.pumpAndSettle();

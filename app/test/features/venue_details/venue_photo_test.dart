@@ -80,6 +80,7 @@ void main() {
 
     await tester.pumpWidget(StudySpotApp(services: w.services));
     await tester.pumpAndSettle();
+    await continueAsGuest(tester);
     for (final v in w.api.venues) {
       expect(
         find.descendant(
@@ -93,6 +94,7 @@ void main() {
     await tester.tap(find.byKey(Key('venue_${withPhoto.id}')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('venue_details_photo')), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Conditions now'), 250);
     expect(find.text('Conditions now'), findsOneWidget);
 
     Navigator.of(tester.element(find.text('Conditions now'))).pop();
