@@ -6,6 +6,7 @@ import 'dart:async';
 import 'core/routing/router.dart';
 import 'core/notifications/push_service.dart';
 import 'core/services.dart';
+import 'core/theme/app_theme.dart';
 
 class StudySpotApp extends StatefulWidget {
   const StudySpotApp({super.key, required this.services});
@@ -95,10 +96,9 @@ class _StudySpotAppState extends State<StudySpotApp> {
         scaffoldMessengerKey: _scaffoldMessengerKey,
         title: 'StudySpot',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E6B5E)),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.system,
         routerConfig: _router,
       ),
     );

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../layout/breakpoints.dart';
 import '../services.dart';
+import '../theme/app_theme.dart';
 
 /// One place in the app's main navigation.
 class AppDestination {
@@ -188,7 +189,7 @@ class _Brand extends StatelessWidget {
       ),
       child: Text(
         'S',
-        style: TextStyle(color: scheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 18),
+        style: TextStyle(color: scheme.onPrimary, fontFamily: AppTheme.serif, fontSize: 18),
       ),
     );
     return Padding(
@@ -207,7 +208,10 @@ class _Brand extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontFamily: AppTheme.serif,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../format.dart';
 import '../models/venue.dart';
+import '../theme/app_theme.dart';
 
 /// A crowd / noise / Wi-Fi value with its status label (USE-003, USE-004).
 class ConditionChip extends StatelessWidget {
@@ -15,10 +16,11 @@ class ConditionChip extends StatelessWidget {
 
   Color _color(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final status = StatusColors.of(context);
     return switch (value.status) {
       'current' => scheme.primary,
-      'hours_ago' => Colors.orange.shade800,
-      'historical' => Colors.indigo,
+      'hours_ago' => status.warning,
+      'historical' => status.historical,
       _ => scheme.outline,
     };
   }
@@ -30,7 +32,8 @@ class ConditionChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: color),
+        color: color.withValues(alpha: 0.08),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

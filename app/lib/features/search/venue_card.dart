@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/format.dart';
 import '../../core/models/venue.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/widgets/condition_label.dart';
 
 /// One result in the list: name, area, distance, price, open now, rating and
@@ -14,7 +15,8 @@ class VenueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = TextStyle(color: Theme.of(context).colorScheme.outline);
+    final theme = Theme.of(context);
+    final muted = TextStyle(color: theme.colorScheme.onSurfaceVariant);
     final meta = <String>[
       if (venue.area != null) venue.area!,
       if (venue.distanceMeters != null) '${distanceText(venue.distanceMeters)} away',
@@ -35,15 +37,24 @@ class VenueCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(venue.name, style: Theme.of(context).textTheme.titleMedium),
+                    // Place names use the heading serif, like a café menu.
+                    child: Text(
+                      venue.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontFamily: AppTheme.serif,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                   if (venue.openNow != null)
                     Text(
                       venue.openNow! ? 'Open now' : 'Closed',
                       style: TextStyle(
                         color: venue.openNow!
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.error,
+                            ? StatusColors.of(context).success
+                            : theme.colorScheme.error,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                 ],
