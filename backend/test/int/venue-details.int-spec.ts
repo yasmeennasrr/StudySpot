@@ -1,6 +1,6 @@
 /**
  * Integration tests for venue details (PB-11) and the conditions read path on a
- * real PostgreSQL + PostGIS database, through the HTTP API. TC-M4-14, TC-M4-15.
+ * real PostgreSQL + PostGIS database, through the HTTP API. TC-M4-14, TC-M4-15, TC-M6-54.
  * Uses the studyspot_test database (see ./test-database.ts); its schema is wiped.
  */
 import { INestApplication } from '@nestjs/common';
@@ -106,6 +106,7 @@ describe('Venue details and conditions on a real database (integration)', () => 
       location: { lat: 30.0205, lng: 31.4952 },
       address: '90th Street',
       area: 'New Cairo',
+      photoUrl: null,
       openingHours: { 0: [{ open: '08:00', close: '00:00' }] },
       priceLevel: 2,
       wifiAvailable: true,
@@ -216,5 +217,26 @@ describe('Venue details and conditions on a real database (integration)', () => 
       basedOn: ['present_users', 'surveys'],
     });
     await dataSource.query(`UPDATE venues SET size_class = 'medium' WHERE id = $1`, [CAFE]);
+  });
+
+  it('TC-M6-54 a venue photo reaches the details page and the list; a venue without one gives null (FR-012, FR-016)', async () => {
+    const photo = 'https://images.unsplash.com/photo-1511081692775-05d0f180a065?w=1200';
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`UPDATE venues SET photo_url = $2 WHERE id = $1`, [CAFE, photo]);
+    try {
+      const details = await api().get(`/api/v1/venues/${CAFE}`).expect(200);
+      expect(details.body.static.photoUrl).toBe(photo);
+      const none = await api().get(`/api/v1/venues/${QUIET}`).expect(200);
+      expect(none.body.static.photoUrl).toBeNull();
+
+      const list = await api().get('/api/v1/venues').expect(200);
+      const byId = new Map<string, { photoUrl: string | null }>(
+        list.body.items.map((v: { id: string; photoUrl: string | null }) => [v.id, v]),
+      );
+      expect(byId.get(CAFE)?.photoUrl).toBe(photo);
+      expect(byId.get(QUIET)?.photoUrl).toBeNull();
+    } finally {
+      await dataSource.query(`UPDATE venues SET photo_url = NULL WHERE id = $1`, [CAFE]);
+    }
   });
 });

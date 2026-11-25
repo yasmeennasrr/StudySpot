@@ -48,6 +48,7 @@ function venue(over: Partial<VenueSummary> & { noise?: ConditionValue } = {}): V
     location: { lat: 30, lng: 31 },
     address: null,
     area: null,
+    photoUrl: null,
     openingHours: HOURS,
     priceLevel: 2,
     wifiAvailable: true,

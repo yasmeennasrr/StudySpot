@@ -64,6 +64,8 @@ export interface VenueStatic {
   location: GeoPoint;
   address: string | null;
   area: string | null;
+  /** HTTPS link to a photo of the place; null when there is none. */
+  photoUrl: string | null;
   openingHours: OpeningHours | null;
   priceLevel: PriceLevel | null;
   wifiAvailable: boolean | null;

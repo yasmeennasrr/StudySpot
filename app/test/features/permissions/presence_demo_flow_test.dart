@@ -19,7 +19,7 @@ void main() {
           location: world.location,
           push: DemoPushService(),
           noise: world.noise,
-          mapTiles: false,
+          loadNetworkImages: false,
         );
         await tester.pumpWidget(StudySpotApp(services: services));
         await tester.pumpAndSettle();

@@ -100,7 +100,7 @@ class _SearchViewState extends State<SearchView> {
         key: ValueKey(vm.mappable.map((v) => v.id).join(',')),
         venues: vm.mappable,
         onOpen: _open,
-        showTiles: _services.mapTiles,
+        showTiles: _services.loadNetworkImages,
       );
 
   /// Phone and tablet: the map across the top and the list on a sheet below
