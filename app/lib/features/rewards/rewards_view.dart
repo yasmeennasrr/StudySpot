@@ -129,29 +129,29 @@ class _PointsCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     final capReached = points.leftToday == 0;
+    // The balance card is the one bold block of colour on the screen.
+    final on = scheme.onPrimary;
     return Card(
       key: const Key('rewards_points_card'),
-      color: scheme.primaryContainer,
+      color: scheme.primary,
       elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Your points', style: text.labelLarge?.copyWith(color: scheme.onPrimaryContainer)),
+            Text('Your points', style: text.labelLarge?.copyWith(color: on)),
             Text(
               '${points.balance}',
               key: const Key('rewards_balance'),
-              style: text.displaySmall?.copyWith(
-                color: scheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
-              ),
+              style: text.displaySmall?.copyWith(color: on),
             ),
             const SizedBox(height: 12),
             Text(
               'Today: ${points.earnedToday} of ${points.dailyCap} points from surveys',
               key: const Key('rewards_today'),
-              style: TextStyle(color: scheme.onPrimaryContainer),
+              style: TextStyle(color: on),
             ),
             const SizedBox(height: 6),
             ClipRRect(
@@ -159,6 +159,8 @@ class _PointsCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: points.todayProgress,
                 minHeight: 8,
+                color: on,
+                backgroundColor: on.withValues(alpha: 0.25),
                 semanticsLabel: 'Points earned today',
               ),
             ),
@@ -168,7 +170,7 @@ class _PointsCard extends StatelessWidget {
                   ? 'You reached today\'s limit. Surveys still help others; points start again tomorrow.'
                   : 'Answer the crowd, noise and Wi-Fi questions in a survey at a place: '
                         '${points.crowdPoints} points each, up to ${points.dailyCap} a day.',
-              style: text.bodySmall?.copyWith(color: scheme.onPrimaryContainer),
+              style: text.bodySmall?.copyWith(color: on.withValues(alpha: 0.85)),
             ),
           ],
         ),
@@ -189,6 +191,7 @@ class _GuestCard extends StatelessWidget {
       key: const Key('rewards_guest_card'),
       color: scheme.primaryContainer,
       elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -239,7 +242,7 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+    child: Text(text, style: Theme.of(context).textTheme.titleLarge),
   );
 }
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class PresencePushMessage {
   const PresencePushMessage({
@@ -52,7 +53,12 @@ class FirebasePushService implements PushService {
     required String venueName,
   }) {}
 
+  /// False when push is not available here; the app then uses the demo
+  /// service. Firebase is set up for Android and iOS only: in a browser or on
+  /// a desktop it fails with errors other than FirebaseException, and an error
+  /// thrown here would stop the app before its first screen (a white page).
   Future<bool> initialize() async {
+    if (kIsWeb) return false;
     try {
       await Firebase.initializeApp();
       _activeMessaging = _messaging ?? FirebaseMessaging.instance;
@@ -62,7 +68,8 @@ class FirebasePushService implements PushService {
         sound: false,
       );
       return true;
-    } on FirebaseException {
+    } catch (_) {
+      // FirebaseException, MissingPluginException (desktop), UnimplementedError.
       return false;
     }
   }

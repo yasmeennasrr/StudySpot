@@ -50,13 +50,13 @@ class NoiseSampleCard extends StatelessWidget {
         return Row(
           key: const Key('noise_recording'),
           children: [
-            const Icon(Icons.mic, color: Colors.red, semanticLabel: 'Microphone on'),
+            Icon(Icons.mic, color: theme.colorScheme.error, semanticLabel: 'Microphone on'),
             const SizedBox(width: 12),
             Expanded(
               child: Semantics(
                 liveRegion: true,
                 child: Text('Recording… ${vm.secondsLeft} s',
-                    style: theme.textTheme.titleMedium?.copyWith(color: Colors.red)),
+                    style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.error)),
               ),
             ),
             TextButton(

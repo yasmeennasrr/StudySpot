@@ -18,6 +18,7 @@ class AppServices {
     required this.location,
     required this.push,
     NoiseRecorder? noise,
+    this.mapTiles = true,
   }) : noise = noise ?? RecordNoiseRecorder(),
         session = Session(api: api, tokens: tokens);
 
@@ -30,6 +31,10 @@ class AppServices {
   /// Microphone for noise samples (PB-19). Tests pass a FakeNoiseRecorder.
   final NoiseRecorder noise;
   final Session session;
+
+  /// Whether maps download OpenStreetMap tiles. Tests turn this off, since
+  /// they have no network; the pins still show.
+  final bool mapTiles;
 }
 
 /// Makes [AppServices] reachable from any widget: `AppScope.of(context)`.

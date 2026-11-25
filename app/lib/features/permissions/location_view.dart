@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services.dart';
 import '../../core/widgets/view_model_builder.dart';
 import 'location_view_model.dart';
+import '../../core/theme/app_theme.dart';
 
 /// PB-39: explain why location is needed (PRIV-003), then ask. If refused,
 /// the app keeps working with a typed area (USE-007, PRIV-004).
@@ -96,7 +97,7 @@ class _Granted extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(),
-        const Icon(Icons.check_circle, size: 72, color: Colors.green),
+        Icon(Icons.check_circle, size: 72, color: StatusColors.of(context).success),
         const SizedBox(height: 24),
         const Text(
           'Location is on. We will show study places near you.',
