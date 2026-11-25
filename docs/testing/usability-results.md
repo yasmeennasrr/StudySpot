@@ -27,7 +27,7 @@ Why the attempts did not count:
 | Task | Participants | Reason |
 | --- | --- | --- |
 | T1 | P1, P2 | Named Nadi El-Kitab, the expected place, but after a hint |
-| T1 | P3 | Named Dar El-Elm, which is in 6th of October City, about 54 km away, and labelled Moderate noise, not Quiet (live server, checked 25 November) |
+| T1 | P3 | Named Dar El-Elm, which is in 6th of October City, about 54 km away, and labelled Moderate noise, not Quiet (live server, checked 25 November). It fails on noise alone, whatever the distance |
 | T1 | P4 | StudyMatch was unavailable and no place was found; a hint was given |
 | T3 | P1 | Told to use filters (moderator error); a hint was given |
 | T3 | P2, P4 | StudyMatch was unavailable and showed no places, so there were no standard results to use |
