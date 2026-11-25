@@ -58,13 +58,17 @@ bool isProtected(String location) =>
 ///
 ///   A protected screen sends a visitor to /signin?from=..., and signing in
 ///   returns them to it. On wide screens every page keeps a readable width.
-GoRouter buildRouter(AppServices services) {
+GoRouter buildRouter(
+  AppServices services, {
+  GlobalKey<NavigatorState>? navigatorKey,
+}) {
   Widget readable(Widget child, [double maxWidth = pageMaxWidth]) =>
       ReadableWidth(maxWidth: maxWidth, child: child);
   Widget tab(WidgetBuilder builder, [double maxWidth = pageMaxWidth]) =>
       readable(SessionKeyed(builder: builder), maxWidth);
 
   return GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: '/welcome',
     refreshListenable: _SessionListenable(services),
     redirect: (context, state) => appRedirect(
