@@ -167,8 +167,8 @@ class _MapUnavailable extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final place = [
-      if (address != null) address!,
-      if (area != null) area!,
+      ?address,
+      ?area,
     ].join(', ');
     return Container(
       key: const Key('venue_details_map_unavailable'),
