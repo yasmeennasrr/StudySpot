@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,16 +29,36 @@ class _SearchViewState extends State<SearchView> {
   bool _showMap = false;
   final _searchController = TextEditingController();
   late final AppServices _services;
+  String? _restoredDisplayName;
 
   @override
   void initState() {
     super.initState();
     _services = AppScope.of(context);
     _services.session.addListener(_rebuild);
+    if (_services.session.isSignedIn && _services.session.user == null) {
+      unawaited(_restoreDisplayName());
+    }
   }
 
   void _rebuild() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    if (!_services.session.isSignedIn) _restoredDisplayName = null;
+    setState(() {});
+  }
+
+  Future<void> _restoreDisplayName() async {
+    try {
+      final user = await _services.api.getMe();
+      if (!mounted ||
+          !_services.session.isSignedIn ||
+          _services.session.user != null) {
+        return;
+      }
+      setState(() => _restoredDisplayName = user.displayName);
+    } catch (_) {
+      // Explore remains available if the account name cannot be refreshed.
+    }
   }
 
   @override
@@ -60,6 +82,8 @@ class _SearchViewState extends State<SearchView> {
 
   @override
   Widget build(BuildContext context) {
+    final displayName =
+        _services.session.user?.displayName ?? _restoredDisplayName;
     return ViewModelBuilder<SearchViewModel>(
       create: (context) => SearchViewModel(
         api: _services.api,
@@ -69,7 +93,57 @@ class _SearchViewState extends State<SearchView> {
       onReady: (vm) => vm.load(),
       builder: (context, vm) => Scaffold(
         // StudyMatch, Saved, Rewards and Account are tabs now (AppShell).
-        appBar: AppBar(title: const Text('StudySpot')),
+        appBar: AppBar(
+          title: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.local_cafe_rounded,
+                  size: 17,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'StudySpot',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              if (_services.session.isSignedIn) ...[
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 22,
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 19,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    displayName == null ? 'Hello!' : 'Hello, $displayName!',
+                    key: const Key('home_greeting'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
         body: LayoutBuilder(
           builder: (context, constraints) {
             final split = constraints.maxWidth >= splitViewMinWidth;
