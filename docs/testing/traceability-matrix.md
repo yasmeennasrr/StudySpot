@@ -4,12 +4,12 @@
 
 ## Summary
 
-**318** test cases: **314** pass, **1** fail, **3** not run yet. They cover **159** requirement IDs.
+**321** test cases: **317** pass, **1** fail, **3** not run yet. They cover **159** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 69 | 69 | 0 | 0 | 69 |
+| M2 | 72 | 72 | 0 | 0 | 72 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -22,7 +22,7 @@
 | Integration | 100 |
 | Performance | 3 |
 | System | 2 |
-| Unit | 182 |
+| Unit | 185 |
 | Unit (app) | 9 |
 | Widget | 12 |
 
@@ -50,8 +50,8 @@
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-024 | TC-M2-44 | Unit | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
-| AI-028 | TC-M2-33, TC-M2-46 | Unit | ✅ all pass |
-| AI-029 | TC-M2-28, TC-M2-30, TC-M2-47, TC-M2-49, TC-M2-50, TC-M2-53, TC-M2-59 | Unit, Integration, Widget | ✅ all pass |
+| AI-028 | TC-M2-33, TC-M2-46, TC-M2-73, TC-M2-74 | Unit | ✅ all pass |
+| AI-029 | TC-M2-28, TC-M2-30, TC-M2-47, TC-M2-49, TC-M2-50, TC-M2-53, TC-M2-59, TC-M2-73, TC-M2-74, TC-M2-75 | Unit, Integration, Widget | ✅ all pass |
 | CON-001 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-002 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-003 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
@@ -76,7 +76,7 @@
 | EIR-010 | TC-M1-28, TC-M2-35, TC-M2-37, TC-M2-38, TC-M2-39, TC-M2-40, TC-M2-54 | Integration, Unit | ✅ all pass |
 | EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M2-40, TC-M6-08, TC-M6-09, TC-M6-42 | Unit, API layer, Integration | ✅ all pass |
 | EIR-013 | TC-M6-16, TC-M6-29, TC-M6-30, TC-M6-36, TC-M6-37 | Unit, Integration | ✅ all pass |
-| EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M2-48, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
+| EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M2-48, TC-M2-75, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M5-06 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
@@ -116,7 +116,7 @@
 | FR-044 | TC-M4-20, TC-M4-24, TC-M4-25, TC-M4-26, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ✅ all pass |
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
-| PERF-003 | TC-M2-46, TC-M2-53 | Unit, Integration | ✅ all pass |
+| PERF-003 | TC-M2-46, TC-M2-53, TC-M2-73 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-34, TC-M4-40, TC-M4-43, TC-M4-12 | Unit, Integration | ✅ all pass |
 | PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
 | PERF-007 | TC-M2-55 | Unit | ✅ all pass |
@@ -361,6 +361,9 @@
 | TC-M2-70 | SEN-002, USE-007 | Error guessing | Unit | pass | `app/test/core/location_service_test.dart` |
 | TC-M2-71 | PRIV-004, SEN-002 | State transition | Unit | pass | `app/test/features/permissions/location_view_model_test.dart` |
 | TC-M2-72 | AI-003 | Equivalence partitioning | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
+| TC-M2-73 | AI-028, AI-029, PERF-003 | Error guessing | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
+| TC-M2-74 | AI-028, AI-029 | Boundary value analysis | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
+| TC-M2-75 | AI-029, EIR-015 | Equivalence partitioning | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
 | TC-M4-01 | RT-001 | Boundary value analysis (59 / 61 min) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-02 | RT-016 | Boundary value analysis (23 h 59 / 24 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |
 | TC-M4-03 | RT-001 | Boundary value analysis (5 h 59 / 6 h 1) | Unit | pass | `backend/test/unit/condition-resolver.spec.ts` |

@@ -22,6 +22,13 @@ import { StudyMatchTools, type RecommendedVenue, type ToolContext } from './stud
 /** SDS 7.2: 5 s per LLM call (ResilientLlm) inside a 9 s deadline for the whole request (AI-028). */
 export const STUDYMATCH_DEADLINE_MS = 9_000;
 export const LLM_CALL_LIMIT_MS = 5_000;
+/**
+ * Found in the PB-43 sessions: one hanging Gemini call meant "unavailable". The first try of a
+ * call now gets 4 s (answers normally take 1-2 s), which leaves time for one retry per request.
+ */
+export const LLM_FIRST_TRY_MS = 4_000;
+/** Below this a retry would hardly ever be answered in time. */
+const MIN_RETRY_MS = 1_000;
 /** Tool rounds before we stop asking; a normal request needs one or two. */
 export const MAX_ROUNDS = 4;
 export const MAX_TOOL_CALLS_PER_ROUND = 5;
@@ -197,18 +204,28 @@ export class StudyMatchService implements IStudyMatch {
       { role: 'user', text },
     ];
     let recommended: RecommendedVenue[] = [];
+    let retried = false;
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
-      const left = deadline - this.clock.now().getTime();
-      if (left < MIN_CALL_MS) throw new StudyMatchUnavailable('deadline');
-      let answer: LlmTurn;
-      try {
-        answer = await this.llm.generate({
+      const timeLeft = () => deadline - this.clock.now().getTime();
+      if (timeLeft() < MIN_CALL_MS) throw new StudyMatchUnavailable('deadline');
+      const generate = (limitMs: number) =>
+        this.llm.generate({
           system,
           turns,
           tools: this.tools.definitions,
-          timeoutMs: Math.min(LLM_CALL_LIMIT_MS, left),
+          timeoutMs: Math.min(limitMs, timeLeft()),
         });
+      let answer: LlmTurn;
+      try {
+        answer = await generate(retried ? LLM_CALL_LIMIT_MS : LLM_FIRST_TRY_MS).catch(
+          (err: unknown) => {
+            if (retried || !isWorthRetrying(err) || timeLeft() < MIN_RETRY_MS) throw err;
+            retried = true;
+            this.logger.warn({ userId: ctx.userId, reason: err.reason }, 'StudyMatch retries once');
+            return generate(LLM_CALL_LIMIT_MS);
+          },
+        );
       } catch (err) {
         const reason = err instanceof AdapterUnavailableError ? err.reason : String(err);
         throw new StudyMatchUnavailable(reason);
@@ -256,6 +273,14 @@ export class StudyMatchService implements IStudyMatch {
     }
     throw new StudyMatchUnavailable('too many tool rounds');
   }
+}
+
+/**
+ * A slow call, a network error or a Gemini outage may pass. An open circuit, the quota (429) and
+ * requests Gemini refuses do not get better by asking again at once.
+ */
+function isWorthRetrying(err: unknown): err is AdapterUnavailableError {
+  return err instanceof AdapterUnavailableError && !/^(circuit open|HTTP 4\d\d)/.test(err.reason);
 }
 
 /** Standard results carry only a fact from the data, never a claimed match (AI-014). */

@@ -34,7 +34,7 @@ API -> SM : ask({userId, text, location, history})
 SM -> SM : deadline = now + 9 s (AI-028)\nturns = history + new message (nothing stored)
 
 loop up to 4 rounds, while time is left
-  SM -> RL : generate(system prompt, turns, 5 tools,\ntimeoutMs = min(5 s, time left))
+  SM -> RL : generate(system prompt, turns, 5 tools,\ntimeoutMs = min(4 s, time left))\none retry per request after a slow or failed call (max 5 s)
   alt breaker open
     RL --> SM : AdapterUnavailableError (at once)
   else breaker closed / trial call

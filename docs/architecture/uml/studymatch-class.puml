@@ -33,6 +33,7 @@ package "modules/studymatch (M2)" as SMPKG {
   class StudyMatchService <<orchestrator>> {
     -deadlineMs = 9000
     -maxRounds = 4
+    -firstTryMs = 4000 (one retry per request)
     +ask(input): Promise<StudyMatchAnswer>
     +converse(ctx, text, history): Promise<StudyMatchAnswer>
     +standardResults(ctx, reason): Promise<StudyMatchAnswer>
