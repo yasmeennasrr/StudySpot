@@ -4,7 +4,7 @@
 
 ## Summary
 
-**268** test cases: **266** pass, **1** fail, **1** not run yet. They cover **140** requirement IDs.
+**307** test cases: **304** pass, **1** fail, **2** not run yet. They cover **159** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -13,17 +13,18 @@
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
-| M6 | 12 | 12 | 0 | 0 | 12 |
+| M6 | 51 | 50 | 0 | 1 | 50 |
 | Yasmeen | 10 | 10 | 0 | 0 | 10 |
 
 | Level | Test cases |
 | --- | ---: |
 | API layer | 10 |
-| Integration | 83 |
+| Integration | 99 |
 | Performance | 3 |
-| Unit | 158 |
+| System | 1 |
+| Unit | 175 |
 | Unit (app) | 9 |
-| Widget | 5 |
+| Widget | 10 |
 
 ## Requirement → test cases
 
@@ -54,10 +55,10 @@
 | CON-001 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-002 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-003 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
-| CON-004 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
+| CON-004 | TC-M4-40, TC-M4-41, TC-M4-42, TC-M6-13 | Integration, Unit (app), Widget, Unit | ✅ all pass |
 | CON-005 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-006 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
-| CON-007 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
+| CON-007 | TC-M4-40, TC-M4-41, TC-M4-42, TC-M6-19 | Integration, Unit (app), Widget, Unit | ✅ all pass |
 | CON-008 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | DATA-001 | TC-M1-32 | Integration | ✅ all pass |
 | DATA-002 | TC-M1-32, TC-M1-33 | Integration | ✅ all pass |
@@ -73,21 +74,22 @@
 | DATA-012 | TC-M1-19, TC-M1-21, TC-M1-22, TC-M1-30, TC-M1-32, TC-M1-72 | Unit, Integration | ✅ all pass |
 | EIR-008 | TC-M1-05, TC-M1-07, TC-M1-08, TC-M1-27, TC-M1-28 | Unit, API layer, Integration | ✅ all pass |
 | EIR-010 | TC-M1-28, TC-M2-35, TC-M2-37, TC-M2-38, TC-M2-39, TC-M2-40, TC-M2-54 | Integration, Unit | ✅ all pass |
-| EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M2-40, TC-M6-08, TC-M6-09 | Unit, API layer, Integration | ✅ all pass |
+| EIR-011 | TC-M1-01, TC-M1-03, TC-M1-12, TC-M1-34, TC-M1-37, TC-M1-38, TC-M1-39, TC-M1-40, TC-M1-41, TC-M3-35, TC-M2-40, TC-M6-08, TC-M6-09, TC-M6-42 | Unit, API layer, Integration | ✅ all pass |
+| EIR-013 | TC-M6-16, TC-M6-29, TC-M6-30, TC-M6-36, TC-M6-37 | Unit, Integration | ✅ all pass |
 | EIR-015 | TC-M2-26, TC-M2-28, TC-M2-29, TC-M2-30, TC-M2-31, TC-M2-32, TC-M2-33, TC-M2-34, TC-M2-48, TC-M1-76, TC-M1-84 | Unit, Integration | ✅ all pass |
 | FR-001 | TC-M2-01, TC-M2-03, TC-M2-04, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M5-06 | Unit | ✅ all pass |
 | FR-002 | TC-M2-06, TC-M2-07, TC-M5-07 | Unit, Integration | ✅ all pass |
 | FR-003 | TC-M2-12, TC-M5-08 | Unit | ✅ all pass |
 | FR-004 | TC-M5-09, TC-M5-10 | Unit | ✅ all pass |
 | FR-005 | TC-M2-15, TC-M2-16, TC-M2-17, TC-M2-18, TC-M2-19, TC-M2-20, TC-M2-21, TC-M2-22, TC-M2-23, TC-M2-24, TC-M2-25 | Unit, Integration, Widget | ✅ all pass |
-| FR-006 | TC-M1-56, TC-M5-15, TC-M6-06 | Integration, Unit | ✅ all pass |
-| FR-007 | TC-M2-59, TC-M4-23, TC-M5-15 | Widget, Unit (app), Unit | ✅ all pass |
+| FR-006 | TC-M1-56, TC-M5-15, TC-M6-06, TC-M6-46, TC-M6-50 | Integration, Unit, Widget | ✅ all pass |
+| FR-007 | TC-M2-59, TC-M4-23, TC-M5-15, TC-M6-34, TC-M6-50 | Widget, Unit (app), Unit, Integration | ✅ all pass |
 | FR-009 | TC-M3-27, TC-M3-28, TC-M3-29, TC-M3-30, TC-M3-31, TC-M3-36, TC-M3-37, TC-M3-38, TC-M3-39, TC-M3-40, TC-M3-02, TC-M3-03, TC-M3-04, TC-M1-56, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-010 | TC-M3-37, TC-M3-01, TC-M3-02, TC-M3-03, TC-M3-04, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-011 | TC-M1-31, TC-M1-34, TC-M1-35, TC-M1-36, TC-M3-32, TC-M3-33, TC-M3-34, TC-M3-35, TC-M3-36, TC-M5-12, TC-M6-06 | Integration, Unit | ✅ all pass |
 | FR-012 | TC-M3-01, TC-M3-05, TC-M3-06, TC-M3-07, TC-M3-08, TC-M3-09, TC-M3-10, TC-M3-11, TC-M3-12, TC-M6-04, TC-M6-06, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
-| FR-014 | TC-M6-12 | Widget | ✅ all pass |
+| FR-014 | TC-M6-12, TC-M6-51 | Widget, System | ⏳ 1 not run |
 | FR-015 | TC-M6-11, TC-M6-12 | Unit, Widget | ✅ all pass |
 | FR-016 | TC-M4-14, TC-M6-05, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-017 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
@@ -118,15 +120,16 @@
 | PERF-005 | TC-M4-34, TC-M4-40, TC-M4-43, TC-M4-12 | Unit, Integration | ✅ all pass |
 | PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
 | PERF-007 | TC-M2-55 | Unit | ✅ all pass |
+| PERF-010 | TC-M6-26 | Integration | ✅ all pass |
 | PRIV-001 | TC-M1-79, TC-M1-82, TC-M1-83, TC-M1-85, TC-M1-88 | Unit, Integration, Unit (app) | ✅ all pass |
 | PRIV-003 | TC-M5-11 | Unit | ✅ all pass |
 | PRIV-004 | TC-M5-12 | Unit | ✅ all pass |
 | PRIV-011 | TC-M2-03, TC-M5-01, TC-M5-15 | Unit, Widget | ✅ all pass |
-| PRIV-013 | TC-M1-24, TC-M4-13 | Unit | ✅ all pass |
+| PRIV-013 | TC-M1-24, TC-M4-13, TC-M6-35 | Unit, Integration | ✅ all pass |
 | PRIV-014 | TC-M4-14, TC-M4-20 | Integration | ✅ all pass |
 | PRIV-016 | TC-M1-23 | Unit | ✅ all pass |
-| QR-007 | TC-M1-23 | Unit | ✅ all pass |
-| QR-009 | TC-M1-23 | Unit | ✅ all pass |
+| QR-007 | TC-M1-23, TC-M6-35 | Unit, Integration | ✅ all pass |
+| QR-009 | TC-M1-23, TC-M6-35 | Unit, Integration | ✅ all pass |
 | RT-001 | TC-M1-18, TC-M4-01, TC-M4-03, TC-M4-39, TC-M4-15 | Unit, Integration | ✅ all pass |
 | RT-004 | TC-M1-31, TC-M2-38, TC-M2-39, TC-M4-27 | Integration, Unit | ✅ all pass |
 | RT-005 | TC-M6-02 | Unit | ✅ all pass |
@@ -142,18 +145,34 @@
 | RT-020 | TC-M4-09, TC-M4-38 | Unit, Integration | ✅ all pass |
 | RT-021 | TC-M4-05, TC-M4-06, TC-M4-07, TC-M4-43, TC-M1-82 | Unit, Integration | ✅ all pass |
 | RT-022 | TC-M4-06, TC-M4-43 | Unit, Integration | ✅ all pass |
-| RWD-002 | TC-M1-18 | Unit | ✅ all pass |
-| RWD-009 | TC-M1-33 | Integration | ✅ all pass |
-| RWD-016 | TC-M1-18, TC-M1-71 | Unit | ✅ all pass |
-| RWD-018 | TC-M1-23 | Unit | ✅ all pass |
-| SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14, TC-M2-20, TC-M2-52 | Integration, Unit | ✅ all pass |
+| RWD-001 | TC-M6-20 | Integration | ✅ all pass |
+| RWD-002 | TC-M1-18, TC-M6-13, TC-M6-20 | Unit, Integration | ✅ all pass |
+| RWD-003 | TC-M6-20 | Integration | ✅ all pass |
+| RWD-004 | TC-M6-20, TC-M6-39, TC-M6-40, TC-M6-45 | Integration, Unit, Widget | ✅ all pass |
+| RWD-005 | TC-M6-25, TC-M6-40, TC-M6-46 | Integration, Unit, Widget | ✅ all pass |
+| RWD-006 | TC-M6-26, TC-M6-41, TC-M6-45 | Integration, Unit, Widget | ✅ all pass |
+| RWD-007 | TC-M6-26, TC-M6-41 | Integration, Unit | ✅ all pass |
+| RWD-008 | TC-M6-27, TC-M6-41 | Integration, Unit | ✅ all pass |
+| RWD-009 | TC-M1-33, TC-M6-27, TC-M6-41 | Integration, Unit | ✅ all pass |
+| RWD-010 | TC-M6-20 | Integration | ✅ all pass |
+| RWD-011 | TC-M6-21 | Integration | ✅ all pass |
+| RWD-013 | TC-M6-19, TC-M6-22, TC-M6-23 | Unit, Integration | ✅ all pass |
+| RWD-014 | TC-M6-16, TC-M6-18, TC-M6-26, TC-M6-29, TC-M6-38, TC-M6-41 | Unit, Integration | ✅ all pass |
+| RWD-016 | TC-M1-18, TC-M1-71, TC-M6-14, TC-M6-23, TC-M6-24 | Unit, Integration | ✅ all pass |
+| RWD-017 | TC-M6-31, TC-M6-33, TC-M6-43, TC-M6-45 | Integration, Unit, Widget | ✅ all pass |
+| RWD-018 | TC-M1-23, TC-M6-17, TC-M6-32, TC-M6-39, TC-M6-43 | Unit, Integration | ✅ all pass |
+| RWD-019 | TC-M6-31, TC-M6-38, TC-M6-45 | Integration, Unit, Widget | ✅ all pass |
+| RWD-020 | TC-M6-17, TC-M6-32, TC-M6-43 | Unit, Integration | ✅ all pass |
+| RWD-021 | TC-M6-28, TC-M6-39, TC-M6-44 | Integration, Unit | ✅ all pass |
+| SEC-001 | TC-M1-54, TC-M2-06, TC-M2-09, TC-M2-11, TC-M2-13, TC-M2-14, TC-M2-20, TC-M2-52, TC-M6-34 | Integration, Unit | ✅ all pass |
 | SEC-002 | TC-M2-01, TC-M2-02, TC-M2-05, TC-M2-16, TC-M2-18, TC-M2-20, TC-M4-24, TC-M1-69 | Unit, Integration | ✅ all pass |
 | SEC-003 | TC-M1-06, TC-M1-16, TC-M2-26, TC-M2-34 | Unit, API layer | ✅ all pass |
-| SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18 | Unit, Integration | ✅ all pass |
+| SEC-004 | TC-M1-46, TC-M1-53, TC-M4-18, TC-M6-28 | Unit, Integration | ✅ all pass |
 | SEC-005 | TC-M1-77 | Unit | ✅ all pass |
 | SEC-007 | TC-M1-02, TC-M1-09, TC-M1-10, TC-M1-15, TC-M1-49, TC-M1-52, TC-M2-22, TC-M2-37, TC-M2-45, TC-M2-52, TC-M2-57, TC-M2-66, TC-M2-68, TC-M4-16, TC-M4-32, TC-M1-58, TC-M5-02, TC-M5-03, TC-M5-04, TC-M5-05, TC-M1-68, TC-M1-83 | Unit, API layer, Integration | ✅ all pass |
 | SEC-009 | TC-M2-10, TC-M2-11, TC-M2-19, TC-M2-24, TC-M4-26, TC-M5-10 | Unit, Integration | ✅ all pass |
 | SEC-010 | TC-M1-14, TC-M1-29, TC-M2-07, TC-M1-60, TC-M1-61, TC-M1-67, TC-M1-75 | API layer, Integration, Unit | ✅ all pass |
+| SEC-012 | TC-M6-15, TC-M6-30 | Unit, Integration | ✅ all pass |
 | SEC-013 | TC-M1-04, TC-M1-17, TC-M1-67 | Unit, API layer, Integration | ✅ all pass |
 | SEN-001 | TC-M5-11 | Unit | ✅ all pass |
 | SEN-002 | TC-M2-56 | Unit | ✅ all pass |
@@ -165,10 +184,11 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
+| USE-001 | TC-M6-47, TC-M6-48, TC-M6-49, TC-M6-50, TC-M6-51 | Unit, Widget, System | ⏳ 1 not run |
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M5-12 | Unit | ✅ all pass |
-| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11 | Unit, API layer, Unit (app) | ✅ all pass |
+| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11, TC-M6-42, TC-M6-44 | Unit, API layer, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
@@ -445,6 +465,45 @@
 | TC-M1-91 | PERF-002 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
 | TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | fail | `scripts/perf.mjs` |
 | TC-M1-93 | FR-009, FR-012, FR-013 | Use-case based (plan a visit far away) and boundary (distance math) | Unit (app) | not run | `app/test/features/search/search_view_model_test.dart` |
+| TC-M6-13 | RWD-002, CON-004 | Equivalence partitioning (answers per category) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-14 | RWD-016 | Boundary value analysis | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-15 | SEC-012 | Equivalence partitioning + boundary (all-0 and all-1 bits) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-16 | EIR-013, RWD-014 | Boundary value analysis (retry 1 to 4, then 5th attempt) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-17 | RWD-018, RWD-020 | Boundary value analysis | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-18 | RWD-014 | Equivalence partitioning + error guessing (HTML in names) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-19 | CON-007, RWD-013 | Boundary value analysis (120-character column) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
+| TC-M6-20 | RWD-001, RWD-002, RWD-003, RWD-004, RWD-010 | Use-case based (UC-09) + equivalence partitioning | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-21 | RWD-011 | Error guessing (repeat and concurrent calls) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-22 | RWD-013 | Decision table (in-app present / away / QR) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-23 | RWD-013, RWD-016 | Boundary value analysis (4:59 vs 5:00; Cairo midnight) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-24 | RWD-016 | Boundary value analysis | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-25 | RWD-005 | Equivalence partitioning (active / inactive offer / closed venue) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-26 | RWD-006, RWD-007, RWD-014, PERF-010 | Use-case based (UC-13) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-27 | RWD-008, RWD-009 | Boundary value analysis (79, 80) + error guessing (double tap) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-28 | RWD-021, SEC-004 | Equivalence partitioning (mine / someone else's) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-29 | EIR-013, RWD-014 | State transition + boundary value analysis | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-30 | EIR-013, SEC-012 | State transition | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-31 | RWD-017, RWD-019 | State transition + error guessing (second tap, two taps at once) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-32 | RWD-018, RWD-020 | Boundary value analysis (4:59 vs 5:00) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-33 | RWD-017 | State transition + error guessing (bad tokens) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-34 | SEC-001, FR-007 | Equivalence partitioning (no token) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-35 | PRIV-013, QR-007, QR-009 | Boundary value analysis (89 vs 91 days; 9:59 vs 10:00 min; 23:59 vs 24:00 h) | Integration | pass | `backend/test/int/rewards.int-spec.ts` |
+| TC-M6-36 | EIR-013 | Equivalence partitioning + error guessing (401, 503, timeout, network) | Unit | pass | `backend/test/unit/sendgrid-email.adapter.spec.ts` |
+| TC-M6-37 | EIR-013 | Decision table (key set / sender set) | Unit | pass | `backend/test/unit/sendgrid-email.adapter.spec.ts` |
+| TC-M6-38 | RWD-019, RWD-014 | Boundary value analysis | Unit | pass | `app/test/features/rewards/rewards_format_test.dart` |
+| TC-M6-39 | RWD-004, RWD-018, RWD-021 | Boundary value analysis (0, 4:59, 5:00 after activation) | Unit | pass | `app/test/features/rewards/rewards_format_test.dart` |
+| TC-M6-40 | RWD-004, RWD-005 | Equivalence partitioning (signed in / guest) | Unit | pass | `app/test/features/rewards/rewards_view_model_test.dart` |
+| TC-M6-41 | RWD-006, RWD-007, RWD-008, RWD-009, RWD-014 | State transition + boundary (exactly not enough) | Unit | pass | `app/test/features/rewards/rewards_view_model_test.dart` |
+| TC-M6-42 | EIR-011, USE-008 | Error guessing | Unit | pass | `app/test/features/rewards/rewards_view_model_test.dart` |
+| TC-M6-43 | RWD-017, RWD-018, RWD-020 | State transition + boundary value analysis | Unit | pass | `app/test/features/rewards/rewards_view_model_test.dart` |
+| TC-M6-44 | RWD-021, USE-008 | Error guessing | Unit | pass | `app/test/features/rewards/rewards_view_model_test.dart` |
+| TC-M6-45 | RWD-004, RWD-006, RWD-017, RWD-019 | Use-case based (UC-13 then UC-14) | Widget | pass | `app/test/features/rewards/rewards_flow_test.dart` |
+| TC-M6-46 | FR-006, RWD-005 | Use-case based (visitor) | Widget | pass | `app/test/features/rewards/rewards_flow_test.dart` |
+| TC-M6-47 | USE-001 | Boundary value analysis (599/600, 839/840, 1199/1200) | Unit | pass | `app/test/core/adaptive_layout_test.dart` |
+| TC-M6-48 | USE-001 | State transition (window resized) | Widget | pass | `app/test/core/adaptive_layout_test.dart` |
+| TC-M6-49 | USE-001 | Boundary value analysis | Widget | pass | `app/test/core/adaptive_layout_test.dart` |
+| TC-M6-50 | FR-006, FR-007, USE-001 | Use-case based | Widget | pass | `app/test/core/adaptive_layout_test.dart` |
+| TC-M6-51 | USE-001, FR-014 | Manual (exploratory) on a laptop | System | not run | manual |
 
 ## Sheet problems
 

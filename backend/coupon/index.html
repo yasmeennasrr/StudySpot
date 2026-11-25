@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <title>StudySpot coupon</title>
+    <link rel="stylesheet" href="coupon.css" />
+    <!-- PB-27: the page behind the e-mail "Activate" link (RWD-017, RWD-019). No inline script (CSP). -->
+    <script defer src="coupon.js"></script>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="brand"><span class="brand-mark" aria-hidden="true">S</span> StudySpot</header>
+
+      <section id="loading" class="card" aria-live="polite">
+        <p class="muted">Loading your coupon…</p>
+      </section>
+
+      <section id="error" class="card" hidden>
+        <h1>Link not valid</h1>
+        <p id="error-text" class="muted"></p>
+      </section>
+
+      <section id="coupon" class="card" hidden>
+        <p id="status-chip" class="chip"></p>
+        <h1 id="reward"></h1>
+        <p id="venue" class="venue"></p>
+        <p class="label">Coupon code</p>
+        <p id="code" class="code"></p>
+
+        <div id="issued" hidden>
+          <p class="note">
+            Only activate at the counter. After you activate, the coupon is valid for
+            <strong>5 minutes</strong> and then expires for good.
+          </p>
+          <button id="activate" class="primary" type="button">Activate now</button>
+          <div id="confirm" class="confirm" hidden>
+            <p><strong>Start the 5-minute timer now?</strong> This cannot be undone.</p>
+            <div class="row">
+              <button id="confirm-yes" class="primary" type="button">Yes, activate</button>
+              <button id="confirm-no" class="secondary" type="button">Not yet</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="active" hidden>
+          <p class="label">Time left</p>
+          <p id="countdown" class="countdown" role="timer" aria-live="off"></p>
+          <div class="bar" aria-hidden="true"><div id="bar-fill" class="bar-fill"></div></div>
+          <p class="muted small">Activated at <span id="activated-at"></span></p>
+          <p class="live small"><span class="pulse" aria-hidden="true"></span> Live · <span id="clock"></span></p>
+          <p class="muted small">Staff: the moving clock shows this is the live page, not a screenshot.</p>
+        </div>
+
+        <div id="expired" hidden>
+          <p class="note">
+            This coupon has expired. A coupon can be activated only once, and its points are
+            not refunded.
+          </p>
+          <p class="muted small" id="expired-detail"></p>
+        </div>
+
+        <p id="action-error" class="error" role="alert" hidden></p>
+      </section>
+    </main>
+  </body>
+</html>

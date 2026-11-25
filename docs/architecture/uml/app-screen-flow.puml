@@ -1,6 +1,6 @@
 @startuml app-screen-flow
-' SDS v0.3 Section 14 (M5): app screen flow (Sprint 1).
-' Routes and rules: app/lib/core/routing/router.dart (appRedirect).
+' SDS v0.3 Section 14 (M5/M6): app screen flow, Sprint 3 (DRS feedback: logical flow, responsive).
+' Routes and rules: app/lib/core/routing/router.dart (appRedirect) and app_shell.dart.
 skinparam shadowing false
 skinparam defaultFontName Helvetica
 skinparam defaultFontSize 13
@@ -8,59 +8,71 @@ skinparam ArrowColor #555555
 skinparam state {
   BackgroundColor white
   BorderColor #555555
-  BackgroundColor<<m6>> #F4F4F4
-  BorderColor<<m6>> #AAAAAA
-  FontColor<<m6>> #777777
+  BackgroundColor<<task>> #F4F7F5
+  BorderColor<<task>> #2E6B5E
 }
 hide empty description
 
 title StudySpot app: screen flow (UML state machine of the navigation)
 
-state "Terms and privacy\n/terms" as Terms : PRIV-011
-state "Location purpose\n/location" as Location : PRIV-003, FR-010
-state "Type an area" as Area : FR-011, USE-007
-state "Home\n/home" as Home
-state "Sign in\n/signin" as SignIn : FR-002, FR-003
-state "Create account\n/register" as Register : FR-001
-state "My account\n/account" as Account
-state "Study preferences\n/preferences" as Prefs : FR-022..FR-024
-state "Favorites\n/favorites" as Favs : FR-027
-state "Search, map, details\n(M6)" as M6 <<m6>> : FR-009..FR-021
+state "First launch" as Onboarding {
+  state "Terms and privacy\n/terms" as Terms : PRIV-011
+  state "Location purpose\n/location" as Location : PRIV-003, FR-010
+  state "Are-you-here check-ins\n/presence" as Presence : SEN-013
+  Terms --> Location : accept + Continue
+  Location --> Presence : Allow, or type an area / Skip
+}
+
+state "Main places (AppShell)" as Shell {
+  state "Explore\n/home" as Explore : FR-009..FR-015\nlist + map side by side\non a laptop
+  state "Saved\n/favorites" as Saved : FR-027
+  state "StudyMatch\n/studymatch" as StudyMatch : AI-001
+  state "Rewards\n/rewards" as Rewards : RWD-004, RWD-005,\nRWD-021
+  state "Account\n/account" as Account : FR-004, FR-005
+  ' Any tab to any tab in one tap; hidden links only set the order.
+  Explore -[hidden]right-> Saved
+  Saved -[hidden]right-> StudyMatch
+  StudyMatch -[hidden]right-> Rewards
+  Rewards -[hidden]right-> Account
+}
+
+state "Place details\n/venues/:id" as Details <<task>> : FR-016..FR-021
+state "Coupon at the counter\n/rewards/coupons/:id" as Coupon <<task>> : RWD-017..RWD-020
+state "Sign in\n/signin" as SignIn <<task>> : FR-002, FR-003
+state "Create account\n/register" as Register <<task>> : FR-001
+state "Edit account / Preferences\n/account/edit, /preferences" as Settings <<task>> : FR-005, FR-022
 
 [*] --> Terms : first launch
-[*] --> Home : terms already accepted
-Terms --> Location : accept + Continue
-Location --> Home : Allow (granted)
-Location --> Area : Not now / denied
-Area --> Home : Continue (area saved)\nor Skip
+[*] --> Explore : terms already accepted
+Presence --> Explore : Continue / Not now
 
-Home --> M6 : search / map (visitor allowed, FR-006)
-M6 --> SignIn : heart while signed out
-Home --> SignIn : login icon
-SignIn --> Register : "New here?"
-Register --> SignIn : "Already have an account?"
-SignIn --> Home : signed in
-Register --> Home : account created
-
-Home --> Account : account icon (signed in)
-Account --> Prefs
-Account --> Favs
+Explore --> Details : tap a place or a pin
+Saved --> Details
+StudyMatch --> Details : a recommendation
+Rewards --> Coupon : tap a coupon (after Redeem)
+Account --> Settings
 Account --> Location : Location settings
-Account --> Home : Sign out (FR-004)
 
-Home --> Prefs
-Home --> Favs
+Shell --> SignIn : a protected tab while signed out\n(Saved, StudyMatch, Account)\nor "Sign in" on Rewards
+SignIn --> Register : "New here?"
+SignIn --> Shell : signed in: back to that tab
+Register --> Shell : account created
+Details --> Shell : back (the tab keeps its list)
+Coupon --> Rewards : back
+Account --> Explore : Sign out
 
-note right of Prefs
-  <b>Protected screens</b> (FR-007):
-  /account, /preferences, /favorites.
-  Signed out -> redirected to
-  /signin?from=<screen>, then back
-  to that screen after sign-in.
+note right of Shell
+  <b>Navigation adapts to the window</b> (USE-001):
+  phone: bottom navigation bar;
+  tablet / laptop: navigation rail (labels from 1200 px).
+  Each tab keeps its own history and scroll position.
+  Pages keep a readable width on wide screens.
 end note
 
 note bottom of SignIn
-  Session expired (401 and refresh refused, SEC-009):
-  any screen -> Sign in with "Please sign in again".
+  Protected (FR-007): /account, /account/edit, /preferences,
+  /favorites, /studymatch, /rewards/coupons/*.
+  Signed out -> /signin?from=<screen>, then back to it.
+  Session expired (SEC-009): any screen -> Sign in again.
 end note
 @enduml

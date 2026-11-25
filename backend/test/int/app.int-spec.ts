@@ -726,8 +726,10 @@ describe('StudySpot backend on a real database (integration)', () => {
       venueId: SAMPLE_VENUE,
       source: 'in_app',
       answers: body,
+      // PB-24: the student is not checked in at the venue, so no points (SDS 6.6.5 rule 3).
       pointsAwarded: 0,
-      noPointsReason: 'Points start in Sprint 2.',
+      noPointsReason:
+        'No points this time: be at the venue when you send an in-app survey. Your answers were saved.',
     });
     expect(response.body.userId).toBeDefined();
     expect(response.body.submittedAt).toBeDefined();

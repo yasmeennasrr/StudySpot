@@ -31,6 +31,11 @@ tags:
     description: Signed-in user's own data. Owner M4 (backend), M5 (screens). PB-13, PB-14.
   - name: studymatch
     description: Owner M2 (backend and chat screen). PB-29, PB-46. UC-05.
+  - name: rewards
+    description: |
+      Points and coupons. Owner M6 (backend and screens). PB-24 to PB-27, PB-38. UC-09, UC-13, UC-14.
+      Points come from surveys (awarded by the backend after a survey is stored, never by a call
+      from the app). Coupon codes are XXXX-XXXX; a coupon is issued -> active (5 minutes) -> expired.
   - name: staff
     description: |
       Staff API, used by the Staff Console at /console (owner M1; pages by their story owners).
@@ -966,6 +971,140 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '429': { $ref: '#/components/responses/RateLimited' }
 
+  /me/points:
+    get:
+      tags: [rewards]
+      summary: My points balance and today's progress towards the daily cap (PB-24, RWD-004, RWD-016)
+      description: The daily cap counts survey points on the Africa/Cairo calendar day.
+      operationId: getMyPoints
+      responses:
+        '200':
+          description: Points summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PointsSummary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /coupon-offers:
+    get:
+      tags: [rewards]
+      summary: Coupons on offer, with point cost and venue, cheapest first (PB-25, RWD-005)
+      description: Open to guests, so a visitor can see what points are worth before signing up.
+      operationId: listCouponOffers
+      security: []
+      responses:
+        '200':
+          description: Active offers of active venues
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/CouponOffer' }
+
+  /coupon-offers/{offerId}/redeem:
+    post:
+      tags: [rewards]
+      summary: Spend points on a coupon; it is e-mailed to the account's address (PB-25, PB-26, UC-13)
+      description: |
+        One transaction: balance check, deduction, points-history row and coupon (RWD-007 to RWD-009).
+        Then the coupon is e-mailed with an Activate link (RWD-014). A failed e-mail never undoes the
+        redemption: emailStatus is pending and the backend retries 1, 5, 15 and 60 minutes after the
+        first failure, then marks it failed (SDS 6.6.9); the coupon is always in GET /me/coupons.
+      operationId: redeemCouponOffer
+      parameters:
+        - { name: offerId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '201':
+          description: The new coupon (status issued)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Not enough points (RWD-008); the balance is unchanged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorBody' }
+              example:
+                code: CONFLICT
+                message: You need 10 more points for this coupon. Your points have not changed.
+                details: { reason: INSUFFICIENT_POINTS, balance: 20, pointCost: 30 }
+
+  /me/coupons:
+    get:
+      tags: [rewards]
+      summary: My coupons, issued, active and expired; the running one first (PB-25, RWD-021)
+      operationId: listMyCoupons
+      responses:
+        '200':
+          description: Coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Coupon' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /me/coupons/{couponId}/activate:
+    post:
+      tags: [rewards]
+      summary: Activate a coupon at the counter; starts the 5-minute countdown once (PB-27, UC-14)
+      description: |
+        RWD-017 to RWD-020. Activating again while it runs returns the same coupon (the timer never
+        restarts). After 5 minutes it is expired for good: 409 with details.reason COUPON_EXPIRED and
+        the coupon in details.coupon. Points are never refunded.
+      operationId: activateMyCoupon
+      parameters:
+        - { name: couponId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The active coupon with activatedAt and expiresAt
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '400': { $ref: '#/components/responses/InvalidInput' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CouponExpired' }
+
+  /coupons/by-token/{token}:
+    get:
+      tags: [rewards]
+      summary: The coupon behind an e-mail Activate link; reading never activates it (PB-27)
+      description: |
+        Used by the page at /coupon/#t=<token> that the e-mail links to. The 22-character token is
+        the proof (SDS 6.6.7); only its SHA-256 is stored.
+      operationId: getCouponByToken
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/ActivationToken' }
+      responses:
+        '200':
+          description: The coupon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /coupons/by-token/{token}/activate:
+    post:
+      tags: [rewards]
+      summary: Activate from the e-mail link page (PB-27, RWD-017)
+      operationId: activateCouponByToken
+      security: []
+      parameters:
+        - { $ref: '#/components/parameters/ActivationToken' }
+      responses:
+        '200':
+          description: The active coupon
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Coupon' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/CouponExpired' }
+
 security:
   - bearerAuth: []
 
@@ -1000,6 +1139,12 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    ActivationToken:
+      name: token
+      in: path
+      required: true
+      description: 22 characters, URL-safe base64 (from the e-mail link)
+      schema: { type: string, pattern: '^[A-Za-z0-9_-]{22}$' }
     VenueId:
       name: venueId
       in: path
@@ -1085,6 +1230,15 @@ components:
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ErrorBody' }
+    CouponExpired:
+      description: The coupon expired; it can be activated only once and is not refunded (RWD-020)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorBody' }
+          example:
+            code: CONFLICT
+            message: This coupon has expired. A coupon can be activated only once, and its points are not refunded.
+            details: { reason: COUPON_EXPIRED }
     RateLimited:
       description: Too many requests
       content:
@@ -1506,3 +1660,52 @@ components:
         pointsIssued: { type: integer }
         couponsRedeemed: { type: integer }
         failedSignIns: { type: integer }
+
+    PointsSummary:
+      type: object
+      required: [balance, earnedToday, dailyCap, perCategory]
+      properties:
+        balance: { type: integer, minimum: 0 }
+        earnedToday: { type: integer, minimum: 0, description: Survey points earned today (Africa/Cairo) }
+        dailyCap: { type: integer, example: 100 }
+        perCategory:
+          type: object
+          description: Points one answer earns (configurable, FR-039). Wi-Fi "not used" earns none.
+          required: [crowd, noise, wifi]
+          properties:
+            crowd: { type: integer, example: 10 }
+            noise: { type: integer, example: 10 }
+            wifi: { type: integer, example: 10 }
+
+    CouponOffer:
+      type: object
+      required: [id, venueId, venueName, reward, pointCost]
+      properties:
+        id: { type: string, format: uuid }
+        venueId: { type: string, format: uuid }
+        venueName: { type: string }
+        reward: { type: string, example: Free Turkish coffee }
+        pointCost: { type: integer, minimum: 1, example: 30 }
+
+    Coupon:
+      type: object
+      required:
+        [id, code, reward, venueId, venueName, pointCost, status, redeemedAt, activatedAt, expiresAt, emailStatus]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, pattern: '^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$', example: K7QM-4TXD }
+        reward: { type: string }
+        venueId: { type: string, format: uuid }
+        venueName: { type: string }
+        pointCost: { type: integer }
+        status:
+          type: string
+          enum: [issued, active, expired]
+          description: Checked on every read, so a coupon is expired the moment its 5 minutes end
+        redeemedAt: { type: string, format: date-time }
+        activatedAt: { type: string, format: date-time, nullable: true }
+        expiresAt: { type: string, format: date-time, nullable: true, description: activatedAt + 5 minutes }
+        emailStatus:
+          type: string
+          enum: [pending, sent, failed]
+          description: pending = not sent yet or waiting for a retry; failed = all retries used

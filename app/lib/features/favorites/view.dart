@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/models/venue.dart';
 import '../../core/services.dart';
-import '../../core/widgets/back_or_home_button.dart';
 import '../../core/widgets/error_view.dart';
 import '../../core/widgets/view_model_builder.dart';
 import 'repository.dart';
@@ -21,7 +20,6 @@ class FavoritesView extends StatelessWidget {
       onReady: (vm) => vm.load(),
       builder: (context, vm) => Scaffold(
         appBar: AppBar(
-          leading: const BackOrHomeButton(),
           title: const Text('Favorites'),
         ),
         body: _body(context, vm),
