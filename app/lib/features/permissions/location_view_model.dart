@@ -47,6 +47,7 @@ class LocationViewModel extends ViewModel {
     notify();
     final result = await location.requestAccess();
     await _flags.markLocationAsked();
+    await _flags.setLocationAllowed(result.hasForegroundAccess);
     if (result.hasForegroundAccess) {
       step = LocationStep.granted;
     } else {
@@ -59,6 +60,7 @@ class LocationViewModel extends ViewModel {
   /// "Not now": never shows the OS prompt.
   Future<void> notNow() async {
     await _flags.markLocationAsked();
+    await _flags.setLocationAllowed(false);
     refusal = null;
     step = LocationStep.manualArea;
     notify();

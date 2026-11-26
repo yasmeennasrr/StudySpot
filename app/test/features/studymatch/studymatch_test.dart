@@ -10,7 +10,8 @@ import 'package:studyspot/features/studymatch/studymatch_view_model.dart';
 
 import '../../helpers.dart';
 
-/// PB-29 / UC-05: the StudyMatch chat in the app. TC-M2-55..TC-M2-59, TC-M2-67, TC-M2-68.
+/// PB-29 / UC-05: the StudyMatch chat in the app. TC-M2-55..TC-M2-59, TC-M2-67, TC-M2-68,
+/// TC-M2-72.
 void main() {
   test('TC-M2-55 sending shows the question at once, a progress state, then the answer with places', () async {
     final w = TestWorld(locationAccess: LocationAccess.granted);
@@ -51,6 +52,15 @@ void main() {
       0,
       reason: 'the chat never asks for permission itself',
     );
+  });
+
+  test('TC-M2-72 "background" access counts as granted in StudyMatch too', () async {
+    final w = TestWorld(locationAccess: LocationAccess.backgroundGranted);
+    await (StudyMatchViewModel(
+      api: w.api,
+      location: w.location,
+    )..setDraft('quiet')).send();
+    expect(w.api.studyMatchQuestions.single.lat, isNotNull);
   });
 
   test(
