@@ -131,6 +131,7 @@ export class GeminiLlmAdapter implements ILLM {
     turns: LlmTurn[];
     tools: { name: string; description: string; parameters: object }[];
     timeoutMs: number;
+    toolChoice?: 'auto' | 'none';
   }): Promise<LlmTurn> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), input.timeoutMs);
@@ -144,6 +145,9 @@ export class GeminiLlmAdapter implements ILLM {
           systemInstruction: { parts: [{ text: input.system }] },
           contents: toGeminiContents(input.turns),
           ...(input.tools.length ? { tools: [{ functionDeclarations: input.tools }] } : {}),
+          ...(input.tools.length && input.toolChoice === 'none'
+            ? { toolConfig: { functionCallingConfig: { mode: 'NONE' } } }
+            : {}),
           generationConfig: {
             temperature: 0.2,
             maxOutputTokens: 1024,

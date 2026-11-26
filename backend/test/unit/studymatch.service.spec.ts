@@ -192,6 +192,56 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
     expect(late.llmCalls).toHaveLength(1);
   });
 
+  it('TC-M1-94 last round: tools are switched off, so the AI answers with what it found (no fallback)', async () => {
+    const { service, llmCalls, toolCalls } = setup([
+      call('find_venues'),
+      call('get_conditions'),
+      call('recommend_venues', { criteria: [{ name: 'noise', value: 'quiet', required: true }] }),
+      // Round 4: Gemini would like one more tool, but it may only answer now.
+      (input) =>
+        input.toolChoice === 'none'
+          ? { role: 'model', text: 'Quiet Corner Zamalek is quiet right now (current).' }
+          : { role: 'model', toolCalls: [{ name: 'get_conditions', arguments: {} }] },
+    ]);
+
+    const answer = await service.ask({ ...ME, text: 'A quiet café near me' });
+
+    expect(llmCalls.map((c) => c.toolChoice)).toEqual(['auto', 'auto', 'auto', 'none']);
+    expect(llmCalls[3].tools).toHaveLength(TOOL_DEFINITIONS.length); // still declared
+    expect(toolCalls.map((t) => t.name)).toEqual([
+      'find_venues',
+      'get_conditions',
+      'recommend_venues',
+    ]);
+    expect(answer).toMatchObject({
+      reply: 'Quiet Corner Zamalek is quiet right now (current).',
+      recommendations: [{ venue: VENUE }],
+      degraded: false,
+      reasonCode: 'OK',
+    });
+  });
+
+  it('TC-M1-94 last round: a tool call that comes with text is not run; one without text still falls back', async () => {
+    const both = setup([
+      call('find_venues'),
+      call('find_venues'),
+      call('find_venues'),
+      () => ({
+        role: 'model',
+        text: 'Here is what I found.',
+        toolCalls: [{ name: 'find_venues', arguments: {} }],
+      }),
+    ]);
+    expect((await both.service.ask({ ...ME, text: 'quiet' })).reply).toBe('Here is what I found.');
+    expect(both.toolCalls).toHaveLength(3);
+
+    const silent = setup(Array.from({ length: 4 }, () => call('find_venues')));
+    await expect(silent.service.converse(ME, 'quiet')).rejects.toMatchObject({
+      reason: 'too many tool rounds',
+    });
+    expect(silent.toolCalls).toHaveLength(3);
+  });
+
   const failAfter =
     (clock: FakeClock, seconds: number, reason = 'timeout'): Step =>
     () => {

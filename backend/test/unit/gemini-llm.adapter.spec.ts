@@ -88,6 +88,18 @@ describe('GeminiLlmAdapter (PB-29)', () => {
     ]);
   });
 
+  it('TC-M1-95 toolChoice none keeps the tools declared and tells Gemini not to call them', async () => {
+    const { adapter, calls } = adapterWith(async () =>
+      reply(200, { candidates: [{ content: { parts: [{ text: 'Done.' }] } }] }),
+    );
+    await adapter.generate({ ...input([{ role: 'user', text: 'quiet' }]), toolChoice: 'none' });
+    await adapter.generate(input([{ role: 'user', text: 'quiet' }]));
+    const [last, normal] = calls.map((c) => JSON.parse(String(c.init.body)));
+    expect(last.tools).toEqual([{ functionDeclarations: TOOLS }]);
+    expect(last.toolConfig).toEqual({ functionCallingConfig: { mode: 'NONE' } });
+    expect(normal.toolConfig).toBeUndefined();
+  });
+
   it('TC-M2-27 a functionCall answer becomes tool calls; text and calls can come together', async () => {
     const { adapter } = adapterWith(async () =>
       reply(200, {

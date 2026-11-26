@@ -63,6 +63,11 @@ export interface ILLM {
     turns: LlmTurn[];
     tools: { name: string; description: string; parameters: object }[];
     timeoutMs: number;
+    /**
+     * 'none': the tools stay declared (so earlier tool turns still make sense) but the model
+     * may not call one and must answer in text. StudyMatch uses it for its last round.
+     */
+    toolChoice?: 'auto' | 'none';
   }): Promise<LlmTurn>;
 }
 

@@ -4,11 +4,11 @@
 
 ## Summary
 
-**324** test cases: **319** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
+**326** test cases: **321** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M1 | 93 | 91 | 1 | 1 | 93 |
+| M1 | 95 | 93 | 1 | 1 | 95 |
 | M2 | 75 | 74 | 1 | 0 | 75 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
@@ -23,7 +23,7 @@
 | Performance | 3 |
 | System | 2 |
 | System (manual) | 1 |
-| Unit | 185 |
+| Unit | 187 |
 | Unit (app) | 9 |
 | Widget | 14 |
 
@@ -31,7 +31,7 @@
 
 | Requirement | Test cases | Levels | Status |
 | --- | --- | --- | --- |
-| AI-001 | TC-M2-26, TC-M2-27, TC-M2-41, TC-M2-52, TC-M2-53, TC-M2-54, TC-M2-55, TC-M2-57, TC-M2-63, TC-M2-64, TC-M2-65, TC-M2-66, TC-M2-67, TC-M2-68 | Unit, Integration | ✅ all pass |
+| AI-001 | TC-M2-26, TC-M2-27, TC-M2-41, TC-M2-52, TC-M2-53, TC-M2-54, TC-M2-55, TC-M2-57, TC-M2-63, TC-M2-64, TC-M2-65, TC-M2-66, TC-M2-67, TC-M2-68, TC-M1-95 | Unit, Integration | ✅ all pass |
 | AI-003 | TC-M2-42, TC-M2-56, TC-M2-64, TC-M2-67, TC-M2-72 | Unit | ✅ all pass |
 | AI-004 | TC-M2-49 | Unit | ✅ all pass |
 | AI-005 | TC-M2-52 | Integration | ✅ all pass |
@@ -46,12 +46,12 @@
 | AI-016 | TC-M4-29 | Unit | ✅ all pass |
 | AI-017 | TC-M2-42, TC-M4-31 | Unit | ✅ all pass |
 | AI-018 | TC-M2-44 | Unit | ✅ all pass |
-| AI-019 | TC-M2-47, TC-M2-48, TC-M2-51, TC-M2-53, TC-M2-59, TC-M2-68 | Unit, Integration, Widget | ✅ all pass |
+| AI-019 | TC-M2-47, TC-M2-48, TC-M2-51, TC-M2-53, TC-M2-59, TC-M2-68, TC-M1-94 | Unit, Integration, Widget | ✅ all pass |
 | AI-020 | TC-M2-43 | Unit | ✅ all pass |
 | AI-023 | TC-M1-77, TC-M1-78, TC-M1-82 | Unit, Integration | ✅ all pass |
 | AI-024 | TC-M2-44 | Unit | ✅ all pass |
 | AI-026 | TC-M1-79, TC-M1-84, TC-M1-89 | Unit, Integration, Unit (app) | ✅ all pass |
-| AI-028 | TC-M2-33, TC-M2-46, TC-M2-73, TC-M2-74 | Unit | ✅ all pass |
+| AI-028 | TC-M2-33, TC-M2-46, TC-M2-73, TC-M2-74, TC-M1-94, TC-M1-95 | Unit | ✅ all pass |
 | AI-029 | TC-M2-28, TC-M2-30, TC-M2-47, TC-M2-49, TC-M2-50, TC-M2-53, TC-M2-59, TC-M2-73, TC-M2-74, TC-M2-75 | Unit, Integration, Widget | ✅ all pass |
 | CON-001 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
 | CON-002 | TC-M4-40, TC-M4-41, TC-M4-42 | Integration, Unit (app), Widget | ✅ all pass |
@@ -117,7 +117,7 @@
 | FR-044 | TC-M4-20, TC-M4-24, TC-M4-25, TC-M4-26, TC-M1-59, TC-M1-66, TC-M1-72 | Integration, Unit | ✅ all pass |
 | PERF-001 | TC-M1-90 | Performance | ✅ all pass |
 | PERF-002 | TC-M1-91 | Performance | ✅ all pass |
-| PERF-003 | TC-M2-46, TC-M2-53, TC-M2-73 | Unit, Integration | ✅ all pass |
+| PERF-003 | TC-M2-46, TC-M2-53, TC-M2-73, TC-M1-94 | Unit, Integration | ✅ all pass |
 | PERF-005 | TC-M4-34, TC-M4-40, TC-M4-43, TC-M4-12 | Unit, Integration | ✅ all pass |
 | PERF-006 | TC-M1-92 | Performance | ❌ 1 failing |
 | PERF-007 | TC-M2-55 | Unit | ✅ all pass |
@@ -478,6 +478,8 @@
 | TC-M1-91 | PERF-002 | Performance measurement (timed requests) | Performance | pass | `scripts/perf.mjs` |
 | TC-M1-92 | PERF-006 | Load test (100 concurrent virtual users) | Performance | fail | `scripts/perf.mjs` |
 | TC-M1-93 | FR-009, FR-012, FR-013 | Use-case based (plan a visit far away) and boundary (distance math) | Unit (app) | not run | `app/test/features/search/search_view_model_test.dart` |
+| TC-M1-94 | AI-028, AI-019, PERF-003 | Boundary value analysis (last tool round) | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
+| TC-M1-95 | AI-001, AI-028 | Inspection | Unit | pass | `backend/test/unit/gemini-llm.adapter.spec.ts` |
 | TC-M6-13 | RWD-002, CON-004 | Equivalence partitioning (answers per category) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
 | TC-M6-14 | RWD-016 | Boundary value analysis | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
 | TC-M6-15 | SEC-012 | Equivalence partitioning + boundary (all-0 and all-1 bits) | Unit | pass | `backend/test/unit/rewards.rules.spec.ts` |
