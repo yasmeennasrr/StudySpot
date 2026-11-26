@@ -205,8 +205,12 @@ export class StudyMatchService implements IStudyMatch {
     ];
     let recommended: RecommendedVenue[] = [];
     let retried = false;
+    const toolsAsked: string[][] = [];
 
     for (let round = 0; round < MAX_ROUNDS; round++) {
+      // Last round: no more tools, so the AI answers with what the tools already found
+      // instead of asking again and ending in standard results.
+      const lastRound = round === MAX_ROUNDS - 1;
       const timeLeft = () => deadline - this.clock.now().getTime();
       if (timeLeft() < MIN_CALL_MS) throw new StudyMatchUnavailable('deadline');
       const generate = (limitMs: number) =>
@@ -214,6 +218,7 @@ export class StudyMatchService implements IStudyMatch {
           system,
           turns,
           tools: this.tools.definitions,
+          toolChoice: lastRound ? 'none' : 'auto',
           timeoutMs: Math.min(limitMs, timeLeft()),
         });
       let answer: LlmTurn;
@@ -231,14 +236,23 @@ export class StudyMatchService implements IStudyMatch {
         throw new StudyMatchUnavailable(reason);
       }
 
-      const calls = answer.toolCalls ?? [];
+      // On the last round a tool call cannot be run any more: keep the text if there is some.
+      const calls = lastRound ? [] : (answer.toolCalls ?? []);
       if (calls.length === 0) {
+        if (!answer.text && answer.toolCalls?.length) {
+          this.logger.warn(
+            { userId: ctx.userId, toolsAsked },
+            'StudyMatch: the AI still wanted tools',
+          );
+          throw new StudyMatchUnavailable('too many tool rounds');
+        }
         if (!answer.text) throw new StudyMatchUnavailable('empty answer');
         const { reply, reasonCode } = readReply(answer.text);
         this.logger.log(
           {
             userId: ctx.userId,
             rounds: round + 1,
+            toolsAsked,
             reasonCode,
             ms: this.clock.now().getTime() - started,
           },
@@ -252,6 +266,7 @@ export class StudyMatchService implements IStudyMatch {
         };
       }
 
+      toolsAsked.push(calls.map((c) => c.name));
       turns.push(answer);
       for (const [i, call] of calls.entries()) {
         const outcome =
@@ -271,6 +286,7 @@ export class StudyMatchService implements IStudyMatch {
         });
       }
     }
+    // Not reached: the last round never runs tools. Kept so the loop cannot end silently.
     throw new StudyMatchUnavailable('too many tool rounds');
   }
 }
