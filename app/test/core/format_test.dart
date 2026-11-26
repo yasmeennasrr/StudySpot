@@ -40,10 +40,13 @@ void main() {
     expect(distanceText(null), '');
   });
 
-  test('TC-M6-05 price and opening hours: unknown price, 1 to 4 signs, closed days', () {
+  test('TC-M6-05 price and opening hours: unknown price, 1 to 4 in words, closed days', () {
     expect(priceText(null), 'Price unknown');
-    expect(priceText(1), 'E£');
-    expect(priceText(4), 'E£E£E£E£');
+    expect(priceText(1), 'Budget');
+    expect(priceText(2), 'Moderate');
+    expect(priceText(3), 'Pricey');
+    expect(priceText(4), 'Luxury');
+    expect(priceText(9), 'Luxury');
     final lines = openingHoursLines({
       0: [(open: '08:00', close: '23:00')],
     });

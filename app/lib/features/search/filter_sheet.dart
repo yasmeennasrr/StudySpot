@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/format.dart';
 import '../../core/models/preferences.dart';
 
 /// PB-10 / FR-013: the filter bottom sheet. Returns the chosen filters, or
@@ -117,7 +118,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               key: const Key('filter_price'),
               label: 'Price at most',
               value: _maxPrice,
-              options: const {1: 'E£', 2: 'E£E£', 3: 'E£E£E£', 4: 'E£E£E£E£'},
+              options: priceLabels,
               onChanged: (v) => setState(() => _maxPrice = v),
             ),
             if (widget.canUseDistance)

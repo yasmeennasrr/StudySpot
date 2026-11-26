@@ -29,6 +29,7 @@ Out of scope for Sprint 1: Presence, Surveys, QR codes, Rewards, Audio, Notifica
 | Contract | Every operation in `contracts/openapi.yaml` is routed; the spec is valid | swagger-parser, TC-M1-28 | `backend/test/int/app.int-spec.ts` | Yes |
 | Widget | Flutter screens render each state (loading, data, empty, error) | `flutter_test` | `app/test/` | Yes, once `app/pubspec.yaml` exists |
 | System / acceptance | Use cases end to end on the deployed API and a real phone | Manual, following the use case steps | Render + the app | No (recorded in the sheet as "Manual") |
+| Usability (PB-43) | Students new to the app complete set tasks unaided (USE-002: at least 80 %), plus SUS | Moderated think-aloud sessions, [`usability-test-plan.md`](usability-test-plan.md); `npm run usability` | iPhone web app + Render | No (TC-M2-61, "Manual") |
 
 ## 3. Techniques (use the name in the Technique column)
 

@@ -4,12 +4,12 @@
 
 ## Summary
 
-**321** test cases: **317** pass, **1** fail, **3** not run yet. They cover **159** requirement IDs.
+**324** test cases: **319** pass, **2** fail, **3** not run yet. They cover **160** requirement IDs.
 
 | Member | Test cases | Pass | Fail | Not run | Automated |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M1 | 93 | 91 | 1 | 1 | 93 |
-| M2 | 72 | 72 | 0 | 0 | 72 |
+| M2 | 75 | 74 | 1 | 0 | 75 |
 | M3 | 40 | 40 | 0 | 0 | 40 |
 | M4 | 33 | 33 | 0 | 0 | 33 |
 | M5 | 15 | 15 | 0 | 0 | 15 |
@@ -22,9 +22,10 @@
 | Integration | 100 |
 | Performance | 3 |
 | System | 2 |
+| System (manual) | 1 |
 | Unit | 185 |
 | Unit (app) | 9 |
-| Widget | 12 |
+| Widget | 14 |
 
 ## Requirement → test cases
 
@@ -91,7 +92,7 @@
 | FR-013 | TC-M3-13, TC-M3-14, TC-M3-15, TC-M3-16, TC-M3-17, TC-M3-18, TC-M3-19, TC-M3-20, TC-M3-21, TC-M3-22, TC-M3-23, TC-M3-24, TC-M3-25, TC-M3-26, TC-M1-57, TC-M6-07, TC-M6-08, TC-M1-93 | Integration, Unit, Unit (app) | ⏳ 1 not run |
 | FR-014 | TC-M6-12, TC-M6-51 | Widget, System | ⏳ 1 not run |
 | FR-015 | TC-M6-11, TC-M6-12 | Unit, Widget | ✅ all pass |
-| FR-016 | TC-M4-14, TC-M6-05, TC-M6-10, TC-M6-52, TC-M6-53, TC-M6-54, TC-M6-55, TC-M6-56, TC-M6-57, TC-M6-58 | Integration, Unit, Widget, System | ⏳ 1 not run |
+| FR-016 | TC-M2-62, TC-M4-14, TC-M6-05, TC-M6-10, TC-M6-52, TC-M6-53, TC-M6-54, TC-M6-55, TC-M6-56, TC-M6-57, TC-M6-58 | Widget, Integration, Unit, System | ⏳ 1 not run |
 | FR-017 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-018 | TC-M4-14, TC-M6-10 | Integration, Unit | ✅ all pass |
 | FR-019 | TC-M4-14, TC-M6-10, TC-M6-12 | Integration, Unit, Widget | ✅ all pass |
@@ -184,14 +185,16 @@
 | SEN-009 | TC-M1-80, TC-M1-81, TC-M1-83, TC-M1-86 | Unit, Integration, Unit (app) | ✅ all pass |
 | UC-03 | TC-M1-35, TC-M3-34, TC-M3-35 | Unit, Integration | ✅ all pass |
 | UC-22 | TC-M1-25 | Unit | ✅ all pass |
-| USE-001 | TC-M6-47, TC-M6-48, TC-M6-49, TC-M6-50, TC-M6-51 | Unit, Widget, System | ⏳ 1 not run |
+| USE-001 | TC-M2-60, TC-M2-61, TC-M6-47, TC-M6-48, TC-M6-49, TC-M6-50, TC-M6-51 | Widget, System (manual), Unit, System | ❌ 1 failing |
+| USE-002 | TC-M2-61 | System (manual) | ❌ 1 failing |
 | USE-003 | TC-M4-31, TC-M6-01 | Unit | ✅ all pass |
 | USE-004 | TC-M6-03 | Unit | ✅ all pass |
 | USE-007 | TC-M2-70, TC-M5-12 | Unit | ✅ all pass |
-| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11, TC-M6-42, TC-M6-44 | Unit, API layer, Unit (app) | ✅ all pass |
+| USE-008 | TC-M1-01, TC-M1-06, TC-M1-11, TC-M1-13, TC-M1-44, TC-M2-23, TC-M2-51, TC-M2-58, TC-M2-62, TC-M4-22, TC-M5-06, TC-M5-14, TC-M6-08, TC-M6-09, TC-M6-11, TC-M6-42, TC-M6-44 | Unit, API layer, Widget, Unit (app) | ✅ all pass |
 | Referential integrity | TC-M1-55 | Integration | ✅ all pass |
 | SDS 5.1 | TC-M1-42 | Unit | ✅ all pass |
 | SDS 6 | TC-M1-26 | Integration | ✅ all pass |
+| USE-003 to USE-007 | TC-M2-61 | System (manual) | ❌ 1 failing |
 
 ## Test case → requirement
 
@@ -351,6 +354,9 @@
 | TC-M2-57 | AI-001, SEC-007 | Boundary value analysis | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-58 | USE-008 | Error guessing | Unit | pass | `app/test/features/studymatch/studymatch_test.dart` |
 | TC-M2-59 | AI-019, AI-029, FR-007 | Use-case based | Widget | pass | `app/test/features/studymatch/studymatch_test.dart` |
+| TC-M2-60 | USE-001 | Boundary value analysis (2 interactions) | Widget | pass | `app/test/usability/use001_test.dart` |
+| TC-M2-61 | USE-002, USE-001, USE-003 to USE-007 | Usability test (moderated, think-aloud, SUS) | System (manual) | fail | `docs/testing/usability-results.md` |
+| TC-M2-62 | FR-016, USE-008 | Equivalence partitioning | Widget | pass | `app/test/usability/price_labels_test.dart` |
 | TC-M2-63 | AI-001, AI-014 | Use-case based | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
 | TC-M2-64 | AI-001, AI-003 | Use-case based | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
 | TC-M2-65 | AI-001 | Error guessing | Unit | pass | `backend/test/unit/studymatch.service.spec.ts` |
