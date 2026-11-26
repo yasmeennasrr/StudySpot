@@ -1,3 +1,4 @@
+import { LlmBadRequestError } from '../../src/adapters/llm/gemini-llm.adapter';
 import { AdapterUnavailableError } from '../../src/common/errors/app-error';
 import type { ILLM, IPreferences, IVenueQuery, LlmTurn, VenueSummary } from '../../src/contracts';
 import { FakeClock } from '../../src/modules/clock/fake-clock';
@@ -12,7 +13,7 @@ import {
 } from '../../src/modules/studymatch/studymatch.service';
 
 /**
- * TC-M2-41..TC-M2-46, TC-M2-63..TC-M2-65: the StudyMatch orchestrator (PB-29, SDS 7.2, UC-05).
+ * TC-M2-41..TC-M2-46, TC-M2-63..TC-M2-65, TC-M2-73..TC-M2-75: the StudyMatch orchestrator (PB-29, SDS 7.2, UC-05).
  * The LLM is scripted; tools are faked; time comes from FakeClock.
  */
 const VENUE = { id: 'v1', name: 'Quiet Corner Zamalek' } as VenueSummary;
@@ -155,7 +156,7 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
     });
   });
 
-  it('TC-M2-46 limits: at most 4 tool rounds; 9 s deadline; each call gets what is left (at most 5 s)', async () => {
+  it('TC-M2-46 limits: at most 4 tool rounds; 9 s deadline; each call gets what is left (at most 4 s)', async () => {
     const loop = setup(Array.from({ length: 10 }, () => call('find_venues')));
     await expect(loop.service.converse(ME, 'loop forever')).rejects.toBeInstanceOf(
       StudyMatchUnavailable,
@@ -170,7 +171,7 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
     };
     const timed = setup([fourSeconds, fourSeconds, say('just in time')], clock);
     const result = await timed.service.ask({ ...ME, text: 'quiet' });
-    expect(timed.llmCalls.map((c) => c.timeoutMs)).toEqual([5000, 5000, 1000]);
+    expect(timed.llmCalls.map((c) => c.timeoutMs)).toEqual([4000, 4000, 1000]);
     expect(result.reply).toBe('just in time');
 
     // With 8.6 s gone there is no time for another call: unavailable (step 6 falls back).
@@ -189,6 +190,90 @@ describe('StudyMatch orchestrator (PB-29, UC-05)', () => {
       reason: 'deadline',
     });
     expect(late.llmCalls).toHaveLength(1);
+  });
+
+  const failAfter =
+    (clock: FakeClock, seconds: number, reason = 'timeout'): Step =>
+    () => {
+      clock.advance({ seconds });
+      throw new AdapterUnavailableError('llm', reason);
+    };
+
+  it('TC-M2-73 one slow call is tried once more: the student still gets the answer, within the 9 s', async () => {
+    const clock = new FakeClock('2026-11-25T18:00:00Z');
+    const s = setup(
+      [
+        failAfter(clock, 4),
+        call('recommend_venues', { criteria: [] }),
+        say('Quiet Corner Zamalek is quiet right now (current).'),
+      ],
+      clock,
+    );
+    const answer = await s.service.ask({ ...ME, text: 'quiet near me' });
+    expect(answer).toMatchObject({ degraded: false, recommendations: [{ venue: VENUE }] });
+    // First try 4 s; the retry and later calls at most 5 s, never more than what is left.
+    expect(s.llmCalls.map((c) => c.timeoutMs)).toEqual([4000, 5000, 5000]);
+    expect(s.llmCalls[1].turns).toEqual(s.llmCalls[0].turns);
+
+    // A slow second call (after the tools) is retried as well.
+    const later = new FakeClock('2026-11-25T18:00:00Z');
+    const t = setup(
+      [call('recommend_venues', { criteria: [] }), failAfter(later, 4), say('Found one.')],
+      later,
+    );
+    expect(await t.service.ask({ ...ME, text: 'quiet' })).toMatchObject({ reply: 'Found one.' });
+    expect(t.toolCalls).toHaveLength(1);
+  });
+
+  it('TC-M2-74 only one retry per request, and none with under 1 s left: then standard results', async () => {
+    const clock = new FakeClock('2026-11-25T18:00:00Z');
+    const twice = setup([failAfter(clock, 4), failAfter(clock, 4), say('never asked')], clock);
+    expect(await twice.service.ask({ ...ME, text: 'quiet' })).toMatchObject({
+      degraded: true,
+      reasonCode: 'AI_UNAVAILABLE',
+    });
+    expect(twice.llmCalls).toHaveLength(2);
+
+    // The retry is used up by the first call: a slow later call is not retried.
+    const c2 = new FakeClock('2026-11-25T18:00:00Z');
+    const used = setup(
+      [failAfter(c2, 1), call('find_venues'), failAfter(c2, 1), say('never asked')],
+      c2,
+    );
+    expect((await used.service.ask({ ...ME, text: 'quiet' })).degraded).toBe(true);
+    expect(used.llmCalls).toHaveLength(3);
+
+    // Boundary: 1.0 s left is retried, 0.9 s is not.
+    for (const [gone, calls] of [
+      [8.0, 2],
+      [8.1, 1],
+    ]) {
+      const c = new FakeClock('2026-11-25T18:00:00Z');
+      const s = setup([failAfter(c, gone), say('in time')], c);
+      expect((await s.service.ask({ ...ME, text: 'quiet' })).degraded).toBe(calls === 1);
+      expect(s.llmCalls).toHaveLength(calls);
+    }
+  });
+
+  it('TC-M2-75 retried: timeout, network error, HTTP 503; not retried: open circuit, quota (429), refused request', async () => {
+    const attempts = async (error: Error) => {
+      const s = setup([
+        () => {
+          throw error;
+        },
+        say('second try'),
+      ]);
+      const answer = await s.service.ask({ ...ME, text: 'quiet' });
+      expect(answer.degraded).toBe(s.llmCalls.length === 1);
+      return s.llmCalls.length;
+    };
+    for (const reason of ['timeout after 4000 ms', 'network error', 'HTTP 503']) {
+      expect(await attempts(new AdapterUnavailableError('llm', reason))).toBe(2);
+    }
+    for (const reason of ['circuit open', 'HTTP 429']) {
+      expect(await attempts(new AdapterUnavailableError('llm', reason))).toBe(1);
+    }
+    expect(await attempts(new LlmBadRequestError('HTTP 400'))).toBe(1);
   });
 
   it('TC-M2-63 follow-up: the earlier messages reach the AI, oldest first, before the new one', async () => {
